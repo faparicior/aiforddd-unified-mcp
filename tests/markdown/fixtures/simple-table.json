@@ -1,0 +1,20 @@
+[
+  {
+    "Name": "John",
+    "Age": "25",
+    "City": "NYC",
+    "Processed": "y"
+  },
+  {
+    "Name": "Jane",
+    "Age": "30",
+    "City": "LA",
+    "Processed": "n"
+  },
+  {
+    "Name": "Bob",
+    "Age": "35",
+    "City": "Chicago",
+    "Processed": "y"
+  }
+]

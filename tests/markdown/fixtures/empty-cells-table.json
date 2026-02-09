@@ -1,0 +1,23 @@
+[
+  {
+    "ID": "1",
+    "Name": "Alice",
+    "Email": "alice@example.com",
+    "Phone": "",
+    "Processed": "y"
+  },
+  {
+    "ID": "2",
+    "Name": "",
+    "Email": "bob@example.com",
+    "Phone": "555-1234",
+    "Processed": "n"
+  },
+  {
+    "ID": "3",
+    "Name": "Charlie",
+    "Email": "",
+    "Phone": "",
+    "Processed": "y"
+  }
+]

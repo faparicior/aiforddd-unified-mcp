@@ -1,0 +1,20 @@
+[
+  {
+    "Product": "Apple",
+    "Price": "$1.50",
+    "Stock": "Yes",
+    "Processed": "y"
+  },
+  {
+    "Product": "Banana",
+    "Price": "$0.75",
+    "Stock": "No",
+    "Processed": "n"
+  },
+  {
+    "Product": "Orange",
+    "Price": "$2.00",
+    "Stock": "Yes",
+    "Processed": "y"
+  }
+]

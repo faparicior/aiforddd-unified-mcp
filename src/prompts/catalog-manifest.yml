@@ -1,0 +1,196 @@
+name: catalog-manifest
+description: Catalog a code manifest with accelerated batch processing and complete file reading
+arguments:
+  - name: manifest_path
+    required: true
+complementary_prompts:
+  - name: definitions/ddd-definitions.md
+  - name: definitions/code-manifest-definitions-simplified.md
+messages: |
+  You are to catalog a code manifest located at: {{manifest_path}}.
+  Follow these detailed rules for accelerated batch processing with complete file reading to ensure 100% coverage
+  of all classes in the manifest while maintaining high-quality descriptions and accurate rule classifications.
+
+  # One file workflow:
+    - call `mcp__markdown-table-editor__get_first_row_by_column` with empty "Processed" column
+    - call `mcp__read-files__read_file` to read the entire file (no line limits)
+    - analyze class
+    - call `mcp__markdown-table-editor__update_row_by_column` manifest row using Identifier column
+    - repeat loop until all classes catalogued
+ 
+  # Multiple files workflow:
+    - call `mcp__markdown-table-editor__get_multiple_rows_by_column` (8-15 rows per batch)
+    - use `mcp__read-files__read_multiple_files_compressed` to read all files in the batch (MUST use absolute file paths)
+    - analyze each class
+    - call `mcp__markdown-table-editor__update_row_by_column` manifest row using Identifier column
+    - repeat loop until all classes catalogued
+
+  # Code Manifest Cataloging Rules - Accelerated Batch Processing with Complete File Reading
+
+  ## **ACCELERATED BATCH PROCESSING STRATEGY**
+
+  ### **Step 1: Initial Assessment**
+  - Count total uncatalogued classes (call `mcp__markdown-table-editor__filter_and_count_rows` those without a ✓ in the Catalogued column) 
+  - Count total catalogued classes (call `mcp__markdown-table-editor__filter_and_count_rows` those with a ✓ in the Catalogued column)
+  - **ENFORCE**: Continue until 0 uncatalogued classes remain
+
+  ### **Step 2: Accelerated Batch Processing with Complete File Reading**
+  - **SYSTEMATIC DOMAIN-BASED APPROACH**: Process classes by logical domain groups for maximum efficiency
+    - **ACCELERATED BATCHING**: Process 8-15 classes per batch for optimal throughput
+    - **DOMAIN GROUPING**: Group by codebase domains (identify logical modules, features, or architectural layers)
+    - **LAYER CONSISTENCY**: Within domains, batch similar layers together (domain → application → infrastructure)
+    - Update manifest in larger batches to maximize I/O efficiency
+  - **MANDATORY COMPLETE FILE READING**: Read the ENTIRE file content using the Read tool (no line limits)
+    - **ABSOLUTE PATHS REQUIRED**: Always use absolute file paths when calling read tools (never relative paths)
+    - **NO SHORTCUTS**: Every file must be read completely to understand full class context
+    - **PARALLEL READING**: Read multiple related files simultaneously when they share patterns
+    - **COMPREHENSIVE ANALYSIS**: Understand complete class functionality before cataloging
+  - **ACCELERATED CLASS-FOCUSED CATALOGING**: Focus ONLY on the specific class being evaluated:
+    - Describe the individual class's core functionality and business purpose
+    - Apply established classification patterns for efficiency while maintaining accuracy
+    - Include the class's own business rules, validation logic, and constraints
+    - Focus on what THIS specific class does, not its broader context or file dependencies
+    - Ignore other classes, imports, or utility functions in the same file
+  - **EFFICIENT INDIVIDUAL CLASS ANALYSIS**:
+    - For DTOs/Data classes: Focus on the class properties, validation rules, and data structure
+    - For Services: Focus on the class's specific business operations and methods
+    - For Exceptions: Focus on the class's error conditions and context
+    - For Repositories/Interfaces: Focus on the class's data access contracts
+    - For Event Processors/Consumers: Focus on the class's event processing logic
+    - For Controllers/Handlers: Focus on the class's request handling and endpoints
+    - For Configurations: Focus on the class's setup and dependency definitions
+    - For Utilities: Focus on the class's specific utility functions and constraints
+    - For Models/Entities: Focus on the class's data representation and business rules
+
+  ### **Step 3: Enhanced Cataloging Requirements**
+  Update the manifest with these columns based on complete file reading but class-focused analysis:
+  - **Layer**: Correctly identify the DDD layer (Domain, Application, Infrastructure, User Interface)
+  - **MANDATORY**: ONLY value layers from "## DDD layers" table:
+    - Domain Layer
+    - Application Layer
+    - Infrastructure Layer
+    - User Interface Layer
+  - **Category**: Specify the exact DDD pattern 
+  - **MANDATORY**: ONLY use categories from "DDD Categories by Layer" table:
+    - **User Interface Layer**: Controller, Event consumer, Console command, Scheduler, Response
+    - **Application Layer**: Command, Query, Use case, Response
+    - **Domain Layer**: Domain service, Domain event, Domain interface, Entity, Aggregate root, Value object, Domain exception
+    - **Infrastructure Layer**: Repository, Integration event, Integration service, Configuration, Infrastructure exception
+    - **FORBIDDEN CATEGORIES**: Never use "Messaging", "Metrics", "External Systems", "Persistence", or any category not listed in ddd-definitions.md
+  - **Description**: Core functionality and purpose of the class
+  
+  **Classification Columns (mark with ✓ ONLY when applicable, otherwise leave empty):**
+  - **Integration Rules**: Mark ✓ if filters/rejects external data, acts as boundary protection, or in anti-corruption layers
+  - **Validation Rules**: Mark ✓ if performs technical/format validation at system boundaries (mappers, controllers, DTOs)
+  - **Invariants**: Mark ✓ if enforces structural integrity constraints in constructors/init blocks (Value Objects, Entities, Aggregates)
+  - **Business Rules**: Mark ✓ if implements changeable business policies/workflows (Domain Services, Application Services, Use Cases)
+  - **Factory/Creation**: Mark ✓ if has factory methods, companion object factories, or builder patterns
+  - **Transformations**: Mark ✓ if converts between formats/units or calculates derived values
+  - **Identity Management**: Mark ✓ if Entity/Aggregate with ID property and ID-based equals()/hashCode() (NEVER for Value Objects)
+  - **Lifecycle Management**: Mark ✓ if manages state transitions with validation rules (Entities, Aggregates)
+  - **Domain Events**: Mark ✓ if emits domain events OR is itself a domain event class
+  - **Integration event**: Mark ✓ if IS an integration event class that crosses bounded contexts or system boundaries
+  - **Aggregate Consistency**: Mark ✓ if Aggregate Root coordinating child entities and enforcing aggregate-wide invariants
+  - **External Dependencies**: Mark ✓ if depends on repositories, APIs, message brokers, or external services
+  - **Event Mapping**: Mark ✓ if translates external events to domain models (event consumers, anti-corruption layers)
+  - **Error Handling**: Mark ✓ if has explicit error recovery patterns (retry, circuit breaker, fallback, DLQ)
+  - **Idempotency**: Mark ✓ if implements idempotency checks or deduplication logic
+  - **Side Effects**: Mark ✓ if performs I/O operations (database, network, files) or publishes events
+  - **Transaction Management**: Mark ✓ if uses @Transactional, explicit transactions, or saga patterns
+  - **Inbound communication**: Mark ✓ if receives HTTP requests, consumes messages/events, or handles external commands (controllers, REST endpoints, message consumers, event listeners, CLI handlers)
+  - **Outbound communication**: Mark ✓ if makes HTTP/API calls, publishes events/messages, or calls external services (API clients, event publishers, message producers, external service adapters)
+  - **Possible outsider**: Mark ✓ if class shows signs of DDD violations: layer violations (domain depending on infrastructure), mixed responsibilities (entity doing I/O, value object with identity), anti-patterns (anemic models, god objects), business logic in wrong layer, infrastructure concerns in domain, missing expected patterns (aggregate without consistency, consumer without idempotency)
+  - **Catalogued**: Mark as catalogued (✓) for every class analyzed
+
+  ### **Step 4: Quality Standards for Descriptions**
+  - **CONCISE & SCANNABLE**: Write 15-60 word descriptions that express the class naturally
+  - **FUNCTIONAL FOCUS**: Describe what the class does, not how it's implemented
+  - **BUSINESS CONTEXT**: Include relevant business rules, validation constraints, thresholds
+  - **SPECIFIC VALUES FOR ENUMS**: For enumerations, always include the specific valid values
+  - **VALIDATION CONSTRAINTS**: For validators, specify exact rules, ranges, or constraints
+  - **NO TEMPLATES**: Write expressively about the class, not from rigid patterns
+  - **GROUP RELATED CONCEPTS**: Use parentheses to group related details instead of long lists
+  - **KEY INFO FIRST**: Lead with core purpose, follow with important details
+  
+  **EXAMPLES of quality descriptions**:
+  - ❌ BAD (too generic): "Handles order processing"
+  - ✅ GOOD: "Processes orders with inventory validation and payment authorization"
+  
+  - ❌ BAD (too vague): "Exception for validation errors"
+  - ✅ GOOD: "Thrown when price is negative or quantity exceeds stock"
+  
+  - ❌ BAD (missing values): "Enumeration for payment status"
+  - ✅ GOOD: "Payment status: PENDING, AUTHORIZED, CAPTURED, REFUNDED, FAILED"
+  
+  - ❌ BAD (too long): "Domain factory service that validates various minimum threshold constraints including quantity which must be greater than zero, discount percentage which must be in the range of zero to one hundred, and customer email which must be non-null and conform to RFC 5322 format constraints"
+  - ✅ GOOD: "Validates constraints: quantity >0, discount 0-100%, email format per RFC 5322"
+  
+  - ❌ BAD (implementation details): "Application service class that orchestrates customer onboarding by calling the EmailValidationService, then checking for duplicates in the CustomerRepository, and finally triggering WelcomeEmailPublisher"
+  - ✅ GOOD: "Orchestrates customer onboarding: validates email, checks duplicates, sends welcome notification"
+  
+  - ❌ BAD (too verbose): "Application service orchestrating invoice generation workflow. Validates customer data with CustomerValidationService, retrieves billing information via BillingRepository, calculates taxes using TaxCalculationService, applies discounts through DiscountService, generates PDF document with InvoiceTemplateService, stores in DocumentRepository, publishes event to InvoicePublisher..."
+  - ✅ GOOD: "Generates invoices: validates customer, retrieves billing info, calculates taxes and discounts, creates PDF, stores document, publishes event."
+
+  ### **Step 5: Complete Classification Guidelines**
+  **IMPORTANT**: Only mark columns with ✓ - never add text descriptions to any classification column.
+
+  **Quick Decision Framework** (see **DDD Classification Guide** definitions for details):
+  
+  | If the class... | Then mark... |
+  |----------------|--------------|
+  | Filters external system data at integration points | **Integration Rules** ✓ |
+  | Validates technical formats at boundaries (mapper/controller) | **Validation Rules** ✓ |
+  | Validates structural integrity in constructor/init | **Invariants** ✓ |
+  | Enforces changeable business policies at service level | **Business Rules** ✓ |
+  | Has factory methods or builder patterns | **Factory/Creation** ✓ |
+  | Converts between formats or calculates derived values | **Transformations** ✓ |
+  | Is Entity/Aggregate with ID-based equality | **Identity Management** ✓ |
+  | Manages state transitions | **Lifecycle Management** ✓ |
+  | Emits or IS a domain event | **Domain Events** ✓ |
+  | IS an integration event crossing bounded contexts | **Integration event** ✓ |
+  | Is Aggregate Root coordinating child entities | **Aggregate Consistency** ✓ |
+  | Depends on external APIs/repositories | **External Dependencies** ✓ |
+  | Translates external events to domain | **Event Mapping** ✓ |
+  | Has retry/circuit breaker/fallback logic | **Error Handling** ✓ |
+  | Checks for duplicate processing | **Idempotency** ✓ |
+  | Performs I/O or publishes events | **Side Effects** ✓ |
+  | Manages transactions or sagas | **Transaction Management** ✓ |
+  | Receives HTTP requests, consumes messages/events | **Inbound communication** ✓ |
+  | Makes API calls, publishes events/messages | **Outbound communication** ✓ |
+  | Violates DDD principles or has mixed responsibilities | **Possible outsider** ✓ |
+  
+  **Common Patterns**:
+  - **Value Objects**: Typically have Invariants ✓, Transformations ✓, Factory/Creation ✓ (NEVER Identity Management)
+  - **Entities**: Typically have Invariants ✓, Business Rules ✓, Identity Management ✓
+  - **Aggregates**: All of Entity + Aggregate Consistency ✓, often Domain Events ✓, Lifecycle Management ✓
+  - **Domain Services**: Typically have Business Rules ✓, External Dependencies ✓
+  - **Application Services**: Typically have Business Rules ✓, External Dependencies ✓, Side Effects ✓, Transaction Management ✓
+  - **Consumers**: Typically have Integration Rules ✓, Event Mapping ✓, External Dependencies ✓, Inbound communication ✓, often Error Handling ✓, Idempotency ✓, Outbound communication ✓
+  - **Integration Events**: Typically have Integration event ✓, sometimes Transformations ✓ (NEVER Business Rules, Domain Events, Side Effects)
+  - **Controllers**: Typically have Inbound communication ✓, Validation Rules ✓, sometimes Business Rules ✓, External Dependencies ✓
+  - **API Clients / Event Publishers**: Typically have Outbound communication ✓, External Dependencies ✓, Side Effects ✓, sometimes Transformations ✓, Error Handling ✓
+  - **Mappers**: Typically have Validation Rules ✓, Transformations ✓ (NEVER Business Rules, Inbound/Outbound communications)
+  - **Simple DTOs/Commands**: All columns empty ❌
+
+  ### **Step 6: Verification**
+  - Final count verification: call `mcp__markdown-table-editor__filter_and_count_rows` those with a ✓ in the Catalogued column should equal to call `mcp__markdown-table-editor__count_markdown_table_rows_tool`
+  - **MANDATORY**: Achieve exactly 100% coverage - no exceptions
+ 
+  ## **KEY PRINCIPLES FOR ACCELERATED BATCH PROCESSING**
+  - **MANDATORY COMPLETE FILE READING**: Read entire file content for full understanding - NO EXCEPTIONS
+  - **ABSOLUTE PATHS REQUIRED**: Always use absolute file paths when reading files (extract from manifest File column and prepend workspace root)
+  - **ACCELERATED EFFICIENCY**: Process 8-15 classes per batch while maintaining quality standards
+  - **DOMAIN-BASED BATCHING**: Group classes by logical domains (identify and process by architectural modules/features)
+  - **CLASS-FOCUSED CATALOGING**: Describe only the specific class being catalogued, not the broader file context
+  - **PATTERN RECOGNITION**: Apply established classification patterns for speed while ensuring accuracy
+  - **PARALLEL PROCESSING**: Read multiple related files simultaneously when they share similar patterns
+  - **INDIVIDUAL CLASS FOCUS**: Focus on what THIS specific class does, ignoring other classes in the same file
+  - **QUALITY DESCRIPTIONS**: Meaningful descriptions based on the individual class's functionality and rules
+  - **MANDATORY VALUE SPECIFICATION**: For enums and validation classes, always include specific values, constraints, and validation rules
+  - **ALL 20 CLASSIFICATION COLUMNS**: Evaluate all aspects (Integration Rules, Validation Rules, Invariants, Business Rules, Factory/Creation, Transformations, Identity Management, Lifecycle Management, Domain Events, Integration event, Aggregate Consistency, External Dependencies, Event Mapping, Error Handling, Idempotency, Side Effects, Transaction Management, Inbound communication, Outbound communication, Possible outsider)
+  - **COLUMN MARKERS ONLY**: Use only ✓ in classification columns - never add text descriptions
+  - **PRECISE CLASSIFICATION**: Use **DDD Classification Guide** definitions for accurate guidance on all 20 aspects
+  - **VALIDATION CHECKLIST**: Verify Value Objects never have Identity Management, Aggregates coordinating children have Aggregate Consistency, Services with repositories have External Dependencies, any I/O has Side Effects, Controllers/Consumers have Inbound communication, API clients/Event publishers have Outbound communication, Integration event classes crossing bounded contexts have Integration event
+  - **OUTSIDER DETECTION**: Mark Possible outsider ✓ for classes with layer violations, mixed responsibilities, anemic models, business logic in wrong layer, infrastructure concerns in domain, or missing expected patterns
+  - **100% COVERAGE MANDATE**: Every single class must be catalogued and marked as ✓ - no exceptions
+  - **SYSTEMATIC PROGRESSION**: Complete each logical domain/module fully before moving to the next for optimal workflow
