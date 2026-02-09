@@ -13,7 +13,7 @@ import { registerTools as registerCodeManifestTools } from "./tools/code-manifes
 // Create an MCP server
 const server = new McpServer(
   {
-    name: "ddd-discovery-tool-mcp",
+    name: "ddd-for-ai-mcp",
     version: "1.0.0",
   },
   {
@@ -43,7 +43,7 @@ registerCodeManifestTools(server);
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("DDD Discovery unified MCP server running on stdio");
+  console.error("DDD for AI unified MCP server running on stdio");
 }
 
 main().catch((error) => {

@@ -1,7 +1,7 @@
 {
   "name": "@aiforddd/unified-mcp",
   "version": "1.0.0",
-  "description": "Unified MCP server for DDD Discovery Tool Suite",
+  "description": "Unified MCP server for DDD for AI Tool Suite",
   "type": "module",
   "main": "dist/mcp-server.js",
   "bin": {
