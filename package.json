@@ -1,6 +1,10 @@
 {
   "name": "@aiforddd/unified-mcp",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/faparicior/aiforddd-unified-mcp.git"
+  },
   "description": "Unified MCP server for DDD for AI Tool Suite",
   "type": "module",
   "main": "dist/mcp-server.js",
@@ -9,6 +13,7 @@
   },
   "scripts": {
     "build": "tsc && npm run copy-assets",
+    "prepare": "npm run build",
     "copy-assets": "mkdir -p dist/tools/code-manifest/config/templates && cp src/tools/code-manifest/config/templates/* dist/tools/code-manifest/config/templates/ 2>/dev/null || : && mkdir -p dist/prompts && cp -r prompts/* dist/prompts/ 2>/dev/null || : && cp src/tools/code-manifest/config/config.dddclassifier.json dist/tools/code-manifest/config/config.dddclassifier.json 2>/dev/null || :",
     "start": "node dist/mcp-server.js",
     "dev": "tsc --watch",
