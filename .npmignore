@@ -1,0 +1,10 @@
+# NPM ignore
+node_modules
+dist
+.git
+.github
+tests
+.vscode
+.idea
+.DS_Store
+*.log
