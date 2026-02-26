@@ -17,7 +17,7 @@ export async function createTestClient(): Promise<{
 
   const transport = new StdioClientTransport({
     command: "node",
-    args: ["dist/src/mcp-server.js"],
+    args: ["dist/mcp-server.js"],
   });
 
   await client.connect(transport);

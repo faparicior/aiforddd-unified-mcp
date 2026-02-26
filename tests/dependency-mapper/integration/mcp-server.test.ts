@@ -18,7 +18,7 @@ describe("Dependency Mapper MCP Server Integration Tests", () => {
 
     const transport = new StdioClientTransport({
       command: "node",
-      args: ["dist/src/mcp-server.js"],
+      args: ["dist/mcp-server.js"],
     });
 
     await clientInstance.connect(transport);
@@ -37,7 +37,7 @@ describe("Dependency Mapper MCP Server Integration Tests", () => {
     // expect(response.tools).toHaveLength(2); // Now we have 3 tools
 
     const toolNames = response.tools.map(t => t.name);
-    expect(toolNames).toContain("map_dependencies"); 
+    expect(toolNames).toContain("map_dependencies");
     // expect(toolNames).toContain("map_kotlin_dependencies"); // Removed
     expect(toolNames).toContain("find_interface_implementations");
   });
@@ -101,13 +101,13 @@ describe("Dependency Mapper MCP Server Integration Tests", () => {
     const callResponse = response as any;
     expect(callResponse.content).toBeDefined();
     // expect(callResponse.content).toHaveLength(1); // Relaxed check
-    
+
     // Combine text from all content blocks
     const resultText = callResponse.content
       .filter((c: any) => c.type === "text")
       .map((c: any) => c.text)
       .join("\n");
-      
+
     expect(resultText).toContain("```json");
     expect(resultText).toContain("InterfaceUser.kt");
     expect(resultText).toContain("UserServiceInterface.kt");

@@ -18,7 +18,7 @@ describe("MCP Server Integration Tests", () => {
 
     const transport = new StdioClientTransport({
       command: "node",
-      args: ["dist/src/mcp-server.js"],
+      args: ["dist/mcp-server.js"],
     });
 
     await clientInstance.connect(transport);
@@ -35,24 +35,24 @@ describe("MCP Server Integration Tests", () => {
     expect(response.tools).toBeDefined();
     expect(Array.isArray(response.tools)).toBe(true);
     expect(response.tools).toHaveLength(34);
-    
+
     const toolNames = response.tools.map(t => t.name).sort();
     expect(toolNames).toEqual(expect.arrayContaining([
-      "read_file", 
+      "read_file",
       "read_file_compressed",
       "read_multiple_files",
       "read_multiple_files_compressed"
     ]));
-    
+
     const readFileTool = response.tools.find(t => t.name === "read_file");
     expect(readFileTool?.description).toBe("Read the entire content of a file by path");
-    
+
     const readMultipleTool = response.tools.find(t => t.name === "read_multiple_files");
     expect(readMultipleTool?.description).toBe("Read the entire content of multiple files by their paths");
-    
+
     const readFileCompressedTool = response.tools.find(t => t.name === "read_file_compressed");
     expect(readFileCompressedTool?.description).toContain("compress");
-    
+
     const readMultipleCompressedTool = response.tools.find(t => t.name === "read_multiple_files_compressed");
     expect(readMultipleCompressedTool?.description).toContain("compress");
   });
@@ -116,7 +116,7 @@ describe("MCP Server Integration Tests", () => {
 
     const content = (response as any).content;
     expect(content).toBeDefined();
-    
+
     const text = content[0].text;
     expect(text).toContain("package com.example.library");
     expect(text).toContain("class BookService");
@@ -142,7 +142,7 @@ describe("MCP Server Integration Tests", () => {
 
     const content = (response as any).content;
     expect(content).toBeDefined();
-    
+
     const text = content[0].text;
     expect(text).toContain("=== tests/read-files/fixtures/sample.kt ===");
     expect(text).toContain("=== tests/read-files/fixtures/simple.kt ===");
@@ -157,7 +157,7 @@ describe("MCP Server Integration Tests", () => {
 
     const content = (response as any).content;
     expect(content).toBeDefined();
-    
+
     const text = content[0].text;
     expect(text).toContain("=== tests/read-files/fixtures/sample.kt ===");
     expect(text).toContain("BookService");
