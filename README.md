@@ -36,6 +36,34 @@ npm run build
 npm start
 ```
 
+### Standalone Code Manifest CLI
+
+You can also use the embedded `ddd-code-manifest` CLI to generate code manifests independently from the console.
+
+Run it via `npx` (make sure to build the project first if running locally), passing your JSON configuration file:
+
+```bash
+npx ddd-code-manifest --config path/to/config.json
+```
+
+*Example Configuration (`config.json`):*
+
+```json
+{
+  "version": "1.0",
+  "destination_folder": "docs/manifests",
+  "app_details": [
+    {
+      "path": "src/application",
+      "language": "kotlin",
+      "mode": "class",
+      "alias": "main-app-backend",
+      "type": "code"
+    }
+  ]
+}
+```
+
 ## Development
 
 1. Install dependencies:
