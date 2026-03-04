@@ -4,6 +4,6 @@ export * from './classifier/comparison/index.js'
 export * from './classifier/filelist/index.js'
 export * from './classifier/finder/index.js'
 export * from './classifier/types/index.js'
-export * from './config/config-reader.js'
+export * from '../../shared/config/config-reader.js'
 export * from './config/types.js'
 

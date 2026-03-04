@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url'
 import { parseArgs } from 'util'
 import { extractClassStructure } from './classifier/parsers/index.js'
 import { CompareCommand } from './classifier/comparison/index.js'
-import { readConfig } from './config/config-reader.js'
+import { readConfig } from '../../shared/config/config-reader.js'
+import { ApplicationConfig } from './config/types.js'
 import { findFiles } from './classifier/finder/index.js'
 import { classifyFilesByClass } from './classifier/filelist/filelist-classifier.js'
 import { writeClassifiedClassListRows } from './classifier/filelist/template-filler.js'
@@ -83,13 +84,14 @@ async function main() {
   if (values.prompt) {
     const promptName = values.prompt
     const promptArgs = values['prompt-args'] ? JSON.parse(values['prompt-args']) : {}
-    
+
     const promptContent = getPromptContent(promptName, promptArgs)
     console.log(promptContent)
     return
   }
 
-  const appConfig = readConfig(values.config as string)
+  const schemaPath = join(__dirname, 'config/config.dddclassifier.json')
+  const appConfig = readConfig<ApplicationConfig>(values.config as string, schemaPath)
 
   // Determine project root (directory containing config)
   const configDir = dirname(values.config as string)
@@ -134,8 +136,8 @@ async function main() {
   }
 
   // Write output files with status comparison
-  const generatedFiles: Array<{type: string, path: string}> = []
-  
+  const generatedFiles: Array<{ type: string, path: string }> = []
+
   if (codeRows.length > 0) {
     const codeManifestPath = join(destinationFolder, 'code_manifest.md')
     writeMarkdownFileWithStatus(codeManifestPath, codeHeader, codeRows)
@@ -254,10 +256,10 @@ class PromptManager {
   private loadPrompts(): void {
     try {
       const promptFiles = ['generate-manifest.yml', 'catalog-manifest.yml']
-      
+
       for (const promptFile of promptFiles) {
         const promptPath = join(__dirname, '..', 'prompts', promptFile)
-        
+
         if (existsSync(promptPath)) {
           const content = readFileSync(promptPath, 'utf-8')
           if (content) {

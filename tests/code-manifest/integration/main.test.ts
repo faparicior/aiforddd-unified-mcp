@@ -20,7 +20,7 @@ describe('Main CLI Integration Tests', () => {
   describe('Config File Processing', () => {
     it('should load default config location', () => {
       const projectDir = join(tempDir, 'project')
-      
+
       const configContent = createTestConfig([
         {
           path: join(projectDir, 'src/main/kotlin'),
@@ -32,19 +32,19 @@ describe('Main CLI Integration Tests', () => {
       ])
 
       const configPath = createTestFile(projectDir, 'config/code_manifest.json', configContent)
-      
+
       expect(existsSync(configPath)).toBe(true)
-      
+
       const content = readFileSync(configPath, 'utf-8')
       const config = JSON.parse(content)
-      
+
       expect(config.app_details).toHaveLength(1)
       expect(config.app_details[0].alias).toBe('test-app')
     })
 
     it('should handle custom config path', () => {
       const projectDir = join(tempDir, 'project')
-      
+
       const configContent = createTestConfig([
         {
           path: './src',
@@ -56,12 +56,12 @@ describe('Main CLI Integration Tests', () => {
       ])
 
       const customConfigPath = createTestFile(projectDir, 'custom-config.json', configContent)
-      
+
       expect(existsSync(customConfigPath)).toBe(true)
-      
+
       const content = readFileSync(customConfigPath, 'utf-8')
       const config = JSON.parse(content)
-      
+
       expect(config.app_details[0].alias).toBe('custom-app')
     })
   })
@@ -69,7 +69,7 @@ describe('Main CLI Integration Tests', () => {
   describe('Template File Processing', () => {
     it('should read and use markdown templates', () => {
       const projectDir = join(tempDir, 'project')
-      
+
       const codeTemplate = `| Status | Identifier | Content | Alias | Catalogued | Processed | Class | File | Type | Layer | Description |
 |--------|------------|---------|-------|------------|-----------|-------|------|------|-------|-------------|
 | {{Status}} | {{Identifier}} | {{Content}} | {{Alias}} | {{Catalogued}} | {{Processed}} | {{Class}} | {{File}} | {{Type}} | {{Layer}} | {{Description}} |`
@@ -81,7 +81,7 @@ describe('Main CLI Integration Tests', () => {
       )
 
       expect(existsSync(templatePath)).toBe(true)
-      
+
       const content = readFileSync(templatePath, 'utf-8')
       expect(content).toContain('{{Status}}')
       expect(content).toContain('{{Identifier}}')
@@ -90,7 +90,7 @@ describe('Main CLI Integration Tests', () => {
 
     it('should have separate templates for code and test', () => {
       const projectDir = join(tempDir, 'project')
-      
+
       const codeTemplate = `| Status | Identifier | Content | Alias | Catalogued | Processed | Class | File | Type | Layer | Description |
 |--------|------------|---------|-------|------------|-----------|-------|------|------|-------|-------------|
 | {{Status}} | {{Identifier}} | {{Content}} | {{Alias}} | {{Catalogued}} | {{Processed}} | {{Class}} | {{File}} | {{Type}} | {{Layer}} | {{Description}} |`
@@ -104,7 +104,7 @@ describe('Main CLI Integration Tests', () => {
         'templates/template-code-filelist.md',
         codeTemplate
       )
-      
+
       const testPath = createTestFile(
         projectDir,
         'templates/template-test-filelist.md',
@@ -165,9 +165,9 @@ describe('Main CLI Integration Tests', () => {
 `
 
       const outputPath = createTestFile(projectDir, 'output/code-manifest.md', markdownContent)
-      
+
       expect(existsSync(outputPath)).toBe(true)
-      
+
       const content = readFileSync(outputPath, 'utf-8')
       expect(content).toContain('Code Manifest')
       expect(content).toContain('User')
@@ -266,7 +266,7 @@ describe('Main CLI Integration Tests', () => {
       ])
 
       const configPath = createTestFile(projectDir, 'config.json', configContent)
-      
+
       const content = readFileSync(configPath, 'utf-8')
       const config = JSON.parse(content)
 
@@ -279,7 +279,7 @@ describe('Main CLI Integration Tests', () => {
   describe('Command Line Arguments', () => {
     it('should support --config argument format', () => {
       const projectDir = join(tempDir, 'cli-test')
-      
+
       const configContent = createTestConfig([
         {
           path: './src',
@@ -291,17 +291,17 @@ describe('Main CLI Integration Tests', () => {
       ])
 
       const configPath = createTestFile(projectDir, 'custom.json', configContent)
-      
+
       // Simulate --config argument
       const args = ['--config', configPath]
-      
+
       expect(args).toContain('--config')
       expect(args).toContain(configPath)
     })
 
     it('should support --info argument for single file analysis', () => {
       const projectDir = join(tempDir, 'info-test')
-      
+
       const filePath = createKotlinTestFile(
         projectDir,
         'User.kt',
@@ -312,7 +312,7 @@ describe('Main CLI Integration Tests', () => {
 
       // Simulate --info argument
       const args = ['--info', filePath]
-      
+
       expect(args).toContain('--info')
       expect(args).toContain(filePath)
       expect(existsSync(filePath)).toBe(true)
@@ -320,13 +320,13 @@ describe('Main CLI Integration Tests', () => {
 
     it('should support comparison arguments', () => {
       const projectDir = join(tempDir, 'compare-test')
-      
+
       const oldFile = createTestFile(projectDir, 'old.md', 'old content')
       const newFile = createTestFile(projectDir, 'new.md', 'new content')
 
       // Simulate --compare-old and --compare-new
       const args = ['--compare-old', oldFile, '--compare-new', newFile]
-      
+
       expect(args).toContain('--compare-old')
       expect(args).toContain('--compare-new')
     })
@@ -430,7 +430,7 @@ describe('Main CLI Integration Tests', () => {
       const srcDir = join(projectDir, 'src/main/kotlin')
       const testDir = join(projectDir, 'src/test/kotlin')
       const outputDir = join(projectDir, 'config', 'output')
-      
+
       mkdirSync(srcDir, { recursive: true })
       mkdirSync(testDir, { recursive: true })
 
@@ -466,7 +466,7 @@ class UserTest {
       const configPath = createTestFile(projectDir, 'config/config.json', configContent)
 
       // Test the logic that generates the JSON output
-      const { readConfig } = await import('../../../src/tools/code-manifest/config/config-reader.js')
+      const { readConfig } = await import('../../../src/shared/config/config-reader.js')
       const { findFiles } = await import('../../../src/tools/code-manifest/classifier/finder/index.js')
       const { classifyFilesByClass } = await import('../../../src/tools/code-manifest/classifier/filelist/filelist-classifier.js')
       const { writeClassifiedClassListRows } = await import('../../../src/tools/code-manifest/classifier/filelist/template-filler.js')
@@ -522,8 +522,8 @@ class UserTest {
       }
 
       // Test the JSON output generation logic
-      const generatedFiles: Array<{type: string, path: string}> = []
-      
+      const generatedFiles: Array<{ type: string, path: string }> = []
+
       if (codeRows.length > 0) {
         const codeManifestPath = pathModule.join(destinationFolder, 'code_manifest.md')
         generatedFiles.push({ type: 'code_manifest', path: codeManifestPath })
@@ -542,12 +542,12 @@ class UserTest {
       expect(result).toHaveProperty('generatedFiles')
       expect(result).toHaveProperty('message')
       expect(result.message).toBe('Manifests generated successfully')
-      
+
       expect(result.generatedFiles).toHaveLength(2)
-      
+
       const codeManifest = result.generatedFiles.find((f: any) => f.type === 'code_manifest')
       const testManifest = result.generatedFiles.find((f: any) => f.type === 'tests_manifest')
-      
+
       expect(codeManifest).toBeDefined()
       expect(codeManifest!.path).toBe(join(outputDir, 'code_manifest.md'))
       expect(testManifest).toBeDefined()

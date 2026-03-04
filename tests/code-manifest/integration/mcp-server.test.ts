@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync } from 'fs'
 import { extractClassStructure } from '../../../src/tools/code-manifest/classifier/parsers/index.ts'
 import { findFiles } from '../../../src/tools/code-manifest/classifier/finder/index.ts'
 import { classifyFilesByClass } from '../../../src/tools/code-manifest/classifier/filelist/filelist-classifier.ts'
-import { readConfig } from '../../../src/tools/code-manifest/config/config-reader.ts'
+import { readConfig } from '../../../src/shared/config/config-reader.ts'
 import { MCPServer } from '../../../src/tools/code-manifest/mcp-server.ts'
 import { CompareCommand } from '../../../src/tools/code-manifest/classifier/comparison/index.ts'
 
@@ -105,7 +105,7 @@ class UserService {
       const srcDir = join(tempDir, 'src')
       const domainDir = join(srcDir, 'domain')
       const serviceDir = join(srcDir, 'service')
-      
+
       mkdirSync(domainDir, { recursive: true })
       mkdirSync(serviceDir, { recursive: true })
 
@@ -225,7 +225,7 @@ data class User(val id: String, val name: String)`
 
       // Test config reading
       const config = readConfig(configPath)
-      
+
       expect(config).toBeDefined()
       expect(config.app_details).toHaveLength(1)
       expect(config.app_details[0].alias).toBe('TestApp')
@@ -236,7 +236,7 @@ data class User(val id: String, val name: String)`
       const projectDir = join(tempDir, 'project')
       const srcDir = join(projectDir, 'src/main/kotlin')
       const testDir = join(projectDir, 'src/test/kotlin')
-      
+
       mkdirSync(srcDir, { recursive: true })
       mkdirSync(testDir, { recursive: true })
 
@@ -270,7 +270,7 @@ data class User(val id: String, val name: String)`
       const srcDir = join(projectDir, 'src/main/kotlin')
       const testDir = join(projectDir, 'src/test/kotlin')
       const outputDir = join(projectDir, 'output')
-      
+
       mkdirSync(srcDir, { recursive: true })
       mkdirSync(testDir, { recursive: true })
 
@@ -312,22 +312,22 @@ class UserTest {
       // Verify the response contains the generated file paths in JSON format
       expect(result.content).toHaveLength(1)
       expect(result.content[0].type).toBe('text')
-      
+
       const responseJson = JSON.parse(result.content[0].text)
       expect(responseJson).toHaveProperty('generatedFiles')
       expect(responseJson).toHaveProperty('message')
       expect(responseJson.message).toBe('Manifests generated successfully')
-      
+
       expect(responseJson.generatedFiles).toHaveLength(2)
-      
+
       const codeManifest = responseJson.generatedFiles.find((f: any) => f.type === 'code_manifest')
       const testManifest = responseJson.generatedFiles.find((f: any) => f.type === 'tests_manifest')
-      
+
       expect(codeManifest).toBeDefined()
       expect(codeManifest.path).toBe(join(outputDir, 'code_manifest.md'))
       expect(testManifest).toBeDefined()
       expect(testManifest.path).toBe(join(outputDir, 'tests_manifest.md'))
-      
+
       // Verify files were actually created
       expect(existsSync(join(outputDir, 'code_manifest.md'))).toBe(true)
       expect(existsSync(join(outputDir, 'tests_manifest.md'))).toBe(true)
@@ -349,7 +349,7 @@ class UserTest {
       const newPath = createTestFile(tempDir, 'new.md', newManifest)
 
       const compareCmd = new CompareCommand()
-      
+
       // Should not throw
       expect(() => {
         compareCmd.compareFiles(oldPath, newPath)
@@ -381,7 +381,7 @@ class UserTest {
       compareCmd.createBackup(filePath)
 
       const backupContent = readFileSync(backupPath, 'utf-8')
-      
+
       expect(backupContent).toBe(content)
     })
   })
@@ -393,7 +393,7 @@ class UserTest {
 | User | data class | domain/User.kt | com.example | App | id:String | | | | abc123 |`
 
       const manifestPath = createTestFile(tempDir, 'manifest.md', manifest)
-      
+
       const compareCmd = new CompareCommand()
       compareCmd.createBackup(manifestPath)
 
@@ -411,7 +411,7 @@ class UserTest {
       const manifestPath = createTestFile(tempDir, 'manifest.md', manifest)
 
       const compareCmd = new CompareCommand()
-      
+
       // Should not throw even without backup
       expect(() => {
         compareCmd.compareWithRepository(manifestPath)
@@ -520,7 +520,7 @@ data class User(val name: String)`
       const classified = classifyFilesByClass(files)
 
       expect(classified.length).toBeGreaterThan(0)
-      
+
       const firstClass = classified[0]
       expect(firstClass).toHaveProperty('file')
       expect(firstClass).toHaveProperty('classSpecsFound')
@@ -540,7 +540,7 @@ data class User(val id: String)`
       const classified = classifyFilesByClass(files)
 
       expect(classified.length).toBeGreaterThan(0)
-      
+
       // Verify classification produces results
       expect(classified[0]).toBeDefined()
       expect(classified[0].file).toBeDefined()
@@ -551,7 +551,7 @@ data class User(val id: String)`
   describe('Tool: get_prompt_content', () => {
     it('should return prompt content with template variables filled', async () => {
       const server = new MCPServer()
-      
+
       // Access the private method for testing
       const result = await (server as any).handleGetPromptContent({
         promptName: 'generate-manifest',
@@ -569,7 +569,7 @@ data class User(val id: String)`
 
     it('should include complementary prompts content after messages', async () => {
       const server = new MCPServer()
-      
+
       // Access the private method for testing
       const result = await (server as any).handleGetPromptContent({
         promptName: 'catalog-manifest',
@@ -581,13 +581,13 @@ data class User(val id: String)`
       expect(result).toBeDefined()
       expect(result.content).toBeDefined()
       expect(result.content[0].type).toBe('text')
-      
+
       const content = result.content[0].text
-      
+
       // Should contain the main messages
       expect(content).toContain('/test/manifest.md')
       expect(content).toContain('You are to catalog a code manifest')
-      
+
       // Should contain content from complementary prompts
       expect(content).toContain('# Code Manifest Cataloging Rules')
       expect(content).toContain('# DDD Definitions')
@@ -596,7 +596,7 @@ data class User(val id: String)`
 
     it('should throw error for unknown prompt', async () => {
       const server = new MCPServer()
-      
+
       await expect((server as any).handleGetPromptContent({
         promptName: 'unknown-prompt'
       })).rejects.toThrow('Prompt not found: unknown-prompt')
@@ -604,7 +604,7 @@ data class User(val id: String)`
 
     it('should throw error for missing required arguments', async () => {
       const server = new MCPServer()
-      
+
       await expect((server as any).handleGetPromptContent({
         promptName: 'catalog-manifest',
         arguments: {} // missing manifest_path
@@ -613,7 +613,7 @@ data class User(val id: String)`
 
     it('should handle prompts without complementary prompts', async () => {
       const server = new MCPServer()
-      
+
       const result = await (server as any).handleGetPromptContent({
         promptName: 'generate-manifest',
         arguments: {

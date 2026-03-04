@@ -3,7 +3,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { extractClassStructure } from './classifier/parsers/index.js'
-import { readConfig } from './config/config-reader.js'
+import { readConfig } from '../../shared/config/config-reader.js'
+import { ApplicationConfig } from './config/types.js'
 import { findFiles } from './classifier/finder/index.js'
 import { classifyFilesByClass } from './classifier/filelist/filelist-classifier.js'
 import { writeClassifiedClassListRows } from './classifier/filelist/template-filler.js'
@@ -119,7 +120,7 @@ class CodeManifestTools {
             console.error(`Error loading prompt ${promptFile}: content is empty or undefined`)
           }
         } else {
-            console.warn(`Prompt file not found at ${promptPath}`);
+          console.warn(`Prompt file not found at ${promptPath}`);
         }
       }
     } catch (error) {
@@ -185,7 +186,8 @@ class CodeManifestTools {
     const absoluteConfigPath = resolve(configPath)
     const configDir = dirname(absoluteConfigPath)
     const projectRoot = configDir
-    const appConfig = readConfig(absoluteConfigPath)
+    const schemaPath = join(__dirname, 'config/config.dddclassifier.json')
+    const appConfig = readConfig<ApplicationConfig>(absoluteConfigPath, schemaPath)
 
     const templateCode = readFileSync(join(__dirname, 'config/templates/template-code-filelist.md'), 'utf-8')
     const templateTest = readFileSync(join(__dirname, 'config/templates/template-test-filelist.md'), 'utf-8')

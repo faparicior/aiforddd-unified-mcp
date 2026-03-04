@@ -1,9 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { readConfig } from '../../../../src/tools/code-manifest/config/config-reader.ts'
-import { createTempDir, removeTempDir, createTestFile, createTestConfig } from '../../fixtures/test-helpers.ts'
-import { mockApplicationConfig } from '../../fixtures/mock-data.ts'
-import { join } from 'path'
+import { readConfig } from '../../../src/shared/config/config-reader.ts'
+import { createTempDir, removeTempDir, createTestFile, createTestConfig } from '../../code-manifest/fixtures/test-helpers.ts'
+import { mockApplicationConfig } from '../../code-manifest/fixtures/mock-data.ts'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const schemaPath = join(__dirname, '../../../src/tools/code-manifest/config/config.dddclassifier.json')
 describe('config-reader', () => {
   let tempDir: string
 
@@ -28,7 +32,7 @@ describe('config-reader', () => {
       ])
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details).toHaveLength(1)
       expect(result.app_details[0].alias).toBe('test-app')
@@ -54,7 +58,7 @@ describe('config-reader', () => {
       ])
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details).toHaveLength(2)
       expect(result.app_details[0].type).toBe('code')
@@ -73,7 +77,7 @@ describe('config-reader', () => {
       ])
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       const detail = result.app_details[0]
       expect(detail.path).toBe('/project/src/main/kotlin')
@@ -86,22 +90,22 @@ describe('config-reader', () => {
     it('should handle empty app_details array', () => {
       const configContent = JSON.stringify({ version: '1.0.0', app_details: [], destination_folder: './output' })
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      
-      const result = readConfig(configPath)
+
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details).toHaveLength(0)
     })
 
     it('should throw error on invalid JSON', () => {
       const configPath = createTestFile(tempDir, 'config.json', 'invalid json {')
-      
-      expect(() => readConfig(configPath)).toThrow('Invalid JSON in configuration file')
+
+      expect(() => readConfig(configPath, schemaPath)).toThrow('Invalid JSON in configuration file')
     })
 
     it('should throw error on non-existent file', () => {
       const nonExistentPath = join(tempDir, 'does-not-exist.json')
-      
-      expect(() => readConfig(nonExistentPath)).toThrow('Failed to read configuration file')
+
+      expect(() => readConfig(nonExistentPath, schemaPath)).toThrow('Failed to read configuration file')
     })
 
     it('should throw error when schema validation fails', () => {
@@ -122,7 +126,7 @@ describe('config-reader', () => {
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
 
-      expect(() => readConfig(configPath)).toThrow('Configuration file does not match the required schema')
+      expect(() => readConfig(configPath, schemaPath)).toThrow('Configuration file does not match the required schema')
     })
 
     it('should handle config with different languages', () => {
@@ -148,7 +152,7 @@ describe('config-reader', () => {
       })
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details).toHaveLength(2)
       expect(result.app_details[0].language).toBe('kotlin')
@@ -178,7 +182,7 @@ describe('config-reader', () => {
       })
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details[0].mode).toBe('class')
       expect(result.app_details[1].mode).toBe('file')
@@ -196,7 +200,7 @@ describe('config-reader', () => {
       ])
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details[0].path).toContain('/home/user/project')
     })
@@ -213,7 +217,7 @@ describe('config-reader', () => {
       ])
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details[0].path).toContain('./src')
     })
@@ -234,7 +238,7 @@ describe('config-reader', () => {
       }`
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details).toHaveLength(1)
     })
@@ -262,7 +266,7 @@ describe('config-reader', () => {
       })
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details[0].alias).toBe('frontend')
       expect(result.app_details[1].alias).toBe('backend')
@@ -270,14 +274,14 @@ describe('config-reader', () => {
 
     it('should throw error on empty file', () => {
       const configPath = createTestFile(tempDir, 'config.json', '')
-      
-      expect(() => readConfig(configPath)).toThrow('Invalid JSON in configuration file')
+
+      expect(() => readConfig(configPath, schemaPath)).toThrow('Invalid JSON in configuration file')
     })
 
     it('should throw error on file with only whitespace', () => {
       const configPath = createTestFile(tempDir, 'config.json', '   \n\n   ')
-      
-      expect(() => readConfig(configPath)).toThrow('Invalid JSON in configuration file')
+
+      expect(() => readConfig(configPath, schemaPath)).toThrow('Invalid JSON in configuration file')
     })
 
     it('should preserve path separators', () => {
@@ -292,7 +296,7 @@ describe('config-reader', () => {
       ])
 
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      const result = readConfig(configPath)
+      const result = readConfig(configPath, schemaPath)
 
       expect(result.app_details[0].path).toContain('/')
     })
@@ -300,8 +304,8 @@ describe('config-reader', () => {
     it('should handle complex real-world config', () => {
       const configContent = JSON.stringify(mockApplicationConfig)
       const configPath = createTestFile(tempDir, 'config.json', configContent)
-      
-      const result = readConfig(configPath)
+
+      const result = readConfig(configPath, schemaPath)
 
       expect(result).toEqual(mockApplicationConfig)
     })

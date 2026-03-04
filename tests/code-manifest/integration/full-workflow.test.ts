@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { createTempDir, removeTempDir, createTestFile, createKotlinTestFile, createTestConfig, createTestMarkdownTable } from '../fixtures/test-helpers.ts'
-import { readConfig } from '../../../src/tools/code-manifest/config/config-reader.ts'
+import { readConfig } from '../../../src/shared/config/config-reader.ts'
 import { findFiles } from '../../../src/tools/code-manifest/classifier/finder/file-finder.ts'
 import { classifyFilesByClass } from '../../../src/tools/code-manifest/classifier/filelist/filelist-classifier.ts'
 import { writeClassifiedClassListRows } from '../../../src/tools/code-manifest/classifier/filelist/template-filler.ts'
@@ -24,7 +24,7 @@ describe('Full Workflow Integration Tests', () => {
     it('should execute complete classification workflow', () => {
       // Step 1: Create project structure
       const projectDir = join(tempDir, 'project')
-      
+
       createKotlinTestFile(
         projectDir,
         'src/main/kotlin/domain/User.kt',
