@@ -9,7 +9,7 @@ import { join } from 'path'
 describe('Prompt Server Integration Tests', () => {
   describe('YAML Prompt Loading', () => {
     it('should load and parse the generate-manifest.yml prompt', () => {
-      const promptPath = join(process.cwd(), 'prompts', 'generate-manifest.yml')
+      const promptPath = join(process.cwd(), 'src', 'prompts', 'generate-manifest.yml')
       const content = readFileSync(promptPath, 'utf-8')
 
       // Parse manually like the server does
@@ -49,7 +49,7 @@ describe('Prompt Server Integration Tests', () => {
     })
 
     it('should load and parse the catalog-manifest.yml prompt with complementary prompts', () => {
-      const promptPath = join(process.cwd(), 'prompts', 'catalog-manifest.yml')
+      const promptPath = join(process.cwd(), 'src', 'prompts', 'catalog-manifest.yml')
       const content = readFileSync(promptPath, 'utf-8')
 
       // Parse manually like the server does (updated version)
@@ -93,9 +93,11 @@ describe('Prompt Server Integration Tests', () => {
       expect(prompt.description).toBe('Catalog a code manifest with accelerated batch processing and complete file reading')
       expect(prompt.arguments).toHaveLength(1)
       expect(prompt.arguments[0]).toEqual({ name: 'manifest_path', required: true })
-      expect(prompt.complementary_prompts).toHaveLength(2)
+      expect(prompt.complementary_prompts).toHaveLength(4)
       expect(prompt.complementary_prompts[0]).toEqual({ name: 'definitions/ddd-definitions.md' })
-      expect(prompt.complementary_prompts[1]).toEqual({ name: 'definitions/code-manifest-definitions-simplified.md' })
+      expect(prompt.complementary_prompts[1]).toEqual({ name: 'definitions/code-manifest-definitions.md' })
+      expect(prompt.complementary_prompts[2]).toEqual({ name: 'definitions/ddd-classification-rules.md' })
+      expect(prompt.complementary_prompts[3]).toEqual({ name: 'definitions/ddd-classification-critical-distinctions.md' })
       expect(prompt.messages).toContain('{{manifest_path}}')
     })
   })

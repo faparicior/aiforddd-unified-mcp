@@ -564,7 +564,7 @@ data class User(val id: String)`
       expect(result.content).toBeDefined()
       expect(result.content[0].type).toBe('text')
       expect(result.content[0].text).toContain('/test/config.json')
-      expect(result.content[0].text).toContain('Call `code-manifest__generate_manifest`')
+      expect(result.content[0].text).toContain('Call `mcp__code-manifest__generate_manifest`')
     })
 
     it('should include complementary prompts content after messages', async () => {

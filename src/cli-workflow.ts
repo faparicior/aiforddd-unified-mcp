@@ -5,6 +5,7 @@ import { readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { filterAndCountRows } from './tools/markdown/utils/parser.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -151,25 +152,67 @@ program
             const tempPromptFile = resolve(process.cwd(), '.ddd-workflow-prompt-tmp.md');
             writeFileSync(tempPromptFile, promptContent, 'utf-8');
 
-            console.log(`Executing Claude workflow: ${promptDef.name || workflowFile}`);
+            let isCompleted = false;
 
-            // Spawn claude CLI using cat <prompt> | claude
-            const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude`], {
-                stdio: 'inherit'
-            });
+            while (!isCompleted) {
+                console.log(`Executing Claude workflow: ${promptDef.name || workflowFile}`);
+
+                // Spawn claude CLI using cat <prompt> | claude
+                const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude`], {
+                    stdio: 'inherit'
+                });
+
+                if (claudeProcess.error) {
+                    console.error('Failed to start claude CLI. Is it installed and in your PATH?');
+                    console.error(claudeProcess.error);
+                    // Clean up temporary file
+                    if (existsSync(tempPromptFile)) {
+                        unlinkSync(tempPromptFile);
+                    }
+                    process.exit(1);
+                }
+
+                if (claudeProcess.status !== 0) {
+                    // Clean up temporary file
+                    if (existsSync(tempPromptFile)) {
+                        unlinkSync(tempPromptFile);
+                    }
+                    process.exit(claudeProcess.status ?? 1);
+                }
+
+                if (promptDef.name === 'catalog-manifest') {
+                    const manifestPath = parsedArgs['manifest_path'];
+                    if (manifestPath && existsSync(manifestPath)) {
+                        try {
+                            const remaining = filterAndCountRows(manifestPath, 'Catalogued', '');
+                            if (remaining === 0) {
+                                console.log('\nCataloguing complete! 0 uncatalogued classes remain.');
+                                isCompleted = true;
+                            } else {
+                                console.log(`\nCataloguing incomplete. ${remaining} classes remaining without a ✓ in the Catalogued column. Re-running...\n`);
+                                // loop continues
+                            }
+                        } catch (e: any) {
+                            console.error(`\nError checking remaining classes: ${e.message}`);
+                            console.error(`Aborting loop.`);
+                            isCompleted = true; // Stop loop on error
+                        }
+                    } else {
+                        console.error('\nManifest file not found or not provided in arguments. Cannot check progress.');
+                        isCompleted = true;
+                    }
+                } else {
+                    // Standard one-shot execution
+                    isCompleted = true;
+                }
+            }
 
             // Clean up temporary file
             if (existsSync(tempPromptFile)) {
                 unlinkSync(tempPromptFile);
             }
 
-            if (claudeProcess.error) {
-                console.error('Failed to start claude CLI. Is it installed and in your PATH?');
-                console.error(claudeProcess.error);
-                process.exit(1);
-            }
-
-            process.exit(claudeProcess.status ?? 0);
+            process.exit(0);
 
         } catch (e: any) {
             console.error('Error running workflow:', e.message || e);

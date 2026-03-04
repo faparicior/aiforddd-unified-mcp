@@ -62,7 +62,7 @@ class MCPServer {
       const promptFiles = ['generate-manifest.yml', 'catalog-manifest.yml']
 
       for (const promptFile of promptFiles) {
-        const promptPath = join(__dirname, '../../../prompts', promptFile)
+        const promptPath = join(__dirname, '../../prompts', promptFile)
 
         if (existsSync(promptPath)) {
           const content = readFileSync(promptPath, 'utf-8')
