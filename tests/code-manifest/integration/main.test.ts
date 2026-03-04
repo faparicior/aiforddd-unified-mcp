@@ -31,7 +31,7 @@ describe('Main CLI Integration Tests', () => {
         }
       ])
 
-      const configPath = createTestFile(projectDir, 'config/code_manifest.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       expect(existsSync(configPath)).toBe(true)
 
@@ -55,7 +55,7 @@ describe('Main CLI Integration Tests', () => {
         }
       ])
 
-      const customConfigPath = createTestFile(projectDir, 'custom-config.json', configContent)
+      const customConfigPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       expect(existsSync(customConfigPath)).toBe(true)
 
@@ -265,7 +265,7 @@ describe('Main CLI Integration Tests', () => {
         }
       ])
 
-      const configPath = createTestFile(projectDir, 'config.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       const content = readFileSync(configPath, 'utf-8')
       const config = JSON.parse(content)
@@ -277,7 +277,7 @@ describe('Main CLI Integration Tests', () => {
   })
 
   describe('Command Line Arguments', () => {
-    it('should support --config argument format', () => {
+    it('should support --repository argument format', () => {
       const projectDir = join(tempDir, 'cli-test')
 
       const configContent = createTestConfig([
@@ -290,13 +290,13 @@ describe('Main CLI Integration Tests', () => {
         }
       ])
 
-      const configPath = createTestFile(projectDir, 'custom.json', configContent)
+      createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
-      // Simulate --config argument
-      const args = ['--config', configPath]
+      // Simulate --repository argument
+      const args = ['--repository', projectDir]
 
-      expect(args).toContain('--config')
-      expect(args).toContain(configPath)
+      expect(args).toContain('--repository')
+      expect(args).toContain(projectDir)
     })
 
     it('should support --info argument for single file analysis', () => {
@@ -352,7 +352,7 @@ describe('Main CLI Integration Tests', () => {
         destination_folder: 'output/manifests'
       })
 
-      const configPath = createTestFile(projectDir, 'config.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       // Verify destination folder doesn't exist initially
       expect(existsSync(join(projectDir, 'output'))).toBe(false)
@@ -365,8 +365,7 @@ describe('Main CLI Integration Tests', () => {
       // Simulate the directory creation logic from main.ts
       const { resolve } = require('path')
       const { mkdirSync } = require('fs')
-      const configDir = dirname(configPath) // directory containing the config file
-      const projectRoot = configDir // directory containing config
+      const projectRoot = projectDir // directory containing config
       const parsedConfig = JSON.parse(readFileSync(configPath, 'utf-8'))
       const destinationFolder = resolve(projectRoot, parsedConfig.destination_folder)
 
@@ -376,9 +375,8 @@ describe('Main CLI Integration Tests', () => {
       }
 
       // Verify directory was created
-      const actualProjectRoot = dirname(configPath) // directory containing config
-      expect(existsSync(join(actualProjectRoot, 'output'))).toBe(true)
-      expect(existsSync(join(actualProjectRoot, 'output', 'manifests'))).toBe(true)
+      expect(existsSync(join(projectRoot, 'output'))).toBe(true)
+      expect(existsSync(join(projectRoot, 'output', 'manifests'))).toBe(true)
     })
 
     it('should handle nested non-existent directories', () => {
@@ -400,7 +398,7 @@ describe('Main CLI Integration Tests', () => {
         destination_folder: 'results/2025/november/manifests'
       })
 
-      const configPath = createTestFile(projectDir, 'config.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       // Verify destination folder doesn't exist initially
       expect(existsSync(join(projectDir, 'results'))).toBe(false)
@@ -408,8 +406,7 @@ describe('Main CLI Integration Tests', () => {
       // Simulate the directory creation logic
       const { resolve } = require('path')
       const { mkdirSync } = require('fs')
-      const configDir = dirname(configPath) // directory containing the config file
-      const projectRoot = configDir // directory containing config
+      const projectRoot = projectDir // directory containing config
       const parsedConfig = JSON.parse(readFileSync(configPath, 'utf-8'))
       const destinationFolder = resolve(projectRoot, parsedConfig.destination_folder)
 
@@ -418,18 +415,17 @@ describe('Main CLI Integration Tests', () => {
       }
 
       // Verify all nested directories were created
-      const actualProjectRoot = dirname(configPath) // directory containing config
-      expect(existsSync(join(actualProjectRoot, 'results'))).toBe(true)
-      expect(existsSync(join(actualProjectRoot, 'results', '2025'))).toBe(true)
-      expect(existsSync(join(actualProjectRoot, 'results', '2025', 'november'))).toBe(true)
-      expect(existsSync(join(actualProjectRoot, 'results', '2025', 'november', 'manifests'))).toBe(true)
+      expect(existsSync(join(projectRoot, 'results'))).toBe(true)
+      expect(existsSync(join(projectRoot, 'results', '2025'))).toBe(true)
+      expect(existsSync(join(projectRoot, 'results', '2025', 'november'))).toBe(true)
+      expect(existsSync(join(projectRoot, 'results', '2025', 'november', 'manifests'))).toBe(true)
     })
 
     it('should output generated file paths in JSON format', async () => {
       const projectDir = join(tempDir, 'project')
       const srcDir = join(projectDir, 'src/main/kotlin')
       const testDir = join(projectDir, 'src/test/kotlin')
-      const outputDir = join(projectDir, 'config', 'output')
+      const outputDir = join(projectDir, 'output')
 
       mkdirSync(srcDir, { recursive: true })
       mkdirSync(testDir, { recursive: true })
@@ -463,7 +459,7 @@ class UserTest {
         }
       ], 'output')
 
-      const configPath = createTestFile(projectDir, 'config/config.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       // Test the logic that generates the JSON output
       const { readConfig } = await import('../../../src/shared/config/config-reader.js')
@@ -474,8 +470,7 @@ class UserTest {
       const pathModule = await import('path')
 
       const appConfig = readConfig(configPath)
-      const configDir = dirname(configPath)
-      const projectRoot = configDir
+      const projectRoot = projectDir
       const destinationFolder = pathModule.join(projectRoot, appConfig.destination_folder)
 
       // Ensure destination folder exists

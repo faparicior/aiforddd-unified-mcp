@@ -20,9 +20,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 async function main() {
   const { values } = parseArgs({
     options: {
-      config: {
+      repository: {
         type: 'string',
-        default: 'config/code_manifest.json'
+        default: '.'
       },
       info: {
         type: 'string'
@@ -90,12 +90,13 @@ async function main() {
     return
   }
 
+  const repositoryPath = values.repository as string
+  const configPath = resolve(repositoryPath, '.aiforddd/code_manifest.json')
   const schemaPath = join(__dirname, 'config/config.dddclassifier.json')
-  const appConfig = readConfig<ApplicationConfig>(values.config as string, schemaPath)
+  const appConfig = readConfig<ApplicationConfig>(configPath, schemaPath)
 
-  // Determine project root (directory containing config)
-  const configDir = dirname(values.config as string)
-  const projectRoot = configDir
+  // Determine project root
+  const projectRoot = resolve(repositoryPath)
   const destinationFolder = resolve(projectRoot, appConfig.destination_folder)
 
   // Create destination folder if it doesn't exist

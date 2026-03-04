@@ -315,6 +315,9 @@ describe('Full Workflow Integration Tests', () => {
       const projectDir = join(tempDir, 'empty-project')
       const emptyDir = join(projectDir, 'src/main/kotlin')
 
+      const { mkdirSync } = require('fs')
+      mkdirSync(emptyDir, { recursive: true })
+
       const files = findFiles(emptyDir, '.kt')
       expect(files.fileList).toHaveLength(0)
 

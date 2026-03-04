@@ -59,7 +59,7 @@ class CodeManifestTools {
     server.registerTool('mcp_code_manifest_generate_manifest', {
       description: 'Generate code and test manifests from a configuration file. Creates markdown files with classified file lists and hash-based change tracking',
       inputSchema: z.object({
-        configPath: z.string().default('config/code_manifest.json').describe('Path to the configuration JSON file'),
+        repositoryPath: z.string().default('.').describe('Path to the repository root directory'),
       }),
     }, async (args) => this.handleGenerateManifest(args));
 
@@ -182,10 +182,9 @@ class CodeManifestTools {
   }
 
   private async handleGenerateManifest(args: any) {
-    const { configPath = 'config/code_manifest.json' } = args
-    const absoluteConfigPath = resolve(configPath)
-    const configDir = dirname(absoluteConfigPath)
-    const projectRoot = configDir
+    const { repositoryPath = '.' } = args
+    const projectRoot = resolve(repositoryPath)
+    const absoluteConfigPath = join(projectRoot, '.aiforddd/code_manifest.json')
     const schemaPath = join(__dirname, 'config/config.dddclassifier.json')
     const appConfig = readConfig<ApplicationConfig>(absoluteConfigPath, schemaPath)
 

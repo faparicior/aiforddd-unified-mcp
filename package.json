@@ -1,6 +1,6 @@
 {
   "name": "@aiforddd/unified-mcp",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/faparicior/aiforddd-unified-mcp.git"
@@ -10,7 +10,7 @@
   "main": "dist/mcp-server.js",
   "bin": {
     "ddd-mcp": "./dist/mcp-server.js",
-    "ddd-code-manifest": "./dist/tools/code-manifest/main.js"
+    "ddd-create-code-manifest": "./dist/tools/code-manifest/main.js"
   },
   "scripts": {
     "build": "tsc && npm run copy-assets",

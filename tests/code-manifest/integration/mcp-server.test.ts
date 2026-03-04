@@ -221,7 +221,7 @@ data class User(val id: String, val name: String)`
         }
       ])
 
-      const configPath = createTestFile(projectDir, 'code_manifest.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       // Test config reading
       const config = readConfig(configPath)
@@ -257,7 +257,7 @@ data class User(val id: String, val name: String)`
         }
       ])
 
-      const configPath = createTestFile(projectDir, 'code_manifest.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
       const config = readConfig(configPath)
 
       expect(config.app_details).toHaveLength(2)
@@ -303,11 +303,11 @@ class UserTest {
         }
       ], outputDir)
 
-      const configPath = createTestFile(projectDir, 'code_manifest.json', configContent)
+      const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
       // Create MCP server instance and call handleGenerateManifest directly
       const server = new MCPServer()
-      const result = await (server as any).handleGenerateManifest({ configPath })
+      const result = await (server as any).handleGenerateManifest({ repositoryPath: projectDir })
 
       // Verify the response contains the generated file paths in JSON format
       expect(result.content).toHaveLength(1)
