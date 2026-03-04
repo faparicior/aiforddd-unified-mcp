@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
@@ -81,9 +81,21 @@ program
     .option('-p, --print-only', 'Print the generated prompt without executing Claude')
     .action((workflowFile, options) => {
         try {
-            const fullPath = resolve(process.cwd(), workflowFile);
+            let fullPath = resolve(process.cwd(), workflowFile);
+
+            // If it doesn't exist locally, check if it's a bundled prompt in the package
             if (!existsSync(fullPath)) {
-                console.error(`Workflow file not found: ${fullPath}`);
+                const bundledDistPath = resolve(__dirname, 'prompts', workflowFile);
+                const bundledSrcPath = resolve(__dirname, '..', 'src', 'prompts', workflowFile);
+                const bundledRootPath = resolve(__dirname, '..', 'prompts', workflowFile);
+
+                if (existsSync(bundledDistPath)) fullPath = bundledDistPath;
+                else if (existsSync(bundledSrcPath)) fullPath = bundledSrcPath;
+                else if (existsSync(bundledRootPath)) fullPath = bundledRootPath;
+            }
+
+            if (!existsSync(fullPath)) {
+                console.error(`Workflow file not found locally or within package: ${workflowFile}`);
                 process.exit(1);
             }
 
@@ -135,14 +147,21 @@ program
                 process.exit(0);
             }
 
+            // Write prompt to a temporary file
+            const tempPromptFile = resolve(process.cwd(), '.ddd-workflow-prompt-tmp.md');
+            writeFileSync(tempPromptFile, promptContent, 'utf-8');
+
             console.log(`Executing Claude workflow: ${promptDef.name || workflowFile}`);
 
-            // Spawn claude CLI
-            // Example: claude -p "<generated_prompt>"
-            const claudeProcess = spawnSync('claude', ['-p', promptContent], {
-                stdio: 'inherit',
-                shell: true
+            // Spawn claude CLI using cat <prompt> | claude
+            const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude`], {
+                stdio: 'inherit'
             });
+
+            // Clean up temporary file
+            if (existsSync(tempPromptFile)) {
+                unlinkSync(tempPromptFile);
+            }
 
             if (claudeProcess.error) {
                 console.error('Failed to start claude CLI. Is it installed and in your PATH?');

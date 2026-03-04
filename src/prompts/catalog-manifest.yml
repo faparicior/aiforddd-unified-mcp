@@ -14,17 +14,17 @@ messages: |
   of all classes in the manifest while maintaining high-quality descriptions and accurate rule classifications.
 
   # One file workflow:
-    - call `mcp__markdown-table-editor__get_first_row_by_column` with empty "Processed" column
-    - call `mcp__read-files__read_file` to read the entire file (no line limits)
+    - call `get_first_row_by_column` with empty "Processed" column
+    - call `read_file` to read the entire file (no line limits)
     - analyze class
-    - call `mcp__markdown-table-editor__update_row_by_column` manifest row using Identifier column
+    - call `update_row_by_column` manifest row using Identifier column
     - repeat loop until all classes catalogued
  
   # Multiple files workflow:
-    - call `mcp__markdown-table-editor__get_multiple_rows_by_column` (8-15 rows per batch)
-    - use `mcp__read-files__read_multiple_files_compressed` to read all files in the batch (MUST use absolute file paths)
+    - call `get_multiple_rows_by_column` (8-15 rows per batch)
+    - use `read_multiple_files_compressed` to read all files in the batch (MUST use absolute file paths)
     - analyze each class
-    - call `mcp__markdown-table-editor__update_row_by_column` manifest row using Identifier column
+    - call `update_row_by_column` manifest row using Identifier column
     - repeat loop until all classes catalogued
 
   # Code Manifest Cataloging Rules - Accelerated Batch Processing with Complete File Reading
@@ -32,8 +32,8 @@ messages: |
   ## **ACCELERATED BATCH PROCESSING STRATEGY**
 
   ### **Step 1: Initial Assessment**
-  - Count total uncatalogued classes (call `mcp__markdown-table-editor__filter_and_count_rows` those without a ✓ in the Catalogued column) 
-  - Count total catalogued classes (call `mcp__markdown-table-editor__filter_and_count_rows` those with a ✓ in the Catalogued column)
+  - Count total uncatalogued classes (call `filter_and_count_rows` those without a ✓ in the Catalogued column) 
+  - Count total catalogued classes (call `filter_and_count_rows` those with a ✓ in the Catalogued column)
   - **ENFORCE**: Continue until 0 uncatalogued classes remain
 
   ### **Step 2: Accelerated Batch Processing with Complete File Reading**
@@ -175,7 +175,7 @@ messages: |
   - **Simple DTOs/Commands**: All columns empty ❌
 
   ### **Step 6: Verification**
-  - Final count verification: call `mcp__markdown-table-editor__filter_and_count_rows` those with a ✓ in the Catalogued column should equal to call `mcp__markdown-table-editor__count_markdown_table_rows_tool`
+  - Final count verification: call `filter_and_count_rows` those with a ✓ in the Catalogued column should equal to call `count_markdown_table_rows`
   - **MANDATORY**: Achieve exactly 100% coverage - no exceptions
  
   ## **KEY PRINCIPLES FOR ACCELERATED BATCH PROCESSING**

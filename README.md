@@ -115,6 +115,43 @@ npx ddd-create-code-manifest --config path/to/config.json
 }
 ```
 
+### `ddd-tool` (Isolated Tool Runner)
+
+Every tool provided by this MCP server can also be executed independently via the command line using `ddd-tool`. This enables duality (MCP/CLI) and lets you script tasks without needing a running AI server.
+
+Pass arguments using the JSON string `--args` option.
+
+```bash
+# General Usage
+npx ddd-tool <tool_name> --args '{"arg1": "value", "arg2": "value"}'
+
+# Example: Filtering table rows
+npx ddd-tool filter_and_count_rows --args '{"filePath": "manifest.md", "columnName": "Layer", "value": "Domain"}'
+```
+
+List all available tools and their arguments:
+
+```bash
+npx ddd-tool --help
+```
+
+### `ddd-run` (Programmatic Workflow Agent)
+
+If you want to invoke an AI (such as `claude`) immediately to execute a specific workflow, `ddd-run` automates the prompt generation and AI execution sequence.
+
+It dynamically parses pre-built workflow YAMLs (like `catalog-manifest.yml` or `generate-manifest.yml`), concatenates their necessary dependencies, fills variables from your CLI arguments, and pipes the complete instruction set directly into your locally installed `claude` CLI.
+
+```bash
+# Example: Running the manifest classification workflow
+npx ddd-run dist/prompts/catalog-manifest.yml --args '{"manifest_path": "/absolute/path/to/code_manifest.md"}'
+```
+
+If you only want to view the generated prompt text without executing `claude`, use the `--print-only` flag:
+
+```bash
+npx ddd-run dist/prompts/catalog-manifest.yml --args '{"manifest_path": "./docs/manifests/code_manifest.md"}' --print-only
+```
+
 ## Development
 
 1. Install dependencies:
