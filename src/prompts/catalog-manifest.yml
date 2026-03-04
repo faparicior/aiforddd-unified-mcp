@@ -34,7 +34,8 @@ messages: |
   ### **Step 1: Initial Assessment**
   - Count total uncatalogued classes (call `filter_and_count_rows` those without a ✓ in the Catalogued column) 
   - Count total catalogued classes (call `filter_and_count_rows` those with a ✓ in the Catalogued column)
-  - **ENFORCE**: Continue until 0 uncatalogued classes remain
+  - **SESSION LIMIT**: If you catalog **30 classes** in this session, stop and report progress — 30 classes is enough for a single run. You do not need to complete the full manifest in one session.
+  - **ENFORCE**: Continue until 30 classes have been catalogued in this session OR 0 uncatalogued classes remain (whichever comes first)
 
   ### **Step 2: Accelerated Batch Processing with Complete File Reading**
   - **SYSTEMATIC DOMAIN-BASED APPROACH**: Process classes by logical domain groups for maximum efficiency
@@ -175,8 +176,9 @@ messages: |
   - **Simple DTOs/Commands**: All columns empty ❌
 
   ### **Step 6: Verification**
-  - Final count verification: call `filter_and_count_rows` those with a ✓ in the Catalogued column should equal to call `count_markdown_table_rows`
-  - **MANDATORY**: Achieve exactly 100% coverage - no exceptions
+  - Session count verification: call `filter_and_count_rows` to count classes with a ✓ in the Catalogued column
+  - **SESSION COMPLETE** when: 30 classes have been catalogued in this session OR 0 uncatalogued classes remain
+  - Report final count: "Catalogued X classes this session. Y classes remaining in the manifest."
  
   ## **KEY PRINCIPLES FOR ACCELERATED BATCH PROCESSING**
   - **MANDATORY COMPLETE FILE READING**: Read entire file content for full understanding - NO EXCEPTIONS
@@ -194,5 +196,5 @@ messages: |
   - **PRECISE CLASSIFICATION**: Use **DDD Classification Guide** definitions for accurate guidance on all 20 aspects
   - **VALIDATION CHECKLIST**: Verify Value Objects never have Identity Management, Aggregates coordinating children have Aggregate Consistency, Services with repositories have External Dependencies, any I/O has Side Effects, Controllers/Consumers have Inbound communication, API clients/Event publishers have Outbound communication, Integration event classes crossing bounded contexts have Integration event
   - **OUTSIDER DETECTION**: Mark Possible outsider ✓ for classes with layer violations, mixed responsibilities, anemic models, business logic in wrong layer, infrastructure concerns in domain, or missing expected patterns
-  - **100% COVERAGE MANDATE**: Every single class must be catalogued and marked as ✓ - no exceptions
+  - **SESSION LIMIT**: Stop after cataloguing 30 classes in a single session — run `ddd-run catalog-manifest.yml` again to continue with the next batch
   - **SYSTEMATIC PROGRESSION**: Complete each logical domain/module fully before moving to the next for optimal workflow
