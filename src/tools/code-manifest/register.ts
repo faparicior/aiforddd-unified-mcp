@@ -124,8 +124,8 @@ class CodeManifestTools {
       const promptFiles = ['generate-manifest.yml', 'catalog-manifest.yml']
 
       for (const promptFile of promptFiles) {
-        // Try relative to dist/tools/code-manifest/register.js -> ../../../prompts
-        const promptPath = join(__dirname, '..', '..', '..', 'prompts', promptFile)
+        // Try relative to dist/tools/code-manifest/register.js -> ../../prompts
+        const promptPath = join(__dirname, '..', '..', 'prompts', promptFile)
 
         if (existsSync(promptPath)) {
           const content = readFileSync(promptPath, 'utf-8')
@@ -312,7 +312,7 @@ class CodeManifestTools {
     if (promptDef.complementary_prompts) {
       for (const compPrompt of promptDef.complementary_prompts) {
         try {
-          let compPromptPath = join(__dirname, '..', '..', '..', 'prompts', compPrompt.name)
+          let compPromptPath = join(__dirname, '..', '..', 'prompts', compPrompt.name)
           if (existsSync(compPromptPath)) {
             const compContent = readFileSync(compPromptPath, 'utf-8')
             messages += '\n\n' + compContent
