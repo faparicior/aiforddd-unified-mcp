@@ -2,6 +2,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { globalToolRegistry } from "./shared/cli/registry.js";
 
 // Import tool registers
 import { registerTools as registerMarkdownTools } from "./tools/markdown/tools/index.js";
@@ -23,21 +24,25 @@ const server = new McpServer(
   }
 );
 
-// Register tools
+// Register tools to the global registry
 console.error("Registering Markdown tools...");
-registerMarkdownTools(server);
+registerMarkdownTools();
 
 console.error("Registering Read File tools...");
-registerReadFileTools(server);
+registerReadFileTools();
 
 console.error("Registering Dependency Mapper tools...");
-registerDependencyMapperTools(server);
+registerDependencyMapperTools();
 
 console.error("Registering Bounded Context Canvas tools...");
-registerBoundedContextTools(server);
+registerBoundedContextTools();
 
 console.error("Registering Code Manifest tools...");
-registerCodeManifestTools(server);
+registerCodeManifestTools();
+
+// Register all tools from the registry to the MCP server
+console.error("Registering tools to MCP server...");
+globalToolRegistry.registerToMcpServer(server);
 
 // Start the server
 async function main() {

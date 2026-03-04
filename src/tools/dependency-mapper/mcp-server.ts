@@ -4,6 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { registerTools } from "./tools/index.js";
+import { globalToolRegistry } from "../../shared/cli/registry.js";
 
 // Create an MCP server
 const server = new McpServer(
@@ -19,7 +20,8 @@ const server = new McpServer(
 );
 
 // Register tools
-registerTools(server);
+registerTools();
+globalToolRegistry.registerToMcpServer(server);
 
 // Start the server
 async function main() {
