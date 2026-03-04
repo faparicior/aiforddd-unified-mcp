@@ -121,7 +121,7 @@ class CodeManifestTools {
   private loadPrompts(): void {
     try {
       // Load multiple prompts
-      const promptFiles = ['generate-manifest.yml', 'catalog-manifest.yml']
+      const promptFiles = ['catalog-manifest.yml']
 
       for (const promptFile of promptFiles) {
         // Try relative to dist/tools/code-manifest/register.js -> ../../prompts

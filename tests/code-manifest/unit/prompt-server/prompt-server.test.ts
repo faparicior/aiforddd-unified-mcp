@@ -47,7 +47,7 @@ messages: |
 
     // Mock file path resolution
     const mockDirname = '/mock/path'
-    const mockPromptPath = '/mock/path/prompts/generate-manifest.yml'
+    const mockPromptPath = '/mock/path/prompts/catalog-manifest.yml'
     const mockSchemaPath = '/mock/path/config.dddclassifier.json'
 
     vi.mocked(dirname).mockReturnValue(mockDirname)
@@ -114,15 +114,15 @@ messages: |
   describe('loadPrompts', () => {
     it('should load prompts from file system', () => {
       // Mock file system calls
-      vi.mocked(join).mockReturnValue('/mock/path/prompts/generate-manifest.yml')
+      vi.mocked(join).mockReturnValue('/mock/path/prompts/catalog-manifest.yml')
       vi.mocked(dirname).mockReturnValue('/mock/path')
       vi.mocked(fileURLToPath).mockReturnValue('/mock/path/mcp-server.ts')
-      
+
       // Mock existsSync to return true for prompt files
       vi.mocked(existsSync).mockReturnValue(true)
-      
+
       // Mock readFileSync to return YAML content
-      vi.mocked(readFileSync).mockReturnValue(`name: generate-manifest
+      vi.mocked(readFileSync).mockReturnValue(`name: catalog-manifest
 description: Generates a code manifest
 arguments:
   - name: config_path
@@ -130,13 +130,13 @@ arguments:
 messages: |
   Generate a code manifest using the configuration file at: {{config_path}}.`)
 
-      ;(server as any).loadPrompts()
+        ; (server as any).loadPrompts()
 
       const prompts = (server as any).prompts
-      expect(prompts.has('generate-manifest')).toBe(true)
+      expect(prompts.has('catalog-manifest')).toBe(true)
 
-      const prompt = prompts.get('generate-manifest')
-      expect(prompt.name).toBe('generate-manifest')
+      const prompt = prompts.get('catalog-manifest')
+      expect(prompt.name).toBe('catalog-manifest')
       expect(prompt.description).toBe('Generates a code manifest')
     })
 
@@ -161,7 +161,7 @@ messages: |
   describe('ListPrompts handler', () => {
     it('should return list of available prompts', async () => {
       // Load prompts first
-      ;(server as any).loadPrompts()
+      ; (server as any).loadPrompts()
 
       const mockRequest = {}
       const handler = (server as any).server._handlers?.get('prompts/list')
@@ -181,7 +181,7 @@ messages: |
 
   describe('GetPrompt handler', () => {
     beforeEach(() => {
-      ;(server as any).loadPrompts()
+      ; (server as any).loadPrompts()
     })
 
     it('should return prompt content with filled arguments', async () => {
@@ -252,7 +252,7 @@ messages: |
         messages: 'Message with {{required}} and {{optional}}'
       }
 
-      ;(server as any).prompts.set('optional prompt', promptWithOptional)
+        ; (server as any).prompts.set('optional prompt', promptWithOptional)
 
       const mockRequest = {
         params: {

@@ -549,23 +549,7 @@ data class User(val id: String)`
   })
 
   describe('Tool: get_prompt_content', () => {
-    it('should return prompt content with template variables filled', async () => {
-      const server = new MCPServer()
 
-      // Access the private method for testing
-      const result = await (server as any).handleGetPromptContent({
-        promptName: 'generate-manifest',
-        arguments: {
-          config_path: '/test/config.json'
-        }
-      })
-
-      expect(result).toBeDefined()
-      expect(result.content).toBeDefined()
-      expect(result.content[0].type).toBe('text')
-      expect(result.content[0].text).toContain('/test/config.json')
-      expect(result.content[0].text).toContain('Call `mcp__code-manifest__generate_manifest`')
-    })
 
     it('should include complementary prompts content after messages', async () => {
       const server = new MCPServer()
@@ -611,20 +595,6 @@ data class User(val id: String)`
       })).rejects.toThrow('Required argument missing: manifest_path')
     })
 
-    it('should handle prompts without complementary prompts', async () => {
-      const server = new MCPServer()
 
-      const result = await (server as any).handleGetPromptContent({
-        promptName: 'generate-manifest',
-        arguments: {
-          config_path: '/test/config.json'
-        }
-      })
-
-      expect(result).toBeDefined()
-      expect(result.content[0].text).toContain('/test/config.json')
-      // Should not contain complementary prompt content
-      expect(result.content[0].text).not.toContain('# Invariants and Business Rules')
-    })
   })
 })

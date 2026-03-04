@@ -8,45 +8,6 @@ import { join } from 'path'
 
 describe('Prompt Server Integration Tests', () => {
   describe('YAML Prompt Loading', () => {
-    it('should load and parse the generate-manifest.yml prompt', () => {
-      const promptPath = join(process.cwd(), 'src', 'prompts', 'generate-manifest.yml')
-      const content = readFileSync(promptPath, 'utf-8')
-
-      // Parse manually like the server does
-      const lines = content.split('\n')
-      let currentSection = ''
-      const prompt: any = {
-        arguments: []
-      }
-
-      for (const line of lines) {
-        if (line.startsWith('name:')) {
-          prompt.name = line.substring(5).trim()
-        } else if (line.startsWith('description:')) {
-          prompt.description = line.substring(12).trim()
-        } else if (line.startsWith('arguments:')) {
-          currentSection = 'arguments'
-        } else if (line.startsWith('messages:')) {
-          currentSection = 'messages'
-          prompt.messages = ''
-        } else if (line.startsWith('  - name:')) {
-          const argName = line.substring(10).trim()
-          prompt.arguments.push({ name: argName, required: false })
-        } else if (line.startsWith('    required:')) {
-          const lastArg = prompt.arguments[prompt.arguments.length - 1]
-          lastArg.required = line.substring(14).trim() === 'true'
-        } else if (currentSection === 'messages' && line.startsWith('  ')) {
-          prompt.messages += line.substring(2) + '\n'
-        }
-      }
-
-      expect(prompt.name).toBe('generate-manifest')
-      expect(prompt.description).toBe('Generates a code manifest')
-      expect(prompt.arguments).toHaveLength(1)
-      expect(prompt.arguments[0]).toEqual({ name: 'config_path', required: true })
-      expect(prompt.messages).toContain('{{config_path}}')
-      expect(prompt.messages).not.toContain('{{manifest_path}}')
-    })
 
     it('should load and parse the catalog-manifest.yml prompt with complementary prompts', () => {
       const promptPath = join(process.cwd(), 'src', 'prompts', 'catalog-manifest.yml')

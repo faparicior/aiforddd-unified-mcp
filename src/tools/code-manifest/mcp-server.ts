@@ -59,7 +59,7 @@ class MCPServer {
       const __dirname = dirname(__filename)
 
       // Load multiple prompts
-      const promptFiles = ['generate-manifest.yml', 'catalog-manifest.yml']
+      const promptFiles = ['catalog-manifest.yml']
 
       for (const promptFile of promptFiles) {
         const promptPath = join(__dirname, '../../prompts', promptFile)

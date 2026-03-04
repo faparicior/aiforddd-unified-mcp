@@ -139,7 +139,7 @@ npx ddd-tool --help
 
 If you want to invoke an AI (such as `claude`) immediately to execute a specific workflow, `ddd-run` automates the prompt generation and AI execution sequence.
 
-It dynamically parses pre-built workflow YAMLs (like `catalog-manifest.yml` or `generate-manifest.yml`), concatenates their necessary dependencies, fills variables from your CLI arguments, and pipes the complete instruction set directly into your locally installed `claude` CLI.
+It dynamically parses pre-built workflow YAMLs (like `catalog-manifest.yml`), concatenates their necessary dependencies, fills variables from your CLI arguments, and pipes the complete instruction set directly into your locally installed `claude` CLI.
 
 ```bash
 # Example: Running the manifest classification workflow
