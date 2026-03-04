@@ -5,7 +5,9 @@ arguments:
     required: true
 complementary_prompts:
   - name: definitions/ddd-definitions.md
-  - name: definitions/code-manifest-definitions-simplified.md
+  - name: definitions/code-manifest-definitions.md
+  - name: definitions/ddd-classification-rules.md
+  - name: definitions/ddd-classification-critical-distinctions.md
 messages: |
   You are to catalog a code manifest located at: {{manifest_path}}.
   Follow these detailed rules for accelerated batch processing with complete file reading to ensure 100% coverage

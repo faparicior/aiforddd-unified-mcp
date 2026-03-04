@@ -36,14 +36,65 @@ npm run build
 npm start
 ```
 
-### Standalone Code Manifest CLI
+## Available Tools
 
-You can also use the embedded `ddd-code-manifest` CLI to generate code manifests independently from the console.
+This MCP server provides a comprehensive suite of tools organized into functional categories:
+
+### 1. Markdown Table Tools
+
+Manage and manipulate markdown tables dynamically:
+
+- `add_column` / `delete_column` / `empty_column`
+- `parse_markdown_table` / `count_markdown_table_rows`
+- `get_row` / `find_row` / `get_multiple_rows_by_column` / `get_multiple_rows_by_multiple_columns`
+- `update_row_by_column` / `update_row_by_match`
+- `filter_and_count_rows` / `get_unique_column_values` / `get_first_row_by_column`
+
+### 2. File Reading Tools
+
+Read files with built-in AST-based compression for source code to save context tokens:
+
+- `read_file` / `read_multiple_files`
+- `read_file_compressed` / `read_multiple_files_compressed`
+
+### 3. Bounded Context Canvas Tools
+
+Interact with Domain-Driven Design (DDD) Bounded Context Canvas markdown files:
+
+- `parse_bounded_context_canvas`
+- `update_context_name` / `update_context_purpose`
+- `update_domain_roles` / `update_strategic_classification`
+
+### 4. Code Manifest & Analysis Tools
+
+Extract, classify, and track changes in codebase structures:
+
+- `mcp_code_manifest_generate_manifest` / `mcp_code_manifest_compare_manifests`
+- `mcp_code_manifest_extract_class_info` / `mcp_code_manifest_classify_files`
+- `mcp_code_manifest_find_files` / `mcp_code_manifest_create_backup`
+- `mcp_code_manifest_get_prompt_content`
+
+### 5. Dependency Mapper
+
+- `map_dependencies`: Analyzes a source code file (Kotlin, Java, TypeScript, PHP) and recursively maps its dependency chain.
+- `find_interface_implementations`: Finds all Kotlin classes that implement a given interface in a directory.
+
+## Available CLIs
+
+The package provides the following command-line interfaces:
+
+### `ddd-mcp`
+
+The primary CLI to run the unified MCP server. Typically launched via an MCP client configuration or using `npx`.
+
+### `ddd-create-code-manifest`
+
+A standalone CLI to generate code manifests independently from the console.
 
 Run it via `npx` (make sure to build the project first if running locally), passing your JSON configuration file:
 
 ```bash
-npx ddd-code-manifest --config path/to/config.json
+npx ddd-create-code-manifest --config path/to/config.json
 ```
 
 *Example Configuration (`config.json`):*
