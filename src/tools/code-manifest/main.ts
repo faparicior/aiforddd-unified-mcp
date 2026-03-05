@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { readFileSync } from 'fs'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -87,8 +88,26 @@ async function main() {
   }
 
   const repositoryPath = (values.repository as string) || '.'
-  const result = await generateCodeManifest(repositoryPath)
-  console.log(JSON.stringify(result, null, 2))
+  try {
+    const result = await generateCodeManifest(repositoryPath)
+    console.log(JSON.stringify(result, null, 2))
+  } catch (error: any) {
+    const isConfigMissing =
+      error?.code === 'ENOENT' ||
+      (error?.message ?? '').includes('Failed to read configuration file')
+
+    const friendlyMessage = isConfigMissing
+      ? `Configuration file not found: ${repositoryPath}/.aiforddd/code_manifest.json\n`
+      : (error?.message ?? String(error))
+
+    const errorOutput = {
+      error: friendlyMessage,
+      message: 'Manifest generation failed',
+    }
+    console.log(JSON.stringify(errorOutput))
+    process.exit(1)
+  }
+
 }
 
 
