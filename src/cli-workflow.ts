@@ -158,7 +158,7 @@ program
                 console.log(`Executing Claude workflow: ${promptDef.name || workflowFile}`);
 
                 // Spawn claude CLI using cat <prompt> | claude -y -p
-                const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude -y -p`], {
+                const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude --dangerously-skip-permissions -p`], {
                     stdio: 'inherit'
                 });
 
