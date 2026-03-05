@@ -8,7 +8,8 @@ import { extractClassStructure } from '../../../src/tools/code-manifest/classifi
 import { findFiles } from '../../../src/tools/code-manifest/classifier/finder/index.ts'
 import { classifyFilesByClass } from '../../../src/tools/code-manifest/classifier/filelist/filelist-classifier.ts'
 import { readConfig } from '../../../src/shared/config/config-reader.ts'
-import { MCPServer } from '../../../src/tools/code-manifest/mcp-server.ts'
+import { handleGenerateManifest } from '../../../src/tools/code-manifest/tools/generateManifest.ts'
+import { handleGetPromptContent } from '../../../src/tools/code-manifest/tools/getPromptContent.ts'
 import { CompareCommand } from '../../../src/tools/code-manifest/classifier/comparison/index.ts'
 
 /**
@@ -305,9 +306,8 @@ class UserTest {
 
       const configPath = createTestFile(projectDir, '.aiforddd/code_manifest.json', configContent)
 
-      // Create MCP server instance and call handleGenerateManifest directly
-      const server = new MCPServer()
-      const result = await (server as any).handleGenerateManifest({ repositoryPath: projectDir })
+      // Call handleGenerateManifest directly
+      const result = await handleGenerateManifest({ repositoryPath: projectDir })
 
       // Verify the response contains the generated file paths in JSON format
       expect(result.content).toHaveLength(1)
@@ -552,10 +552,7 @@ data class User(val id: String)`
 
 
     it('should include complementary prompts content after messages', async () => {
-      const server = new MCPServer()
-
-      // Access the private method for testing
-      const result = await (server as any).handleGetPromptContent({
+      const result = await handleGetPromptContent({
         promptName: 'catalog-manifest',
         arguments: {
           manifest_path: '/test/manifest.md'
@@ -579,17 +576,13 @@ data class User(val id: String)`
     })
 
     it('should throw error for unknown prompt', async () => {
-      const server = new MCPServer()
-
-      await expect((server as any).handleGetPromptContent({
+      await expect(handleGetPromptContent({
         promptName: 'unknown-prompt'
       })).rejects.toThrow('Prompt not found: unknown-prompt')
     })
 
     it('should throw error for missing required arguments', async () => {
-      const server = new MCPServer()
-
-      await expect((server as any).handleGetPromptContent({
+      await expect(handleGetPromptContent({
         promptName: 'catalog-manifest',
         arguments: {} // missing manifest_path
       })).rejects.toThrow('Required argument missing: manifest_path')

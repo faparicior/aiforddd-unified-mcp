@@ -209,6 +209,12 @@ export async function generateCodeManifest(repositoryPath: string = '.'): Promis
         let suffix = ''
         if (details.language === 'kotlin') {
             suffix = '.kt'
+        } else if (details.language === 'java') {
+            suffix = '.java'
+        } else if (details.language === 'typescript') {
+            suffix = '.ts'
+        } else if (details.language === 'php') {
+            suffix = '.php'
         }
 
         // Resolve the path relative to the project root
