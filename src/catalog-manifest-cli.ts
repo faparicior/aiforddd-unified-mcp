@@ -39,11 +39,11 @@ program
             }
 
             const promptManager = new PromptManager()
-            const promptName = 'catalog-manifest.yml'
+            const promptName = 'catalog-manifest'
             const promptArgs = { manifest_path: manifestPath }
 
-            // We know catalog-manifest.yml is registered in the PromptManager if it exists
-            const promptContent = promptManager.getPromptContent('catalog-manifest.yml', promptArgs)
+            // We know catalog-manifest is registered in the PromptManager if it exists
+            const promptContent = promptManager.getPromptContent('catalog-manifest', promptArgs)
 
             if (options.printOnly) {
                 console.log(promptContent)
