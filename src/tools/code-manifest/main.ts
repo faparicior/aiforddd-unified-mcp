@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from 'fs'
-import { dirname } from 'path'
+import { dirname, resolve, join } from 'path'
 import { fileURLToPath } from 'url'
 import { parseArgs } from 'util'
 import { extractClassStructure } from './classifier/parsers/index.js'
@@ -96,10 +96,13 @@ async function main() {
       error?.code === 'ENOENT' ||
       (error?.message ?? '').includes('Failed to read configuration file')
 
-    const friendlyMessage = isConfigMissing
-      ? `Configuration file not found: ${repositoryPath}/.aiforddd/code_manifest.json\n`
-      : (error?.message ?? String(error))
+    if (isConfigMissing) {
+      const absoluteConfigPath = join(resolve(repositoryPath), '.aiforddd/code_manifest.json')
+      console.error(`Config file not found: ${absoluteConfigPath}`)
+      process.exit(1)
+    }
 
+    const friendlyMessage = (error?.message ?? String(error))
     const errorOutput = {
       error: friendlyMessage,
       message: 'Manifest generation failed',

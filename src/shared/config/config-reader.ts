@@ -15,7 +15,6 @@ export function readConfig<T>(configPath: string, schemaPath?: string): T {
     try {
         fileContent = readFileSync(configPath, 'utf-8')
     } catch (error) {
-        console.error('Error reading config file:', error)
         throw new Error(`Failed to read configuration file: ${configPath}`)
     }
 
