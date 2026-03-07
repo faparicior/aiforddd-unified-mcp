@@ -1,60 +1,81 @@
+import Parser from 'tree-sitter';
+import javaLanguage from 'tree-sitter-java';
 import * as path from 'path';
-import { promises as fs, accessSync, constants } from 'fs';
+import { promises as fs, constants } from 'fs';
 import { LanguageHandler } from '../LanguageHandler.js';
-import { removeComments } from '../../utils/text.js';
-import { findFileInDirectory, findProjectRoot } from '../../utils/fs-utils.js';
+import { findFileInDirectory, findProjectRoot, findFilesWithExtension } from '../../utils/fs-utils.js';
 
 export class JavaHandler implements LanguageHandler {
   extensions = ['.java'];
+  private parser: Parser;
+
+  constructor() {
+    this.parser = new Parser();
+    this.parser.setLanguage(javaLanguage);
+  }
 
   extractDependencies(content: string, filePath: string): string[] {
     const dependencies: string[] = [];
-    const contentWithoutComments = removeComments(content);
     
-    // Extract imports
-    // import com.example.MyClass;
-    const importPattern = /import\s+([\w.]+);/g;
-    let match;
-    while ((match = importPattern.exec(contentWithoutComments)) !== null) {
-        dependencies.push(match[1]);
-    }
+    try {
+      const tree = this.parser.parse(content);
+      const rootNode = tree.rootNode;
 
-    // Creating simplified Logic for Java:
-    // Ideally we would parse classes used in the file, similar to Kotlin
-    // For now we will focus on explicit imports as they are mandatory in Java for other packages
-    // (Unlike Kotlin which can infer a lot or use star imports heavily)
-    
-    // We can also look for fully qualified names usage: com.example.MyClass match = ...
-    const fqnPattern = /([a-zA-Z_$][a-zA-Z\d_$]*\.)+[a-zA-Z_$][a-zA-Z\d_$]*/g;
-    // This is too noisy, let's stick to imports for now as the 80/20 rule.
-    // However, if the user asks for "Java Support" equal to Kotlin, we might want to scan types used.
-    // But Java requires importing types not in java.lang or same package.
-    // So imports cover 90-99% of dependencies (except same-package dependencies).
-    
-    // To handle same-package dependencies:
-    // We scan for capitalized words that look like classes.
-    // If they are not imported, they might be in the same package.
-    // We add them to "candidates" for same package resolution.
-    
-    const potentialClassUsage = /\b[A-Z][a-zA-Z0-9_]*\b/g;
-    const importedSimpleNames = new Set(dependencies.map(d => d.split('.').pop()));
-    
-    const possibleSamePackageDeps = new Set<string>();
-    while ((match = potentialClassUsage.exec(contentWithoutComments)) !== null) {
-        const word = match[0];
-        if (!this.isBuiltInType(word) && !importedSimpleNames.has(word)) {
-            // It might be in the same package
-            possibleSamePackageDeps.add(word);
+      // 1. Extract explicit imports
+      const importNodes = rootNode.descendantsOfType('import_declaration');
+      for (const node of importNodes) {
+        // children: [import, scoped_identifier, ;]
+        const identifierNode = node.children.find(c => c.type === 'scoped_identifier' || c.type === 'identifier');
+        if (identifierNode) {
+          dependencies.push(identifierNode.text);
         }
-    }
-    
-    // To properly resolve same-package deps, we need to know the current package.
-    const packageMatch = /package\s+([\w.]+);/.exec(contentWithoutComments);
-    if (packageMatch) {
-        const currentPackage = packageMatch[1];
+      }
+
+      const importedSimpleNames = new Set(dependencies.map(d => d.split('.').pop()));
+      const possibleSamePackageDeps = new Set<string>();
+
+      // 2. Discover same-package dependencies via type identifiers, object creation, and method calls
+      const typeNodes = rootNode.descendantsOfType('type_identifier');
+      for (const node of typeNodes) {
+          const typeName = node.text;
+          if (!this.isBuiltInType(typeName) && !importedSimpleNames.has(typeName) && typeName !== path.basename(filePath, '.java')) {
+              possibleSamePackageDeps.add(typeName);
+          }
+      }
+
+      const methodCalls = rootNode.descendantsOfType('method_invocation');
+      for (const call of methodCalls) {
+          // If the method call has an object, e.g., Helper.doSomething()
+          const objectNode = call.childForFieldName('object');
+          if (objectNode && objectNode.type === 'identifier') {
+             const typeName = objectNode.text;
+             if (!this.isBuiltInType(typeName) && !importedSimpleNames.has(typeName) && typeName !== path.basename(filePath, '.java')) {
+                // If the object starts with a capital letter, it's highly likely a static class call
+                if (/^[A-Z]/.test(typeName)) {
+                    possibleSamePackageDeps.add(typeName);
+                }
+             }
+          }
+      }
+
+      // 3. Resolve current package to prefix same-package dependencies
+      const packageNode = rootNode.descendantsOfType('package_declaration')[0];
+      if (packageNode) {
+        const identifierNode = packageNode.children.find(c => c.type === 'scoped_identifier' || c.type === 'identifier');
+        if (identifierNode) {
+          const currentPackage = identifierNode.text;
+          for (const dep of possibleSamePackageDeps) {
+              dependencies.push(`${currentPackage}.${dep}`);
+          }
+        }
+      } else {
+        // Default package
         for (const dep of possibleSamePackageDeps) {
-            dependencies.push(`${currentPackage}.${dep}`);
+            dependencies.push(dep);
         }
+      }
+    } catch (error) {
+      console.error(`Error parsing Java file ${filePath}:`, error);
     }
 
     return [...new Set(dependencies)];
@@ -102,11 +123,56 @@ export class JavaHandler implements LanguageHandler {
   async isInterfaceFile(filePath: string): Promise<boolean> {
       try {
           const content = await fs.readFile(filePath, 'utf-8');
-          const clean = removeComments(content);
-          return /\binterface\s+\w+/.test(clean);
+          const tree = this.parser.parse(content);
+          
+          // An interface file usually has a single root interface_declaration 
+          // (or it's wrapped in a class, but we look for top-level interface)
+          const interfaceNodes = tree.rootNode.descendantsOfType('interface_declaration');
+          return interfaceNodes.length > 0;
       } catch {
           return false;
       }
+  }
+
+  async findImplementations(interfaceName: string, baseDir: string): Promise<string[]> {
+    const implementations: string[] = [];
+    
+    try {
+      const projectRoot = findProjectRoot(baseDir) || baseDir;
+      const javaFiles = await findFilesWithExtension(projectRoot, '.java');
+
+      for (const filePath of javaFiles) {
+        try {
+          const content = await fs.readFile(filePath, 'utf-8');
+          const tree = this.parser.parse(content);
+          
+          // Look for class_declaration nodes
+          const classNodes = tree.rootNode.descendantsOfType('class_declaration');
+          for (const node of classNodes) {
+              const interfacesNode = node.children.find(c => c.type === 'super_interfaces');
+              if (interfacesNode) {
+                  // super_interfaces has children like type_list -> type_identifier
+                  const typeList = interfacesNode.children.find(c => c.type === 'interface_type_list');
+                  if (typeList) {
+                      const implementedInterfaces = typeList.descendantsOfType('type_identifier');
+                      for (const implName of implementedInterfaces) {
+                          if (implName.text === interfaceName) {
+                              implementations.push(filePath);
+                              break;
+                          }
+                      }
+                  }
+              }
+          }
+        } catch (error) {
+           // Skip files that fail to parse
+        }
+      }
+    } catch {
+      // Return empty if we fail to read root
+    }
+
+    return [...new Set(implementations)];
   }
 
   private isStandardLibrary(dep: string): boolean {

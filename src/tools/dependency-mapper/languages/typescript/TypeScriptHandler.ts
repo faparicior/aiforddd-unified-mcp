@@ -1,3 +1,5 @@
+import Parser from 'tree-sitter';
+import tsLanguage from 'tree-sitter-typescript';
 import * as path from 'path';
 import { promises as fs, constants } from 'fs';
 import { LanguageHandler } from '../LanguageHandler.js';
@@ -5,41 +7,81 @@ import { removeComments } from '../../utils/text.js';
 
 export class TypeScriptHandler implements LanguageHandler {
   extensions = ['.ts', '.tsx', '.js', '.jsx', '.cjs', '.mjs'];
+  private tsParser: Parser;
+  private tsxParser: Parser;
+
+  constructor() {
+    this.tsParser = new Parser();
+    this.tsParser.setLanguage(tsLanguage.typescript);
+
+    this.tsxParser = new Parser();
+    this.tsxParser.setLanguage(tsLanguage.tsx);
+  }
 
   extractDependencies(content: string, filePath: string): string[] {
     const dependencies: string[] = [];
-    const contentWithoutComments = removeComments(content);
-
-    // Import statements
-    // import ... from "module-name";
-    const importFromPattern = /import\s+.*?from\s+['"]([^'"]+)['"]/g;
     
-    // Side-effect imports
-    // import "module-name";
-    const importSideEffectPattern = /import\s+['"]([^'"]+)['"]/g;
-    
-    // Export statements
-    // export ... from "module-name";
-    const exportFromPattern = /export\s+.*?from\s+['"]([^'"]+)['"]/g;
+    // Choose appropriate parser based on file extension
+    const isTsxOrJsx = filePath.endsWith('.tsx') || filePath.endsWith('.jsx');
+    const parser = isTsxOrJsx ? this.tsxParser : this.tsParser;
 
-    // Dynamic import / require
-    // import("module-name")
-    // require("module-name")
-    const dynamicImportPattern = /(?:import|require)\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
-
-    const addMatches = (pattern: RegExp) => {
-        let match;
-        while ((match = pattern.exec(contentWithoutComments)) !== null) {
-            dependencies.push(match[1]);
-        }
-    };
-
-    addMatches(importFromPattern);
-    addMatches(importSideEffectPattern);
-    addMatches(exportFromPattern);
-    addMatches(dynamicImportPattern);
+    try {
+      const tree = parser.parse(content);
+      this.visitNode(tree.rootNode, dependencies);
+    } catch (error) {
+      console.error(`Error parsing TypeScript/JavaScript file ${filePath}:`, error);
+    }
 
     return [...new Set(dependencies)];
+  }
+
+  private visitNode(node: Parser.SyntaxNode, dependencies: string[]) {
+    if (node.type === 'import_statement' || node.type === 'export_statement') {
+      // Find the string literal within the import/export statement
+      // For standard imports: import { X } from 'string'
+      // For side-effect imports: import 'string'
+      // For re-exports: export { X } from 'string'
+      // For wildcard exports: export * from 'string'
+      
+      const sourceNodes = node.descendantsOfType('string');
+      for (const sourceNode of sourceNodes) {
+        // A string node usually has string_fragment children or is just text with quotes
+        // Example: 'module-name' -> string_fragment = module-name
+        const text = sourceNode.text.replace(/^['"]|['"]$/g, '');
+        if (text) {
+           // Ensure it's part of the actual source clause, usually marked by having an ancestor that is not just an import alias.
+           // In most cases, finding the first string literal in an import/export statement is the module source.
+           dependencies.push(text);
+        }
+      }
+    } else if (node.type === 'call_expression') {
+      // Look for require() or dynamic import()
+      const functionNode = node.child(0);
+      if (functionNode) {
+        const isRequire = functionNode.type === 'identifier' && functionNode.text === 'require';
+        const isImport = functionNode.type === 'import';
+
+        if (isRequire || isImport) {
+          const argumentsNode = node.childForFieldName('arguments') || node.children.find(c => c.type === 'arguments');
+          if (argumentsNode) {
+            const stringNodes = argumentsNode.descendantsOfType('string');
+            for (const stringNode of stringNodes) {
+              const text = stringNode.text.replace(/^['"]|['"]$/g, '');
+              if (text) {
+                dependencies.push(text);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (let i = 0; i < node.childCount; i++) {
+        const child = node.child(i);
+        if (child) {
+            this.visitNode(child, dependencies);
+        }
+    }
   }
 
   async resolveDependency(dependency: string, baseDir: string): Promise<string | null> {

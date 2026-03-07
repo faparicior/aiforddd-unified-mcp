@@ -1,30 +1,65 @@
+import { Engine } from 'php-parser';
 import * as path from 'path';
 import { promises as fs, constants } from 'fs';
 import { LanguageHandler } from '../LanguageHandler.js';
-import { removeComments } from '../../utils/text.js';
-import { findFileInDirectory, findProjectRoot } from '../../utils/fs-utils.js';
+import { findFileInDirectory, findProjectRoot, findFilesWithExtension } from '../../utils/fs-utils.js';
 
 export class PhpHandler implements LanguageHandler {
   extensions = ['.php'];
+  private parser: Engine;
+
+  constructor() {
+    this.parser = new Engine({
+      parser: {
+        extractDoc: false,
+        suppressErrors: true,
+      },
+      ast: {
+        withPositions: false,
+      },
+    });
+  }
 
   extractDependencies(content: string, filePath: string): string[] {
     const dependencies: string[] = [];
-    const contentWithoutComments = removeComments(content);
+    
+    try {
+      const ast: any = this.parser.parseCode(content, path.basename(filePath));
 
-    // use Namespace\Class;
-    // use Namespace\Class as Alias;
-    const usePattern = /use\s+([\w\\]+)(?:\s+as\s+\w+)?;/g;
+      // Quick AST recursive walk function
+      const walkAst = (node: any) => {
+        if (!node || typeof node !== 'object') return;
 
-    let match;
-    while ((match = usePattern.exec(contentWithoutComments)) !== null) {
-        dependencies.push(match[1]); // Captures the full namespace
-    }
+        // Extract "use" blocks (imports)
+        if (node.kind === 'usegroup' && Array.isArray(node.items)) {
+            for (const item of node.items) {
+                if (item.kind === 'useitem' && item.name) {
+                    dependencies.push(item.name);
+                }
+            }
+        }
 
-    // Capture explicit FQN usage: new \Namespace\Class()
-    // The \ is crucial.
-    const fqnNewPattern = /new\s+\\([\w\\]+)/g;
-    while ((match = fqnNewPattern.exec(contentWithoutComments)) !== null) {
-        dependencies.push(match[1]);
+        // Extract "new \Fully\Qualified\ClassName()"
+        if (node.kind === 'new' && node.what) {
+          if (node.what.kind === 'name' && node.what.resolution === 'fqn') {
+              let fqn = node.what.name;
+              if (fqn.startsWith('\\')) fqn = fqn.substring(1);
+              dependencies.push(fqn);
+          }
+        }
+
+        // Traverse children
+        for (const key of Object.keys(node)) {
+           if (typeof node[key] === 'object') {
+               walkAst(node[key]);
+           }
+        }
+      };
+
+      walkAst(ast);
+
+    } catch (error) {
+       console.error(`Error parsing PHP file ${filePath}:`, error);
     }
 
     return [...new Set(dependencies)]; // Remove duplicates
@@ -65,10 +100,70 @@ export class PhpHandler implements LanguageHandler {
   async isInterfaceFile(filePath: string): Promise<boolean> {
       try {
         const content = await fs.readFile(filePath, 'utf-8');
-        const clean = removeComments(content);
-        return /\binterface\s+\w+/.test(clean);
+        const ast: any = this.parser.parseCode(content, path.basename(filePath));
+        
+        let foundInterface = false;
+
+        const walkAst = (node: any) => {
+            if (foundInterface) return;
+            if (!node || typeof node !== 'object') return;
+            if (node.kind === 'interface') {
+                foundInterface = true;
+                return;
+            }
+            for (const key of Object.keys(node)) {
+                if (typeof node[key] === 'object') {
+                    walkAst(node[key]);
+                }
+            }
+        };
+
+        walkAst(ast);
+        return foundInterface;
       } catch {
           return false;
       }
+  }
+
+  async findImplementations(interfaceName: string, baseDir: string): Promise<string[]> {
+      const implementations: string[] = [];
+      
+      try {
+        const projectRoot = findProjectRoot(baseDir) || baseDir;
+        const phpFiles = await findFilesWithExtension(projectRoot, '.php');
+
+        for (const filePath of phpFiles) {
+            try {
+                const content = await fs.readFile(filePath, 'utf-8');
+                const ast: any = this.parser.parseCode(content, path.basename(filePath));
+
+                const walkAst = (node: any) => {
+                    if (!node || typeof node !== 'object') return;
+                    
+                    if (node.kind === 'class' && Array.isArray(node.implements)) {
+                        for (const impl of node.implements) {
+                            if (impl.kind === 'name' && (impl.name === interfaceName || impl.name.endsWith('\\' + interfaceName))) {
+                                implementations.push(filePath);
+                            }
+                        }
+                    }
+
+                    for (const key of Object.keys(node)) {
+                        if (typeof node[key] === 'object') {
+                            walkAst(node[key]);
+                        }
+                    }
+                };
+
+                walkAst(ast);
+            } catch {
+                // Skip files that fail to parse
+            }
+        }
+      } catch {
+        // Return empty on error finding files
+      }
+
+      return [...new Set(implementations)];
   }
 }

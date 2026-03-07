@@ -1,148 +1,106 @@
+import Parser from 'tree-sitter';
+import kotlinLanguage from 'tree-sitter-kotlin';
 import * as path from 'path';
 import { promises as fs, accessSync, constants } from 'fs';
 import { LanguageHandler } from '../LanguageHandler.js';
-import { removeComments } from '../../utils/text.js';
 import { findFileInDirectory, findProjectRoot, findFilesWithExtension } from '../../utils/fs-utils.js';
 
 export class KotlinHandler implements LanguageHandler {
   extensions = ['.kt', '.kts'];
+  private parser: Parser;
+
+  constructor() {
+    this.parser = new Parser();
+    this.parser.setLanguage(kotlinLanguage);
+  }
 
   extractDependencies(content: string, filePath: string): string[] {
     const dependencies: string[] = [];
     const currentFileName = path.basename(filePath, '.kt');
     
-    // Remove comments to avoid false positives
-    const contentWithoutComments = removeComments(content);
-    
-    // First, collect all imports to track what simple names are already imported
-    const imports: string[] = [];
-    const lines = contentWithoutComments.split('\n');
-    for (const line of lines) {
-      const trimmedLine = line.trim();
-  
-      // Extract import statements
-      if (trimmedLine.startsWith('import ')) {
-        const importMatch = trimmedLine.match(/import\s+([^\s;]+)/);
-        if (importMatch) {
-          const importPath = importMatch[1];
-          imports.push(importPath);
-          dependencies.push(importPath);
+    try {
+      const tree = this.parser.parse(content);
+      const rootNode = tree.rootNode;
+
+      // Extract explicit imports
+      const importNodes = rootNode.descendantsOfType('import_header');
+      const importedSimpleNames = new Set<string>();
+
+      for (const node of importNodes) {
+        const identifierNode = node.children.find(c => c.type === 'identifier');
+        if (identifierNode) {
+            const importPath = identifierNode.text;
+            dependencies.push(importPath);
+            importedSimpleNames.add(importPath.split('.').pop() || '');
         }
       }
-    }
-  
-    // Create a set of simple names from imports for quick lookup
-    const importedSimpleNames = new Set(imports.map(imp => {
-      const parts = imp.split('.');
-      return parts[parts.length - 1];
-    }));
-  
-    // Process full content for multi-line patterns
-    // Normalize whitespace: replace multiple spaces/newlines with single space for better matching
-    const normalizedContent = contentWithoutComments.replace(/\s+/g, ' ');
-  
-    // Extract class/interface inheritance and implementation
-    const inheritancePattern = /\b(?:class|interface|object|enum\s+class|data\s+class|sealed\s+class|sealed\s+interface)\s+\w+\s*(?:<[^>]+>)?\s*(?:\([^)]*\)\s*)?:\s*([^{]+)/g;
-    let inheritanceMatch;
-    while ((inheritanceMatch = inheritancePattern.exec(normalizedContent)) !== null) {
-      const inheritancePart = inheritanceMatch[1].trim();
-      this.extractTypesFromInheritance(inheritancePart, dependencies, currentFileName, importedSimpleNames);
-    }
-  
-    // Extract annotation types
-    const annotationPattern = /@(\w+)(?:\([^)]*\))?/g;
-    let annotationMatch;
-    while ((annotationMatch = annotationPattern.exec(normalizedContent)) !== null) {
-      const annotation = annotationMatch[1];
-      if (annotation !== currentFileName) {
-        dependencies.push(annotation);
+
+      // Find all types used in the file
+      const typeNodes = rootNode.descendantsOfType('user_type');
+      for (const node of typeNodes) {
+          const typeName = node.text;
+          
+          if (
+              typeName !== currentFileName && 
+              !this.isBuiltInType(typeName) && 
+              !importedSimpleNames.has(typeName)
+          ) {
+              // Ensure it's not a generic container itself being pushed as part of a larger string
+              // user_type nodes within tree-sitter-kotlin nicely fragment `<A, B>` into their own user_type nodes.
+              const cleanTypeMatch = typeName.match(/^([A-Z]\w+)/);
+              if (cleanTypeMatch && !this.isBuiltInType(cleanTypeMatch[1])) {
+                  dependencies.push(cleanTypeMatch[1]);
+              }
+          }
       }
-    }
-  
-    // Extract property types (use greedy match to capture complete type with nested generics, handles delegates)
-    const propertyTypePattern = /(?:val|var)\s+\w+\s*:\s*([A-Z][\w<>,\s?]+)(?=\s*(?:by\s|[=,)]|$))/g;
-    let propertyMatch;
-    while ((propertyMatch = propertyTypePattern.exec(normalizedContent)) !== null) {
-      const typeName = propertyMatch[1].trim();
-      this.extractCompleteTypeDeclaration(typeName, dependencies, currentFileName, importedSimpleNames);
-    }
-  
-    // Extract function return types (handles multi-line and extension functions)
-    const returnTypePattern = /fun\s+(?:<[^>]+>)?\s*(?:[A-Z]\w+\s*\.\s*)?\w+\s*(?:<[^>]+>)?\s*\([^)]*\)\s*:\s*([A-Z][\w<>,\s?]+?)(?:\s*[{=])/g;
-    let returnMatch;
-    while ((returnMatch = returnTypePattern.exec(normalizedContent)) !== null) {
-      const returnType = returnMatch[1].trim();
-      this.extractCompleteTypeDeclaration(returnType, dependencies, currentFileName, importedSimpleNames);
-    }
-    
-    // Extract parameter types (handles multi-line parameter lists)
-    // Use lookahead to avoid consuming comma, allowing multiple parameter capture
-    const parameterTypePattern = /(?:val|var)?\s*\w+\s*:\s*([A-Z][\w<>,\s?]+?)(?=\s*[,)])/g;
-    let paramMatch;
-    while ((paramMatch = parameterTypePattern.exec(normalizedContent)) !== null) {
-      const typeName = paramMatch[1].trim();
-      this.extractCompleteTypeDeclaration(typeName, dependencies, currentFileName, importedSimpleNames);
-    }
-  
-    // Extract companion object and nested class references
-    const nestedPattern = /\b(?:companion\s+object|object)\s*:\s*([^{]+)/g;
-    let nestedMatch;
-    while ((nestedMatch = nestedPattern.exec(normalizedContent)) !== null) {
-      const nestedPart = nestedMatch[1].trim();
-      this.extractTypesFromInheritance(nestedPart, dependencies, currentFileName, importedSimpleNames);
-    }
-  
-    // Extract extension function receiver types (e.g., fun User.toDto())
-    const extensionPattern = /fun\s+([A-Z]\w+)\s*\.\s*\w+\s*\(/g;
-    let extensionMatch;
-    while ((extensionMatch = extensionPattern.exec(normalizedContent)) !== null) {
-      const receiverType = extensionMatch[1];
-      if (receiverType !== currentFileName && !this.isBuiltInType(receiverType)) {
-        dependencies.push(receiverType);
+
+      // In Kotlin, a nested class extending a sealed class in the same file (e.g., `data class Success() : Result()`) 
+      // creates a dependency on `Result`, but `Result` might be the top-level class (currentFileName).
+      // If the inheritance references something that's *not* the current file name, we need it.
+      // E.g., `sealed class Result : BaseResult` requires `BaseResult`.
+      const delegationSpecifiers = rootNode.descendantsOfType('delegation_specifier');
+      for (const node of delegationSpecifiers) {
+          const userTypes = node.descendantsOfType('user_type');
+          for (const ut of userTypes) {
+              const text = ut.text.split('<')[0]; // Strip generics
+              if (text !== currentFileName && !this.isBuiltInType(text) && !importedSimpleNames.has(text)) {
+                 dependencies.push(text);
+              }
+          }
       }
-    }
-  
-    // Extract typealias declarations (e.g., typealias UserMap = Map<String, User>)
-    const typealiasPattern = /typealias\s+\w+\s*=\s*([A-Z][\w<>,\s?]+?)(?:\s|$)/g;
-    let typealiasMatch;
-    while ((typealiasMatch = typealiasPattern.exec(normalizedContent)) !== null) {
-      const typeAliasType = typealiasMatch[1].trim();
-      this.extractCompleteTypeDeclaration(typeAliasType, dependencies, currentFileName, importedSimpleNames);
-    }
-  
-    // Extract function type parameters (e.g., (UserResult) -> Unit)
-    const functionTypePattern = /\(\s*([A-Z][\w<>,\s?]+?)\s*\)\s*->/g;
-    let functionTypeMatch;
-    while ((functionTypeMatch = functionTypePattern.exec(normalizedContent)) !== null) {
-      const paramType = functionTypeMatch[1].trim();
-      this.extractCompleteTypeDeclaration(paramType, dependencies, currentFileName, importedSimpleNames);
-    }
-  
-    // Extract lambda return types (e.g., () -> UserFactory, (User) -> ProcessedUser)
-    const lambdaReturnPattern = /\([^)]*\)\s*->\s*([A-Z][\w<>,\s?]+?)(?:\s*[=,;]|$)/g;
-    let lambdaReturnMatch;
-    while ((lambdaReturnMatch = lambdaReturnPattern.exec(normalizedContent)) !== null) {
-      const returnType = lambdaReturnMatch[1].trim();
-      this.extractCompleteTypeDeclaration(returnType, dependencies, currentFileName, importedSimpleNames);
-    }
-  
-    // Extract property delegate types (e.g., by lazy { UserFactory.create() }, by Delegates.observable(...))
-    const delegatePattern = /\bby\s+(?:lazy|Delegates\.\w+)\s*\{\s*([A-Z]\w+)\./g;
-    let delegateMatch;
-    while ((delegateMatch = delegatePattern.exec(normalizedContent)) !== null) {
-      const delegateType = delegateMatch[1];
-      if (delegateType !== currentFileName && !this.isBuiltInType(delegateType)) {
-        dependencies.push(delegateType);
+
+      // Collect annotations usage
+      const annotationNodes = rootNode.descendantsOfType('annotation');
+      for (const node of annotationNodes) {
+          // It usually starts with @ e.g., @Inject or @Service
+          const cleanAnnotation = node.text.replace(/^@/, '').split('(')[0];
+          if (
+              cleanAnnotation !== currentFileName && 
+              !this.isBuiltInType(cleanAnnotation)
+          ) {
+              dependencies.push(cleanAnnotation);
+          }
       }
+
+      // Collect object/method calls to support finding delegates and factories (e.g., UserFactory.create(), Delegates.observable)
+      const callNodes = rootNode.descendantsOfType('call_expression');
+      for (const call of callNodes) {
+          // Some call expressions are `navigation_expression` children like `UserFactory . create()`
+          // We can just scan all identifiers starting with a capital letter
+          const identifiers = call.descendantsOfType('simple_identifier');
+          for (const id of identifiers) {
+              const text = id.text;
+              if (/^[A-Z]\w+/.test(text) && !this.isBuiltInType(text) && !importedSimpleNames.has(text) && text !== currentFileName) {
+                  dependencies.push(text);
+              }
+          }
+      }
+
+    } catch (error) {
+       console.error(`Error parsing Kotlin file ${filePath}:`, error);
     }
-  
-    // Extract Delegates import from delegate usage
-    const delegatesPattern = /\bby\s+Delegates\./g;
-    if (delegatesPattern.test(normalizedContent)) {
-      dependencies.push("Delegates");
-    }
-  
-    return [...new Set(dependencies)]; // Remove duplicates and return
+
+    return [...new Set(dependencies)]; // Remove duplicates
   }
 
   async resolveDependency(dependency: string, baseDir: string): Promise<string | null> {
@@ -244,12 +202,14 @@ export class KotlinHandler implements LanguageHandler {
   async isInterfaceFile(filePath: string): Promise<boolean> {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      const contentWithoutComments = removeComments(content);
-      const normalizedContent = contentWithoutComments.replace(/\s+/g, ' ');
-      
-      // Check for interface declaration
-      const interfacePattern = /\binterface\s+\w+/;
-      return interfacePattern.test(normalizedContent);
+      const tree = this.parser.parse(content);
+      for(let i=0; i < tree.rootNode.childCount; i++) {
+          const child = tree.rootNode.child(i);
+          if (child && child.type === 'class_declaration' && child.text.startsWith('interface')) {
+              return true;
+          }
+      }
+      return false;
     } catch (error) {
       console.error(`Error checking if file is interface: ${filePath}`, error);
       return false;
@@ -292,7 +252,7 @@ export class KotlinHandler implements LanguageHandler {
   
     // Strategy 3: Try to find project root and search there
     const projectRoot = findProjectRoot(baseDir);
-    if (projectRoot !== '/' && projectRoot !== path.parse(projectRoot).root && projectRoot !== baseDir) {
+    if (projectRoot && projectRoot !== '/' && projectRoot !== path.parse(projectRoot).root && projectRoot !== baseDir) {
       try {
         const projectKotlinFiles = await findFilesWithExtension(projectRoot, '.kt');
         const projectImplementations = await this.findImplementationsInFiles(interfaceName, projectKotlinFiles);
@@ -311,31 +271,23 @@ export class KotlinHandler implements LanguageHandler {
     for (const filePath of kotlinFiles) {
       try {
         const content = await fs.readFile(filePath, 'utf-8');
-        const contentWithoutComments = removeComments(content);
-  
-        // Check if this file contains a class that implements the interface
-        const normalizedContent = contentWithoutComments.replace(/\s+/g, ' ');
-  
-        // Look for class declarations that implement the interface
-        const classPattern = /\bclass\s+\w+\s*(?:<[^>]+>)?\s*(?:\([^)]*\)\s*)?:\s*([^,{]+)/g;
-        let classMatch;
-        while ((classMatch = classPattern.exec(normalizedContent)) !== null) {
-          const inheritancePart = classMatch[1].trim();
-          if (this.implementsInterface(inheritancePart, interfaceName)) {
-            implementations.push(filePath);
-            break; // Only add once per file
-          }
-        }
-  
-        // Also check for object declarations
-        const objectPattern = /\bobject\s+\w+\s*:\s*([^,{]+)/g;
-        let objectMatch;
-        while ((objectMatch = objectPattern.exec(normalizedContent)) !== null) {
-          const inheritancePart = objectMatch[1].trim();
-          if (this.implementsInterface(inheritancePart, interfaceName)) {
-            implementations.push(filePath);
-            break;
-          }
+        const tree = this.parser.parse(content);
+
+        // Find class or object declarations
+        const declarations = [
+            ...tree.rootNode.descendantsOfType('class_declaration'),
+            ...tree.rootNode.descendantsOfType('object_declaration')
+        ];
+
+        for (const decl of declarations) {
+            const delegationNode = decl.descendantsOfType('delegation_specifier')[0];
+            if (delegationNode) {
+                const implementedTypes = delegationNode.descendantsOfType('user_type');
+                if (implementedTypes.some(t => t.text === interfaceName)) {
+                    implementations.push(filePath);
+                    break;
+                }
+            }
         }
       } catch (error) {
         console.error(`Error reading file ${filePath}:`, error);
@@ -345,18 +297,6 @@ export class KotlinHandler implements LanguageHandler {
     return implementations;
   }
 
-  private implementsInterface(inheritancePart: string, interfaceName: string): boolean {
-    const types = inheritancePart.split(',');
-    for (const type of types) {
-      const trimmed = type.trim();
-      const typeMatch = trimmed.match(/^([A-Z]\w+)/);
-      if (typeMatch && typeMatch[1] === interfaceName) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   // Private helper methods
   
   private isBuiltInType(typeName: string): boolean {
@@ -364,9 +304,14 @@ export class KotlinHandler implements LanguageHandler {
       'String', 'Int', 'Long', 'Short', 'Byte', 'Double', 'Float', 'Boolean', 'Char',
       'List', 'Set', 'Map', 'Array', 'MutableList', 'MutableSet', 'MutableMap',
       'Sequence', 'Iterable', 'Collection', 'Unit', 'Any', 'Nothing',
-      'Pair', 'Triple', 'Result', 'Lazy'
+      'Pair', 'Triple', 'Lazy'
     ]);
-    return builtInTypes.has(typeName);
+    if (builtInTypes.has(typeName)) return true;
+    
+    // Quick heuristic to discard clear non-class identifiers
+    if (/^[a-z]/.test(typeName)) return true;
+    
+    return false;
   }
 
   private isStandardLibrary(dependency: string): boolean {
@@ -381,134 +326,5 @@ export class KotlinHandler implements LanguageHandler {
     ];
   
     return standardPrefixes.some(prefix => dependency.startsWith(prefix));
-  }
-
-  private extractTypesFromInheritance(inheritancePart: string, dependencies: string[], currentFileName: string, importedSimpleNames: Set<string>): void {
-    const types = inheritancePart.split(',');
-    
-    for (const type of types) {
-      const trimmed = type.trim();
-      
-      const typeMatch = trimmed.match(/^([A-Z]\w+)/);
-      if (typeMatch) {
-        const typeName = typeMatch[1];
-        if (typeName !== currentFileName && !importedSimpleNames.has(typeName)) {
-          dependencies.push(typeName);
-        }
-      }
-  
-      const genericMatch = trimmed.match(/<(.+)>/);
-      if (genericMatch) {
-        this.extractTypesFromGenerics(genericMatch[1], dependencies, currentFileName, importedSimpleNames);
-      }
-    }
-  }
-
-  private extractCompleteTypeDeclaration(declaration: string, dependencies: string[], currentFileName: string, importedSimpleNames: Set<string>): void {
-    const cleanDecl = declaration.replace(/\?/g, '').trim();
-    
-    const mainTypeMatch = cleanDecl.match(/^([A-Z]\w+)/);
-    if (mainTypeMatch) {
-      const mainType = mainTypeMatch[1];
-      if (mainType !== currentFileName && !this.isBuiltInType(mainType) && !importedSimpleNames.has(mainType)) {
-        dependencies.push(mainType);
-      }
-    }
-  
-    const genericContent = this.extractGenericContent(cleanDecl);
-    if (genericContent) {
-      this.extractAllTypesFromGenerics(genericContent, dependencies, currentFileName, importedSimpleNames);
-    }
-  }
-
-  private extractGenericContent(declaration: string): string | null {
-    const startIndex = declaration.indexOf('<');
-    if (startIndex === -1) return null;
-    
-    let depth = 0;
-    let endIndex = -1;
-    
-    for (let i = startIndex; i < declaration.length; i++) {
-      if (declaration[i] === '<') depth++;
-      else if (declaration[i] === '>') {
-        depth--;
-        if (depth === 0) {
-          endIndex = i;
-          break;
-        }
-      }
-    }
-    
-    if (endIndex === -1) return null;
-    return declaration.substring(startIndex + 1, endIndex);
-  }
-
-  private extractAllTypesFromGenerics(generics: string, dependencies: string[], currentFileName: string, importedSimpleNames: Set<string>): void {
-    const types: string[] = [];
-    let current = '';
-    let depth = 0;
-  
-    for (const char of generics) {
-      if (char === '<') {
-        depth++;
-        current += char;
-      } else if (char === '>') {
-        depth--;
-        current += char;
-      } else if (char === ',' && depth === 0) {
-        types.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    
-    if (current.trim()) {
-      types.push(current.trim());
-    }
-  
-    for (const type of types) {
-      this.extractCompleteTypeDeclaration(type, dependencies, currentFileName, importedSimpleNames);
-    }
-  }
-
-  private extractTypesFromGenerics(generics: string, dependencies: string[], currentFileName: string, importedSimpleNames: Set<string>): void {
-    const types: string[] = [];
-    let current = '';
-    let depth = 0;
-  
-    for (const char of generics) {
-      if (char === '<') {
-        depth++;
-        current += char;
-      } else if (char === '>') {
-        depth--;
-        current += char;
-      } else if (char === ',' && depth === 0) {
-        types.push(current.trim());
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    
-    if (current) {
-      types.push(current.trim());
-    }
-  
-    for (const type of types) {
-      const typeMatch = type.match(/^([A-Z]\w+)/);
-      if (typeMatch) {
-        const typeName = typeMatch[1];
-        if (typeName !== currentFileName && !this.isBuiltInType(typeName) && !importedSimpleNames.has(typeName)) {
-          dependencies.push(typeName);
-        }
-      }
-  
-      const nestedGenericMatch = type.match(/<(.+)>/);
-      if (nestedGenericMatch) {
-        this.extractTypesFromGenerics(nestedGenericMatch[1], dependencies, currentFileName, importedSimpleNames);
-      }
-    }
   }
 }
