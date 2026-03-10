@@ -1,0 +1,99 @@
+#!/usr/bin/env node
+
+import { Command } from 'commander'
+import { resolve, join } from 'path'
+import { existsSync, writeFileSync, unlinkSync, mkdirSync } from 'fs'
+import { spawnSync } from 'child_process'
+import { PromptManager } from './tools/code-manifest/core.js'
+import { readConfig } from './shared/config/config-reader.js'
+
+const program = new Command()
+
+program
+    .name('ddd-create-use-case-wow')
+    .description('Analyze use case patterns in a code manifest and generate a DDD Application Layer WoW document using Claude CLI')
+    .version('1.0.0')
+    .option('-r, --repository <path>', 'Path to the repository root (defaults to current directory)', '.')
+    .option('-p, --print-only', 'Print the generated prompt without executing Claude')
+    .action((options) => {
+        try {
+            const repositoryPath = resolve(process.cwd(), options.repository)
+            const configPath = join(repositoryPath, '.aiforddd/code_manifest.json')
+
+            if (!existsSync(configPath)) {
+                console.error(`Config file not found: ${configPath}`)
+                process.exit(1)
+            }
+
+            // Read the config to find the destination folder where code_manifest.md is located
+            const appConfig = readConfig<any>(configPath, '')
+            const destinationFolder = resolve(repositoryPath, appConfig.destination_folder || '.aiforddd')
+            const manifestFile = join(destinationFolder, 'code_manifest.md')
+
+            if (!existsSync(manifestFile)) {
+                console.error(`Manifest file not found: ${manifestFile}`)
+                console.error('Please run ddd-create-code-manifest first.')
+                process.exit(1)
+            }
+
+            // The prompt uses manifest_path as the folder (not file), since it writes to
+            // {{manifest_path}}/wow/ddd-use-case-wow.md
+            const manifestPath = destinationFolder
+
+            // Ensure output directory exists
+            const wowOutputDir = join(manifestPath, 'wow')
+            if (!existsSync(wowOutputDir)) {
+                mkdirSync(wowOutputDir, { recursive: true })
+            }
+
+            const promptManager = new PromptManager()
+            const promptArgs = { manifest_path: manifestPath }
+            const promptContent = promptManager.getPromptContent('create-use-case-wow', promptArgs)
+
+            if (options.printOnly) {
+                console.log(promptContent)
+                process.exit(0)
+            }
+
+            // Write prompt to a temporary file
+            const tempPromptFile = resolve(process.cwd(), '.ddd-wow-prompt-tmp.md')
+            writeFileSync(tempPromptFile, promptContent, 'utf-8')
+
+            console.log(`Executing Claude workflow to generate WoW document for: ${manifestFile}`)
+
+            // Spawn claude CLI using cat <prompt> | claude --dangerously-skip-permissions -p
+            const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude --dangerously-skip-permissions -p`], {
+                stdio: 'inherit'
+            })
+
+            if (existsSync(tempPromptFile)) {
+                unlinkSync(tempPromptFile)
+            }
+
+            if (claudeProcess.error) {
+                console.error('Failed to start claude CLI. Is it installed and in your PATH?')
+                console.error(claudeProcess.error)
+                process.exit(1)
+            }
+
+            if (claudeProcess.status !== 0) {
+                process.exit(claudeProcess.status ?? 1)
+            }
+
+            const outputFile = join(wowOutputDir, 'ddd-use-case-wow.md')
+            if (existsSync(outputFile)) {
+                console.log(`\nWoW document generated successfully: ${outputFile}`)
+            } else {
+                console.warn(`\nWarning: Expected output file not found at: ${outputFile}`)
+                console.warn('Claude may not have written the file as expected.')
+            }
+
+            process.exit(0)
+
+        } catch (e: any) {
+            console.error('Error running create-use-case-wow workflow:', e.message || e)
+            process.exit(1)
+        }
+    })
+
+program.parse(process.argv)
