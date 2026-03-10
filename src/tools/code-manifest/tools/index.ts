@@ -7,6 +7,7 @@ import { compareWithRepositoryTool, handleCompareWithRepository } from "./compar
 import { createBackupTool, handleCreateBackup } from "./createBackup.js"
 import { classifyFilesTool, handleClassifyFiles } from "./classifyFiles.js"
 import { getPromptContentTool, handleGetPromptContent } from "./getPromptContent.js"
+import { getTemplateContentTool, handleGetTemplateContent } from "./getTemplateContent.js"
 
 export function registerTools() {
     globalToolRegistry.registerTool({
@@ -47,5 +48,10 @@ export function registerTools() {
     globalToolRegistry.registerTool({
         ...getPromptContentTool,
         handler: handleGetPromptContent
+    })
+
+    globalToolRegistry.registerTool({
+        ...getTemplateContentTool,
+        handler: handleGetTemplateContent
     })
 }
