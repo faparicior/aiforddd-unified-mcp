@@ -34,7 +34,7 @@ describe("MCP Server Integration Tests", () => {
 
     expect(response.tools).toBeDefined();
     expect(Array.isArray(response.tools)).toBe(true);
-    expect(response.tools).toHaveLength(34);
+    expect(response.tools).toHaveLength(35);
 
     const toolNames = response.tools.map(t => t.name).sort();
     expect(toolNames).toEqual(expect.arrayContaining([

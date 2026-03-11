@@ -14,6 +14,7 @@ describe('cli-workflow (ddd-run) Integration', () => {
         }
 
         // Create a fake claude command that reads stdin and simulates work
+        // Outputs stream-json format so runClaudeWithStreaming can forward the text
         const fakeClaudeScript = `#!/usr/bin/env node
 import fs from 'fs';
 const manifestFile = '${manifestPath}';
@@ -44,7 +45,8 @@ if (fs.existsSync(manifestFile)) {
         fs.writeFileSync(manifestFile, lines.join('\\n'), 'utf8');
     }
 }
-console.log('Fake claude executed');
+// Emit stream-json format so runClaudeWithStreaming forwards the text
+console.log(JSON.stringify({ event: { delta: { text: 'Fake claude executed' } } }));
 `;
         writeFileSync(fakeClaudePath, fakeClaudeScript, 'utf8');
         chmodSync(fakeClaudePath, '755');

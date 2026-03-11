@@ -245,12 +245,12 @@ export async function generateCodeManifest(repositoryPath: string = '.'): Promis
     const generatedFiles: Array<{ type: string, path: string }> = []
 
     if (codeRows.length > 0) {
-        const codeManifestPath = join(destinationFolder, 'code_manifest.md')
+        const codeManifestPath = join(destinationFolder, 'code-manifest.md')
         writeMarkdownFileWithStatus(codeManifestPath, codeHeader, codeRows)
         generatedFiles.push({ type: 'code_manifest', path: codeManifestPath })
     }
     if (testRows.length > 0) {
-        const testManifestPath = join(destinationFolder, 'tests_manifest.md')
+        const testManifestPath = join(destinationFolder, 'tests-manifest.md')
         writeMarkdownFileWithStatus(testManifestPath, testHeader, testRows)
         generatedFiles.push({ type: 'tests_manifest', path: testManifestPath })
     }

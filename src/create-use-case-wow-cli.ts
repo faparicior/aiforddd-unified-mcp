@@ -3,7 +3,7 @@
 import { Command } from 'commander'
 import { resolve, join } from 'path'
 import { existsSync, writeFileSync, unlinkSync, mkdirSync } from 'fs'
-import { spawnSync } from 'child_process'
+import { runClaudeWithStreaming } from './shared/cli/claude-runner.js'
 import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
 
@@ -15,7 +15,7 @@ program
     .version('1.0.0')
     .option('-r, --repository <path>', 'Path to the repository root (defaults to current directory)', '.')
     .option('-p, --print-only', 'Print the generated prompt without executing Claude')
-    .action((options) => {
+    .action(async (options) => {
         try {
             const repositoryPath = resolve(process.cwd(), options.repository)
             const configPath = join(repositoryPath, '.aiforddd/code_manifest.json')
@@ -25,10 +25,10 @@ program
                 process.exit(1)
             }
 
-            // Read the config to find the destination folder where code_manifest.md is located
+            // Read the config to find the destination folder where code-manifest.md is located
             const appConfig = readConfig<any>(configPath, '')
             const destinationFolder = resolve(repositoryPath, appConfig.destination_folder || '.aiforddd')
-            const manifestFile = join(destinationFolder, 'code_manifest.md')
+            const manifestFile = join(destinationFolder, 'code-manifest.md')
 
             if (!existsSync(manifestFile)) {
                 console.error(`Manifest file not found: ${manifestFile}`)
@@ -61,23 +61,22 @@ program
 
             console.log(`Executing Claude workflow to generate WoW document for: ${manifestFile}`)
 
-            // Spawn claude CLI using cat <prompt> | claude --dangerously-skip-permissions -p
-            const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude --dangerously-skip-permissions -p`], {
-                stdio: 'inherit'
-            })
+            let exitCode: number;
+            try {
+                exitCode = await runClaudeWithStreaming(tempPromptFile);
+            } catch (err: any) {
+                console.error('Failed to start claude CLI. Is it installed and in your PATH?')
+                console.error(err)
+                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                process.exit(1)
+            }
 
             if (existsSync(tempPromptFile)) {
                 unlinkSync(tempPromptFile)
             }
 
-            if (claudeProcess.error) {
-                console.error('Failed to start claude CLI. Is it installed and in your PATH?')
-                console.error(claudeProcess.error)
-                process.exit(1)
-            }
-
-            if (claudeProcess.status !== 0) {
-                process.exit(claudeProcess.status ?? 1)
+            if (exitCode! !== 0) {
+                process.exit(exitCode!)
             }
 
             const outputFile = join(wowOutputDir, 'ddd-use-case-wow.md')

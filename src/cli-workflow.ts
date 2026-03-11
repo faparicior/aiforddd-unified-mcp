@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import { readFileSync, existsSync, writeFileSync, unlinkSync } from 'fs';
 import { join, resolve, dirname } from 'path';
-import { spawnSync } from 'child_process';
+import { runClaudeWithStreaming } from './shared/cli/claude-runner.js';
 import { fileURLToPath } from 'url';
 import { filterAndCountRows } from './tools/markdown/utils/parser.js';
 
@@ -80,7 +80,7 @@ program
     .argument('<workflowFile>', 'Path to the workflow YAML file (e.g., src/prompts/catalog-manifest.yml)')
     .option('-a, --args <json>', 'JSON string containing the workflow arguments')
     .option('-p, --print-only', 'Print the generated prompt without executing Claude')
-    .action((workflowFile, options) => {
+    .action(async (workflowFile, options) => {
         try {
             let fullPath = resolve(process.cwd(), workflowFile);
 
@@ -157,27 +157,19 @@ program
             while (!isCompleted) {
                 console.log(`Executing Claude workflow: ${promptDef.name || workflowFile}`);
 
-                // Spawn claude CLI using cat <prompt> | claude -y -p
-                const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude --dangerously-skip-permissions -p`], {
-                    stdio: 'inherit'
-                });
-
-                if (claudeProcess.error) {
+                let exitCode: number;
+                try {
+                    exitCode = await runClaudeWithStreaming(tempPromptFile);
+                } catch (err: any) {
                     console.error('Failed to start claude CLI. Is it installed and in your PATH?');
-                    console.error(claudeProcess.error);
-                    // Clean up temporary file
-                    if (existsSync(tempPromptFile)) {
-                        unlinkSync(tempPromptFile);
-                    }
+                    console.error(err);
+                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile);
                     process.exit(1);
                 }
 
-                if (claudeProcess.status !== 0) {
-                    // Clean up temporary file
-                    if (existsSync(tempPromptFile)) {
-                        unlinkSync(tempPromptFile);
-                    }
-                    process.exit(claudeProcess.status ?? 1);
+                if (exitCode! !== 0) {
+                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile);
+                    process.exit(exitCode!);
                 }
 
                 if (promptDef.name === 'catalog-manifest') {

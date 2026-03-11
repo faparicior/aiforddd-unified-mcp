@@ -191,7 +191,7 @@ describe('Main CLI Integration Tests', () => {
 `
 
       const codePath = createTestFile(projectDir, 'output/code-manifest.md', codeManifest)
-      const testPath = createTestFile(projectDir, 'output/test-manifest.md', testManifest)
+      const testPath = createTestFile(projectDir, 'output/tests-manifest.md', testManifest)
 
       expect(existsSync(codePath)).toBe(true)
       expect(existsSync(testPath)).toBe(true)
@@ -520,11 +520,11 @@ class UserTest {
       const generatedFiles: Array<{ type: string, path: string }> = []
 
       if (codeRows.length > 0) {
-        const codeManifestPath = pathModule.join(destinationFolder, 'code_manifest.md')
+        const codeManifestPath = pathModule.join(destinationFolder, 'code-manifest.md')
         generatedFiles.push({ type: 'code_manifest', path: codeManifestPath })
       }
       if (testRows.length > 0) {
-        const testManifestPath = pathModule.join(destinationFolder, 'tests_manifest.md')
+        const testManifestPath = pathModule.join(destinationFolder, 'tests-manifest.md')
         generatedFiles.push({ type: 'tests_manifest', path: testManifestPath })
       }
 
@@ -544,9 +544,9 @@ class UserTest {
       const testManifest = result.generatedFiles.find((f: any) => f.type === 'tests_manifest')
 
       expect(codeManifest).toBeDefined()
-      expect(codeManifest!.path).toBe(join(outputDir, 'code_manifest.md'))
+      expect(codeManifest!.path).toBe(join(outputDir, 'code-manifest.md'))
       expect(testManifest).toBeDefined()
-      expect(testManifest!.path).toBe(join(outputDir, 'tests_manifest.md'))
+      expect(testManifest!.path).toBe(join(outputDir, 'tests-manifest.md'))
     })
   })
 })

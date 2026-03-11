@@ -26,11 +26,11 @@ program
                 process.exit(1)
             }
 
-            // We read the config to understand where the code_manifest.md is located
+            // We read the config to understand where the code-manifest.md is located
             // The destination_folder is defined in the config.
             const appConfig = readConfig<any>(configPath, '') // Empty schema path because we don't strictly need validation here, just the 'destination_folder'
             const destinationFolder = resolve(repositoryPath, appConfig.destination_folder || '.aiforddd')
-            const manifestPath = join(destinationFolder, 'code_manifest.md')
+            const manifestPath = join(destinationFolder, 'code-manifest.md')
 
             if (!existsSync(manifestPath)) {
                 console.error(`Manifest file not found: ${manifestPath}`)

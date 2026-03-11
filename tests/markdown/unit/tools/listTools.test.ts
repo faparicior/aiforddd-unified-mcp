@@ -18,7 +18,7 @@ describe("ListTools", () => {
     const response = await client.listTools();
 
     expect(response.tools).toBeDefined();
-    expect(response.tools.length).toBe(34);
+    expect(response.tools.length).toBe(35);
     
     const toolNames = response.tools.map(tool => tool.name);
     expect(toolNames).toContain("echo");

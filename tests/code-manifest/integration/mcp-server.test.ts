@@ -324,13 +324,13 @@ class UserTest {
       const testManifest = responseJson.generatedFiles.find((f: any) => f.type === 'tests_manifest')
 
       expect(codeManifest).toBeDefined()
-      expect(codeManifest.path).toBe(join(outputDir, 'code_manifest.md'))
+      expect(codeManifest.path).toBe(join(outputDir, 'code-manifest.md'))
       expect(testManifest).toBeDefined()
-      expect(testManifest.path).toBe(join(outputDir, 'tests_manifest.md'))
+      expect(testManifest.path).toBe(join(outputDir, 'tests-manifest.md'))
 
       // Verify files were actually created
-      expect(existsSync(join(outputDir, 'code_manifest.md'))).toBe(true)
-      expect(existsSync(join(outputDir, 'tests_manifest.md'))).toBe(true)
+      expect(existsSync(join(outputDir, 'code-manifest.md'))).toBe(true)
+      expect(existsSync(join(outputDir, 'tests-manifest.md'))).toBe(true)
     })
   })
 

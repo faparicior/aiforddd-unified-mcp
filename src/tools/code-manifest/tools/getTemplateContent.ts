@@ -17,7 +17,7 @@ export async function handleGetTemplateContent(args: any) {
     const { templatePath } = args
     if (!templatePath) throw new Error('templatePath is required')
 
-    const fullPath = join(__dirname, '..', '..', 'prompts', 'templates', templatePath)
+    const fullPath = join(__dirname, '..', '..', '..', 'prompts', 'templates', templatePath)
 
     if (!existsSync(fullPath)) {
         throw new Error(`Template file not found: ${fullPath}`)
