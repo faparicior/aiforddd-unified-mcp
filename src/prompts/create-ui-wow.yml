@@ -1,0 +1,80 @@
+name: create-ui-wow
+description: Analyze UI layer patterns in a code manifest and generate a DDD UI Layer WoW document
+arguments:
+  - name: manifest_path
+    required: true
+messages: |
+  You are to analyze UI layer patterns from a code manifest located at: {{manifest_path}}
+  and produce a DDD UI Layer Way of Working (WoW) document.
+
+  The output file must be written to: {{manifest_path}}/wow/ddd-ui-wow.md
+
+  Follow these steps to produce a high-quality, pattern-rich WoW document.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-ui-wow.md" to retrieve
+  the full template. Keep it in context — you will fill every variable in it during Step 5.
+
+  # Step 1: Assess the manifest
+
+  - Call `filter_and_count_rows` to count classes in the User Interface Layer (Layer = "User Interface Layer")
+  - Identify the total number of controllers, event consumers, orchestrators, gateways, and scheduled tasks to analyze
+
+  # Step 2: Collect all relevant classes
+
+  Retrieve all classes from the manifest that belong to the User Interface Layer:
+  - Call `get_multiple_rows_by_column` to retrieve User Interface Layer rows (8-15 per batch)
+  - Focus on: Controller, Event consumer, Orchestrator, Gateway, Scheduled task, Console categories
+
+  # Step 3: Read source files
+
+  For each batch of classes retrieved:
+  - Use `read_multiple_files_compressed` to read all source files in the batch (MUST use absolute file paths)
+  - Read the ENTIRE file — no line limits, no shortcuts
+  - Read multiple related files simultaneously when they share patterns
+
+  # Step 4: Identify patterns
+
+  Analyze each class and extract reusable patterns. Group by UI layer category:
+
+  ## External Interface Patterns
+  Focus on: Event consumer base classes, message handler structures, API gateway implementations,
+  external system integration points, protocol translation patterns.
+
+  ## Orchestrator Patterns
+  Focus on: Scheduled task structures, batch processing patterns, workflow coordination,
+  lifecycle management, retry and error recovery strategies.
+
+  ## Controller Patterns
+  Focus on: REST endpoint definitions, request/response mapping, input validation,
+  HTTP status code handling, authentication/authorization integration.
+
+  ## Gateway Patterns
+  Focus on: Proxy service patterns, service facade implementations, external API clients,
+  circuit breaker usage, timeout and resilience patterns.
+
+  For each pattern found:
+  - Assign a unique pattern ID following the format:
+    - `UI-EXT-XX` for External Interface patterns (event consumers, API gateways)
+    - `UI-ORC-XX` for Orchestrator patterns (scheduled tasks, batch processors)
+    - `UI-CTL-XX` for Controller patterns (REST endpoints, web controllers)
+    - `UI-GTW-XX` for Gateway patterns (proxy interfaces, service gateways)
+  - Write a descriptive pattern name capturing the architectural intent
+  - Extract a GOOD code example directly from the source file (use real code, not invented)
+  - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
+  - Record the source file name and class index identifier from the manifest
+
+  # Step 5: Fill in the template
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the codebase analysis.
+  The template's own "Usage Instructions" and "Template Variables Reference" sections describe exactly
+  what each variable expects — follow them. Do not invent examples; use real code from source files,
+  replacing actual domain names with generic equivalents (Order, User, Product, Payment).
+  Anti-patterns for "Possible outsider" entries come from the manifest's Possible outsider column (✓).
+
+  # Step 6: Write the output file
+
+  - Write the completed document to {{manifest_path}}/wow/ddd-ui-wow.md
+  - Strip everything from "Template Variables Reference" onward — the final file must contain
+    no template instructions

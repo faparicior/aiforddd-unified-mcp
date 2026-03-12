@@ -37,7 +37,7 @@ export class PromptManager {
 
     private loadPrompts(): void {
         try {
-            const promptFiles = ['catalog-manifest.yml', 'create-use-case-wow.yml']
+            const promptFiles = ['catalog-manifest.yml', 'create-use-case-wow.yml', 'create-ui-wow.yml']
 
             for (const promptFile of promptFiles) {
                 const promptPath = join(__dirname, '..', '..', 'prompts', promptFile)
