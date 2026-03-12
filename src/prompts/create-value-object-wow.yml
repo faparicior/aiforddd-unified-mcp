@@ -1,0 +1,68 @@
+name: create-value-object-wow
+description: Analyze value object patterns in a code manifest and generate a DDD Domain Layer Value Object WoW document
+arguments:
+  - name: manifest_path
+    required: true
+messages: |
+  You are to analyze value object patterns from a code manifest located at: {{manifest_path}}
+  and produce a DDD Domain Layer Value Object Way of Working (WoW) document.
+
+  The output file must be written to: {{manifest_path}}/wow/ddd-value-object-wow.md
+
+  Follow these steps to produce a high-quality, pattern-rich WoW document.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-value-object-wow.md" to retrieve
+  the full template. Keep it in context — you will fill every variable in it during Step 5.
+
+  # Step 1: Assess the manifest
+
+  - Call `filter_and_count_rows` to count classes in the Domain Layer (Layer = "Domain Layer")
+  - Identify the total number of value objects to analyze
+
+  # Step 2: Collect all relevant classes
+
+  Retrieve all classes from the manifest that belong to the Domain Layer and represent value objects:
+  - Call `get_multiple_rows_by_column` to retrieve Domain Layer rows (8-15 per batch)
+  - Focus on: Value object, Enum, Domain primitive categories
+
+  # Step 3: Read source files
+
+  For each batch of classes retrieved:
+  - Use `read_multiple_files_compressed` to read all source files in the batch (MUST use absolute file paths)
+  - Read the ENTIRE file — no line limits, no shortcuts
+  - Read multiple related files simultaneously when they share patterns
+
+  # Step 4: Identify patterns
+
+  Analyze each class and extract reusable patterns. Group by category:
+
+  ## Value Object Patterns
+  Focus on: Immutability enforcement, constructor validation, factory methods, equality semantics,
+  self-validation, domain primitive wrapping, encapsulation of business rules within the value object.
+
+  ## Validation Patterns
+  Focus on: Guard clauses, precondition checks, domain invariant enforcement, how invalid states
+  are prevented at construction time, exception types used for validation failures.
+
+  For each pattern found:
+  - Assign a unique pattern ID: `VO-IMM-XX` for immutability, `VO-VAL-XX` for validation,
+    `VO-EQ-XX` for equality/hashing, `VO-FAC-XX` for factory methods, `VO-PRIM-XX` for domain primitives
+  - Write a descriptive pattern name capturing the architectural intent
+  - Extract a GOOD code example directly from the source file (use real code, not invented)
+  - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
+  - Record the source file name and class index identifier from the manifest
+
+  # Step 5: Fill in the template
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the codebase analysis.
+  The template's own "Usage Instructions" and "Template Variables Reference" sections describe exactly
+  what each variable expects — follow them. Do not invent examples; use real code from source files,
+  replacing actual domain names with generic equivalents (Order, User, Product, Payment).
+
+  # Step 6: Write the output file
+
+  - Write the completed document to {{manifest_path}}/wow/ddd-value-object-wow.md
+  - Strip everything from "Template Variables Reference" onward — the final file must contain
+    no template instructions
