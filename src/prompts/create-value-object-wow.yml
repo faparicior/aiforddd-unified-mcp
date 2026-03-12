@@ -18,7 +18,7 @@ messages: |
 
   # Step 1: Assess the manifest
 
-  - Call `filter_and_count_rows` to count classes in the Domain Layer (Layer = "Domain Layer")
+  - Call `filter_and_count_rows` to count classes in the Domain Layer (Layer = "Domain Layer",  Category = "Value object")
   - Identify the total number of value objects to analyze
 
   # Step 2: Collect all relevant classes
