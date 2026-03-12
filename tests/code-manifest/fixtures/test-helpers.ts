@@ -98,6 +98,22 @@ export function createKotlinTestFile(
 }
 
 /**
+ * Creates a Kotlin file with multiple classes for testing
+ */
+export function createMultiClassKotlinTestFile(
+  dirPath: string,
+  filename: string,
+  packageName: string,
+  classNames: string[]
+): string {
+  let content = `package ${packageName}\n\n`
+  for (const name of classNames) {
+    content += `data class ${name}(val id: String)\n\n`
+  }
+  return createTestFile(dirPath, filename, content)
+}
+
+/**
  * Creates a markdown table for testing
  */
 export function createTestMarkdownTable(entries: Array<{

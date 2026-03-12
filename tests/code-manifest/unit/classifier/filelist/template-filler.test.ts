@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { writeClassifiedClassListRows } from '../../../../../src/tools/code-manifest/classifier/filelist/template-filler.ts'
-import { createTempDir, removeTempDir, createKotlinTestFile } from '../../../fixtures/test-helpers.ts'
+import { createTempDir, removeTempDir, createKotlinTestFile, createMultiClassKotlinTestFile } from '../../../fixtures/test-helpers.ts'
 import { classifyFilesByClass } from '../../../../../src/tools/code-manifest/classifier/filelist/filelist-classifier.ts'
 import { readFileSync } from 'fs'
 
@@ -350,6 +350,92 @@ describe('template-filler', () => {
 
       expect(result).toContain('kotlin/User.kt')
       expect(result).toContain(tempDir)
+    })
+
+    it('should generate one row per class for a file with multiple classes', () => {
+      const filePath = createMultiClassKotlinTestFile(
+        tempDir,
+        'Publisher.kt',
+        'com.example.domain.publisher',
+        ['Publisher', 'PublisherName', 'PublisherEmail']
+      )
+
+      const filesFound = { fileList: [{ value: filePath }] }
+      const classifiedFiles = classifyFilesByClass(filesFound)
+
+      const result = writeClassifiedClassListRows(
+        classifiedFiles,
+        standardTemplate,
+        tempDir,
+        'test-app'
+      )
+
+      const dataLines = result.split('\n').filter(l => l.trim())
+      expect(dataLines).toHaveLength(3)
+      expect(result).toContain('Publisher')
+      expect(result).toContain('PublisherName')
+      expect(result).toContain('PublisherEmail')
+    })
+
+    it('should generate unique identifiers for each class in a multi-class file', () => {
+      const filePath = createMultiClassKotlinTestFile(
+        tempDir,
+        'Events.kt',
+        'com.example.domain.events',
+        ['EventA', 'EventB', 'EventC']
+      )
+
+      const filesFound = { fileList: [{ value: filePath }] }
+      const classifiedFiles = classifyFilesByClass(filesFound)
+
+      const result = writeClassifiedClassListRows(
+        classifiedFiles,
+        standardTemplate,
+        tempDir,
+        'test-app'
+      )
+
+      // Each identifier is derived from filePath + className, so all three must differ
+      const identifierPattern = /\|\s*\|\s*([a-f0-9]{12})\s*\|/g
+      const identifiers: string[] = []
+      let match: RegExpExecArray | null
+      while ((match = identifierPattern.exec(result)) !== null) {
+        identifiers.push(match[1])
+      }
+
+      expect(identifiers).toHaveLength(3)
+      const uniqueIds = new Set(identifiers)
+      expect(uniqueIds.size).toBe(3)
+    })
+
+    it('should share the same content hash for all rows from the same file', () => {
+      const filePath = createMultiClassKotlinTestFile(
+        tempDir,
+        'ValueObjects.kt',
+        'com.example.domain.vo',
+        ['Money', 'Currency', 'Amount']
+      )
+
+      const filesFound = { fileList: [{ value: filePath }] }
+      const classifiedFiles = classifyFilesByClass(filesFound)
+
+      const result = writeClassifiedClassListRows(
+        classifiedFiles,
+        standardTemplate,
+        tempDir,
+        'test-app'
+      )
+
+      // Content hash (40-char SHA1) should appear 3 times and all be the same value
+      const contentHashPattern = /\|\s*([a-f0-9]{40})\s*\|/g
+      const hashes: string[] = []
+      let match: RegExpExecArray | null
+      while ((match = contentHashPattern.exec(result)) !== null) {
+        hashes.push(match[1])
+      }
+
+      expect(hashes).toHaveLength(3)
+      expect(new Set(hashes).size).toBe(1)
     })
   })
 })

@@ -25,17 +25,9 @@ export function writeClassifiedClassListRows(
   const rows: string[] = []
 
   for (const item of classifiedFiles) {
-    let className = ''
-    if (item.classSpecsFound.classes.length > 0) {
-      className = item.classSpecsFound.classes[0].name
-    }
-
     const filePath = trimBasePath(item.file.value, basePath)
-    const idSource = `${filePath} - ${className}`
-    const hash = createHash('sha1').update(idSource).digest('hex')
-    const identifier = hash.substring(0, 12)
 
-    // Read file content for content hash
+    // Read file content hash once per file
     let contentHashStr = ''
     try {
       const fileContent = readFileSync(item.file.value)
@@ -45,22 +37,28 @@ export function writeClassifiedClassListRows(
       // Ignore error, leave hash empty
     }
 
-    let row = lines[2]
-    row = row.replace(/{{Status}}/g, '') // Status will be determined later
-    row = row.replace(/{{Identifier}}/g, identifier)
-    row = row.replace(/{{Content}}/g, contentHashStr)
-    row = row.replace(/{{Alias}}/g, alias)
-    row = row.replace(/{{Catalogued}}/g, '')
-    row = row.replace(/{{Processed}}/g, '')
-    row = row.replace(/{{Class}}/g, className)
-    row = row.replace(/{{File}}/g, filePath)
-    // Keep remaining template variables for later processing
-    // row = row.replace(/{{Type}}/g, '{{Type}}')
-    // row = row.replace(/{{Layer}}/g, '{{Layer}}')
-    // row = row.replace(/{{Description}}/g, '{{Description}}')
-    // row = row.replace(/{{Category}}/g, '{{Category}}')
+    // Generate one row per class; if no classes found, generate one row with empty class name
+    const classNames = item.classSpecsFound.classes.length > 0
+      ? item.classSpecsFound.classes.map(c => c.name)
+      : ['']
 
-    rows.push(row)
+    for (const className of classNames) {
+      const idSource = `${filePath} - ${className}`
+      const hash = createHash('sha1').update(idSource).digest('hex')
+      const identifier = hash.substring(0, 12)
+
+      let row = lines[2]
+      row = row.replace(/{{Status}}/g, '') // Status will be determined later
+      row = row.replace(/{{Identifier}}/g, identifier)
+      row = row.replace(/{{Content}}/g, contentHashStr)
+      row = row.replace(/{{Alias}}/g, alias)
+      row = row.replace(/{{Catalogued}}/g, '')
+      row = row.replace(/{{Processed}}/g, '')
+      row = row.replace(/{{Class}}/g, className)
+      row = row.replace(/{{File}}/g, filePath)
+
+      rows.push(row)
+    }
   }
 
   return rows.join('\n') + '\n'
