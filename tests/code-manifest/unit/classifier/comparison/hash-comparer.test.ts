@@ -90,6 +90,24 @@ describe('hash-comparer', () => {
       expect(entries[0].type).toBe('Entity')
       expect(entries[0].description).toBe('User entity')
     })
+
+    it('should capture extra columns beyond index 10 into extraFields', () => {
+      const tableWithFilledExtras = `| Status | Identifier | Content | Alias | Catalogued | Processed | Class | File | Type | Layer | Description | IntegrationRules | ValidationRules |
+|--------|------------|---------|-------|------------|-----------|-------|------|------|-------|-------------|------------------|-----------------|
+|  | abc123def456 | hash1234567890abcdef | app1 | 2024-01-01 | 2024-01-01 | User | src/domain/User.kt | Entity | Domain | User entity | some-integration-rule | some-validation-rule |`
+
+      const entries = parser.parseMarkdownTable(tableWithFilledExtras)
+
+      expect(entries[0].extraFields).toEqual(['some-integration-rule', 'some-validation-rule'])
+    })
+
+    it('should store empty strings for empty extra columns', () => {
+      const entries = parser.parseMarkdownTable(sampleExtendedMarkdownTable)
+
+      expect(entries[0].extraFields).toBeDefined()
+      expect(entries[0].extraFields!.length).toBeGreaterThan(0)
+      expect(entries[0].extraFields!.every(f => f === '')).toBe(true)
+    })
   })
 
   describe('HashComparer', () => {
@@ -194,6 +212,146 @@ describe('hash-comparer', () => {
       expect(result.deletedClasses).toHaveLength(0)
     })
 
+    describe('determineStatus', () => {
+      it('should preserve user-edited columns for UNCHANGED rows', () => {
+        const oldEntries = [{
+          status: '',
+          identifier: 'id-abc',
+          contentHash: 'hash-same',
+          alias: 'app',
+          catalogued: '2024-01-01',
+          processed: '2024-01-02',
+          class: 'User',
+          file: 'src/User.kt',
+          type: 'Entity',
+          layer: 'Domain',
+          description: 'Human-written description'
+        }]
+
+        // New entry has blank user columns (as produced by the template)
+        const newEntries = [{
+          status: '',
+          identifier: 'id-abc',
+          contentHash: 'hash-same',
+          alias: 'app',
+          catalogued: '',
+          processed: '',
+          class: 'User',
+          file: 'src/User.kt',
+          type: '',
+          layer: '',
+          description: ''
+        }]
+
+        const result = comparer.determineStatus(oldEntries, newEntries)
+
+        expect(result[0].status).toBe(Status.UNCHANGED)
+        expect(result[0].type).toBe('Entity')
+        expect(result[0].layer).toBe('Domain')
+        expect(result[0].description).toBe('Human-written description')
+        expect(result[0].catalogued).toBe('2024-01-01')
+        expect(result[0].processed).toBe('2024-01-02')
+      })
+
+      it('should preserve user-edited columns for CHANGED rows', () => {
+        const oldEntries = [{
+          status: '',
+          identifier: 'id-abc',
+          contentHash: 'hash-old',
+          alias: 'app',
+          catalogued: '2024-01-01',
+          processed: '2024-01-02',
+          class: 'User',
+          file: 'src/User.kt',
+          type: 'Entity',
+          layer: 'Domain',
+          description: 'Human-written description'
+        }]
+
+        const newEntries = [{
+          status: '',
+          identifier: 'id-abc',
+          contentHash: 'hash-new',
+          alias: 'app',
+          catalogued: '',
+          processed: '',
+          class: 'User',
+          file: 'src/User.kt',
+          type: '',
+          layer: '',
+          description: ''
+        }]
+
+        const result = comparer.determineStatus(oldEntries, newEntries)
+
+        expect(result[0].status).toBe(Status.CHANGED)
+        expect(result[0].type).toBe('Entity')
+        expect(result[0].layer).toBe('Domain')
+        expect(result[0].description).toBe('Human-written description')
+      })
+
+      it('should preserve extra columns for UNCHANGED rows', () => {
+        const oldEntries = [{
+          status: '',
+          identifier: 'id-abc',
+          contentHash: 'hash-same',
+          alias: 'app',
+          catalogued: '',
+          processed: '',
+          class: 'User',
+          file: 'src/User.kt',
+          type: 'Entity',
+          layer: 'Domain',
+          description: '',
+          extraFields: ['integration-rule', 'validation-rule', 'some-invariant']
+        }]
+
+        const newEntries = [{
+          status: '',
+          identifier: 'id-abc',
+          contentHash: 'hash-same',
+          alias: 'app',
+          catalogued: '',
+          processed: '',
+          class: 'User',
+          file: 'src/User.kt',
+          type: '',
+          layer: '',
+          description: '',
+          extraFields: ['', '', '']
+        }]
+
+        const result = comparer.determineStatus(oldEntries, newEntries)
+
+        expect(result[0].extraFields).toEqual(['integration-rule', 'validation-rule', 'some-invariant'])
+      })
+
+      it('should NOT preserve user columns for truly NEW rows', () => {
+        const oldEntries: typeof mockOldClassEntries = []
+
+        const newEntries = [{
+          status: '',
+          identifier: 'brand-new-id',
+          contentHash: 'hash-new',
+          alias: 'app',
+          catalogued: '',
+          processed: '',
+          class: 'BrandNew',
+          file: 'src/BrandNew.kt',
+          type: '',
+          layer: '',
+          description: ''
+        }]
+
+        const result = comparer.determineStatus(oldEntries, newEntries)
+
+        expect(result[0].status).toBe(Status.NEW)
+        expect(result[0].type).toBe('')
+        expect(result[0].layer).toBe('')
+        expect(result[0].description).toBe('')
+      })
+    })
+
     describe('formatAsMarkdown', () => {
       it('should format entries with basic header', () => {
         const basicHeader = `| Status | Identifier | Content | Alias | Catalogued | Processed | Class | File | Type | Layer | Description |
@@ -215,6 +373,20 @@ describe('hash-comparer', () => {
         // The row should have the basic fields followed by empty cells for the additional columns
         expect(result).toContain('|  | abc123def456 | hash1234567890abcdef | app1 | 2024-01-01 | 2024-01-01 | User | src/domain/User.kt | Entity | Domain | User entity |')
         expect(result).toMatch(/\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*\|\s*$/)
+      })
+
+      it('should restore extra column values from extraFields', () => {
+        const extendedHeader = `| Status | Identifier | Content | Alias | Catalogued | Processed | Class | File | Type | Layer | Description | Integration Rules | Validation Rules |
+|--------|------------|---------|-------|------------|-----------|-------|------|------|-------|-------------|------------------|-----------------|`
+
+        const entryWithExtras = {
+          ...mockOldClassEntries[0],
+          extraFields: ['rule-A', 'rule-B']
+        }
+
+        const result = comparer.formatAsMarkdown([entryWithExtras], extendedHeader)
+
+        expect(result).toContain('| rule-A | rule-B |')
       })
 
       it('should throw error for invalid header', () => {

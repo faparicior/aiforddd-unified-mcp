@@ -40,7 +40,9 @@ program
 
             const promptManager = new PromptManager()
             const promptName = 'catalog-manifest'
-            const promptArgs = { manifest_path: manifestPath }
+            // The prompt uses manifest_path as the folder (not file), since it reads from
+            // {{manifest_path}}/code-manifest.md
+            const promptArgs = { manifest_path: destinationFolder }
 
             // We know catalog-manifest is registered in the PromptManager if it exists
             const promptContent = promptManager.getPromptContent('catalog-manifest', promptArgs)

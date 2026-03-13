@@ -13,6 +13,8 @@ export interface ClassEntry {
   type: string
   layer: string
   description: string
+  /** Extra columns beyond the 11 standard fields, preserved as-is on re-generation */
+  extraFields?: string[]
 }
 
 /**
@@ -108,7 +110,8 @@ export class MarkdownParser {
         file: fields[7],
         type: fields[8],
         layer: fields[9],
-        description: fields[10]
+        description: fields[10],
+        extraFields: fields.slice(11)
       }
     } else if (fields.length >= 10) {
       // Old format without Status column
@@ -123,7 +126,8 @@ export class MarkdownParser {
         file: fields[6],
         type: fields[7],
         layer: fields[8],
-        description: fields[9]
+        description: fields[9],
+        extraFields: fields.slice(10)
       }
     } else {
       throw new Error(`Expected at least 10 fields, got ${fields.length}`)
@@ -161,6 +165,21 @@ export class HashComparer {
         processedOldEntries
       )
       entryCopy.status = status
+
+      // Preserve user-edited columns from the old entry for non-NEW rows
+      if (status !== Status.NEW) {
+        const oldEntry = oldByIdentifier.get(newEntry.identifier)
+          ?? oldByContentHash.get(newEntry.contentHash)
+        if (oldEntry) {
+          entryCopy.catalogued = oldEntry.catalogued
+          entryCopy.processed = oldEntry.processed
+          entryCopy.type = oldEntry.type
+          entryCopy.layer = oldEntry.layer
+          entryCopy.description = oldEntry.description
+          entryCopy.extraFields = oldEntry.extraFields
+        }
+      }
+
       resultEntries.push(entryCopy)
     }
 
@@ -259,16 +278,20 @@ export class HashComparer {
     lines.push(headerLines[0]) // Header row
     lines.push(headerLines[1]) // Separator row
 
+    // Count extra columns from header to know how many cells to emit beyond the 11 base fields
+    const headerRow = headerLines[0] || ''
+    const columnCount = (headerRow.match(/\|/g) || []).length - 1
+    const baseFields = 11
+    const extraColumnCount = Math.max(0, columnCount - baseFields)
+
     // Add entries
     for (const entry of entries) {
-      // Count columns in header to determine how many empty cells to add
-      const headerRow = headerLines[0] || ''
-      const columnCount = (headerRow.match(/\|/g) || []).length - 1 // Subtract 1 because leading | doesn't count as separator
-      const baseFields = 11 // Number of fields in ClassEntry
-      const emptyCells = Math.max(0, columnCount - baseFields)
-
       const baseRow = `| ${entry.status} | ${entry.identifier} | ${entry.contentHash} | ${entry.alias} | ${entry.catalogued} | ${entry.processed} | ${entry.class} | ${entry.file} | ${entry.type} | ${entry.layer} | ${entry.description} |`
-      const fullRow = baseRow + ' |'.repeat(emptyCells)
+
+      // Append extra fields, padding with empty cells if needed
+      const extra = entry.extraFields ?? []
+      const extraCells = Array.from({ length: extraColumnCount }, (_, i) => extra[i] ?? '')
+      const fullRow = baseRow + extraCells.map(v => ` ${v} |`).join('')
       lines.push(fullRow)
     }
 

@@ -9,7 +9,7 @@ complementary_prompts:
   - name: definitions/ddd-classification-rules.md
   - name: definitions/ddd-classification-critical-distinctions.md
 messages: |
-  You are to catalog a code manifest located at: {{manifest_path}}.
+  You are to catalog a code manifest located at: {{manifest_path}}/code-manifest.md.
   Follow these detailed rules for accelerated batch processing with complete file reading to ensure 100% coverage
   of all classes in the manifest while maintaining high-quality descriptions and accurate rule classifications.
 

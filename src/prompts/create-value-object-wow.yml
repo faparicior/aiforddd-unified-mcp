@@ -4,7 +4,7 @@ arguments:
   - name: manifest_path
     required: true
 messages: |
-  You are to analyze value object patterns from a code manifest located at: {{manifest_path}}
+  You are to analyze value object patterns from a code manifest located at: {{manifest_path}}/code-manifest.md
   and produce a DDD Domain Layer Value Object Way of Working (WoW) document.
 
   The output file must be written to: {{manifest_path}}/wow/ddd-value-object-wow.md
@@ -19,20 +19,28 @@ messages: |
   # Step 1: Assess the manifest
 
   - Call `filter_and_count_rows` to count classes in the Domain Layer (Layer = "Domain Layer",  Category = "Value object")
+  - If the call fails, stop immediately and report the error — do not infer counts from retrieval results
+  - Record the count explicitly; it determines the retrieval strategy in Step 2
   - Identify the total number of value objects to analyze
 
   # Step 2: Collect all relevant classes
 
-  Retrieve all classes from the manifest that belong to the Domain Layer and represent value objects:
-  - Call `get_multiple_rows_by_column` to retrieve Domain Layer rows (8-15 per batch)
+  Use the count from Step 1 to plan retrieval:
+  - If the layer has ≤ 30 classes: retrieve all in a single `get_multiple_rows_by_column` call
+    with maxRows set to the count from Step 1
+  - If the layer has > 30 classes: retrieve in sequential batches of 20, incrementing the offset
+    until the total retrieved equals the Step 1 count
+  - Verify: the sum of all retrieved rows must equal the Step 1 count before proceeding
   - Focus on: Value object, Enum, Domain primitive categories
 
   # Step 3: Read source files
 
-  For each batch of classes retrieved:
-  - Use `read_multiple_files_compressed` to read all source files in the batch (MUST use absolute file paths)
-  - Read the ENTIRE file — no line limits, no shortcuts
-  - Read multiple related files simultaneously when they share patterns
+  Construct absolute file paths as: {{manifest_path}}/../<File column value from manifest>
+  (the manifest_path points to the .aiforddd directory; source files are relative to the repo root above it)
+
+  Process source files in batches of 6–8 files per `read_multiple_files_compressed` call regardless
+  of codebase size. Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
 
   # Step 4: Identify patterns
 
@@ -50,7 +58,7 @@ messages: |
   - Assign a unique pattern ID: `VO-IMM-XX` for immutability, `VO-VAL-XX` for validation,
     `VO-EQ-XX` for equality/hashing, `VO-FAC-XX` for factory methods, `VO-PRIM-XX` for domain primitives
   - Write a descriptive pattern name capturing the architectural intent
-  - Extract a GOOD code example directly from the source file (use real code, not invented)
+  - Extract a GOOD code example verbatim from the source file (use real code, not invented)
   - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
   - Record the source file name and class index identifier from the manifest
 
@@ -58,8 +66,9 @@ messages: |
 
   Replace every `{{Variable}}` in the loaded template with content derived from the codebase analysis.
   The template's own "Usage Instructions" and "Template Variables Reference" sections describe exactly
-  what each variable expects — follow them. Do not invent examples; use real code from source files,
-  replacing actual domain names with generic equivalents (Order, User, Product, Payment).
+  what each variable expects — follow them. Use the verbatim code extracted in Step 4, substituting
+  domain-specific names with generic equivalents (Order, User, Product, Payment) while preserving
+  the structure and logic exactly — only the names change.
 
   # Step 6: Write the output file
 
