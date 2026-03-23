@@ -588,6 +588,33 @@ data class User(val id: String)`
       })).rejects.toThrow('Required argument missing: manifest_path')
     })
 
+    it.each([
+      ['create-ui-wow',            'ddd-controller-wow.md'],
+      ['create-event-consumer-wow','ddd-event-consumer-wow.md'],
+      ['create-scheduler-wow',     'ddd-scheduler-wow.md'],
+      ['create-repository-wow',    'ddd-repository-wow.md'],
+      ['create-event-producer-wow','ddd-event-producer-wow.md'],
+      ['create-api-client-wow',    'ddd-api-client-wow.md'],
+      ['create-use-case-wow',      'ddd-use-case-wow.md'],
+      ['create-value-object-wow',  'ddd-value-object-wow.md'],
+    ])('should resolve wow prompt %s and substitute manifest_path', async (promptName, expectedOutput) => {
+      const result = await handleGetPromptContent({
+        promptName,
+        arguments: { manifest_path: '/project/.aiforddd' }
+      })
 
+      expect(result.content[0].type).toBe('text')
+      const text = result.content[0].text
+      expect(text).toContain('/project/.aiforddd')
+      expect(text).not.toContain('{{manifest_path}}')
+      // The prompt must reference the output file it will write
+      expect(text).toContain(expectedOutput)
+    })
+
+    it('should throw for unknown wow type prompt', async () => {
+      await expect(handleGetPromptContent({
+        promptName: 'create-unknown-wow'
+      })).rejects.toThrow('Prompt not found: create-unknown-wow')
+    })
   })
 })

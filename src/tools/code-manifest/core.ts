@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { join, resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { extractClassStructure } from './classifier/parsers/index.js'
@@ -37,10 +37,11 @@ export class PromptManager {
 
     private loadPrompts(): void {
         try {
-            const promptFiles = ['catalog-manifest.yml', 'create-use-case-wow.yml', 'create-ui-wow.yml', 'create-value-object-wow.yml']
+            const promptsDir = join(__dirname, '..', '..', 'prompts')
+            const promptFiles = readdirSync(promptsDir).filter(f => f.endsWith('.yml'))
 
             for (const promptFile of promptFiles) {
-                const promptPath = join(__dirname, '..', '..', 'prompts', promptFile)
+                const promptPath = join(promptsDir, promptFile)
 
                 if (existsSync(promptPath)) {
                     const content = readFileSync(promptPath, 'utf-8')

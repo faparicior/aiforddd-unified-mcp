@@ -1,12 +1,87 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
+import { PromptManager } from '../../../src/tools/code-manifest/core.ts'
 
 // Import the prompt parsing logic for integration testing
 // Since the PromptServer class is not directly testable for MCP protocol,
 // we'll test the core functionality that would be used by MCP clients
 
+const WOW_PROMPT_NAMES = [
+  'create-ui-wow',
+  'create-use-case-wow',
+  'create-value-object-wow',
+  'create-event-consumer-wow',
+  'create-scheduler-wow',
+  'create-repository-wow',
+  'create-event-producer-wow',
+  'create-api-client-wow',
+]
+
 describe('Prompt Server Integration Tests', () => {
+  describe('PromptManager auto-discovery', () => {
+    it('should load all .yml files from the prompts directory without a hardcoded list', () => {
+      const promptsDir = join(process.cwd(), 'src', 'prompts')
+      const ymlFiles = readdirSync(promptsDir).filter(f => f.endsWith('.yml'))
+
+      const manager = new PromptManager()
+
+      for (const file of ymlFiles) {
+        const promptName = file.replace('.yml', '')
+        // getPromptContent throws if the prompt is not loaded — use a dummy manifest_path
+        expect(() => manager.getPromptContent(promptName, { manifest_path: '/test' })).not.toThrow()
+      }
+    })
+
+    it('should discover at least the catalog-manifest and all wow prompts', () => {
+      const manager = new PromptManager()
+      const allExpected = ['catalog-manifest', ...WOW_PROMPT_NAMES]
+
+      for (const name of allExpected) {
+        expect(() => manager.getPromptContent(name, { manifest_path: '/test' })).not.toThrow()
+      }
+    })
+
+    it('should throw for a non-existent prompt name', () => {
+      const manager = new PromptManager()
+      expect(() => manager.getPromptContent('does-not-exist')).toThrow('Prompt not found: does-not-exist')
+    })
+  })
+
+  describe('WoW prompts structure', () => {
+    it.each(WOW_PROMPT_NAMES)('prompt %s should have manifest_path as required argument', (promptName) => {
+      const promptPath = join(process.cwd(), 'src', 'prompts', `${promptName}.yml`)
+      const content = readFileSync(promptPath, 'utf-8')
+
+      expect(content).toContain('name: manifest_path')
+      expect(content).toContain('required: true')
+    })
+
+    it.each(WOW_PROMPT_NAMES)('prompt %s messages should reference {{manifest_path}}', (promptName) => {
+      const promptPath = join(process.cwd(), 'src', 'prompts', `${promptName}.yml`)
+      const content = readFileSync(promptPath, 'utf-8')
+
+      expect(content).toContain('{{manifest_path}}')
+    })
+
+    it.each(WOW_PROMPT_NAMES)('prompt %s should reference the correct template file', (promptName) => {
+      const promptPath = join(process.cwd(), 'src', 'prompts', `${promptName}.yml`)
+      const content = readFileSync(promptPath, 'utf-8')
+
+      // Each wow prompt must call get_template_content with a template path
+      expect(content).toContain('get_template_content')
+      expect(content).toContain('wow/')
+    })
+
+    it.each(WOW_PROMPT_NAMES)('PromptManager should substitute manifest_path in %s', (promptName) => {
+      const manager = new PromptManager()
+      const result = manager.getPromptContent(promptName, { manifest_path: '/my/project/.aiforddd' })
+
+      expect(result).toContain('/my/project/.aiforddd')
+      expect(result).not.toContain('{{manifest_path}}')
+    })
+  })
+
   describe('YAML Prompt Loading', () => {
 
     it('should load and parse the catalog-manifest.yml prompt with complementary prompts', () => {

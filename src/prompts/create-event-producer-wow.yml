@@ -1,29 +1,29 @@
-name: create-ui-wow
-description: Analyze REST Controller patterns in a code manifest and generate a DDD UI Layer Controller WoW document
+name: create-event-producer-wow
+description: Analyze Event Producer implementation patterns in a code manifest and generate a DDD Infrastructure Layer Event Producer WoW document
 arguments:
   - name: manifest_path
     required: true
 messages: |
-  You are to analyze REST Controller patterns from a code manifest located at: {{manifest_path}}/code-manifest.md
-  and produce a DDD UI Layer - REST Controllers Way of Working (WoW) document.
+  You are to analyze Event Producer implementation patterns from a code manifest located at: {{manifest_path}}/code-manifest.md
+  and produce a DDD Infrastructure Layer - Event Producers Way of Working (WoW) document.
 
-  The output file must be written to: {{manifest_path}}/wow/ddd-controller-wow.md
+  The output file must be written to: {{manifest_path}}/wow/ddd-event-producer-wow.md
 
-  Note: For other UI layer concerns use the dedicated prompts:
-  - Event consumers → create-event-consumer-wow
-  - Schedulers & batch processors → create-scheduler-wow
+  Note: For other infrastructure concerns use the dedicated prompts:
+  - Repositories → create-repository-wow
+  - API clients → create-api-client-wow
 
   Follow these steps to produce a high-quality, pattern-rich WoW document.
 
   # Step 0: Load the template
 
-  Call `get_template_content` with templatePath "wow/template-ddd-ui-wow.md" to retrieve
+  Call `get_template_content` with templatePath "wow/template-ddd-event-producer-wow.md" to retrieve
   the full template. Keep it in context — you will fill every variable in it during Step 5.
 
   # Step 1: Assess the manifest
 
-  - Call `filter_and_count_rows` to count Controller classes in the User Interface Layer
-    (Layer = "User Interface Layer", Category = "Controller")
+  - Call `filter_and_count_rows` to count Event producer classes in the Infrastructure Layer
+    (Layer = "Infrastructure Layer", Category = "Event producer")
   - If the call fails, stop immediately and report the error — do not infer counts from retrieval results
   - Record the count explicitly; it determines the retrieval strategy in Step 2
 
@@ -35,7 +35,7 @@ messages: |
   - If the layer has > 30 classes: retrieve in sequential batches of 20, incrementing the offset
     until the total retrieved equals the Step 1 count
   - Verify: the sum of all retrieved rows must equal the Step 1 count before proceeding
-  - Focus exclusively on: Controller category
+  - Focus exclusively on: Event producer category
   - Note all classes where the "Possible outsider" column is marked (✓) — these are candidate
     anti-pattern examples for the Anti-Patterns section of the document
 
@@ -50,30 +50,35 @@ messages: |
 
   # Step 4: Identify patterns
 
-  Analyze each controller class and extract reusable patterns. Focus on:
+  Analyze each event producer class and extract reusable patterns. Focus on:
 
-  ## Request Handling Patterns
-  Focus on: REST endpoint definitions, HTTP method mapping, route parameter extraction,
-  request body deserialization, input validation at the boundary, DTO structures.
+  ## Port Implementation Patterns
+  Focus on: Which application layer event publisher port is implemented, separation between
+  port interface (application) and adapter (infrastructure), domain event isolation.
 
-  ## Response Mapping Patterns
-  Focus on: Domain result to HTTP response mapping, response DTO structures, HTTP status code
-  selection strategy, null/empty result handling, serialization approach.
+  ## Event Serialization Patterns
+  Focus on: Serialization format (JSON, Avro, Protobuf), event envelope/wrapper structure,
+  schema registry usage, null handling, backward compatibility approach.
 
-  ## Error Handling Patterns
-  Focus on: Domain exception to HTTP status translation, centralized exception handler
-  (@ControllerAdvice or equivalent), error response body structure.
+  ## Topic Routing Patterns
+  Focus on: Topic naming convention, partition key selection strategy, routing key logic,
+  static vs. dynamic topic resolution, how domain events map to topics.
 
-  ## Security Patterns
-  Focus on: Authentication/authorization integration, input sanitization, CSRF protection.
+  ## Delivery Guarantee Patterns
+  Focus on: At-least-once vs. exactly-once semantics, outbox pattern implementation,
+  producer transactions, idempotency key assignment and propagation.
+
+  ## Error Handling & Retry Patterns
+  Focus on: Send failure handling, retry policy, dead letter topic routing, transient vs.
+  permanent error classification, alerting on failures.
 
   For each pattern found:
   - Assign a unique pattern ID following the format:
-    - `CTL-REQ-XX` for request handling patterns
-    - `CTL-RSP-XX` for response mapping patterns
-    - `CTL-ERR-XX` for error handling patterns
-    - `CTL-VAL-XX` for input validation patterns
-    - `CTL-SEC-XX` for security patterns
+    - `PRD-SER-XX` for serialization and event envelope patterns
+    - `PRD-RTE-XX` for topic routing and key strategy patterns
+    - `PRD-IDM-XX` for idempotency and delivery guarantee patterns
+    - `PRD-ERR-XX` for error handling and error routing patterns
+    - `PRD-SCH-XX` for schema evolution patterns
   - Write a descriptive pattern name capturing the architectural intent
   - Extract a GOOD code example verbatim from the source file (use real code, not invented)
   - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
@@ -88,11 +93,12 @@ messages: |
   what each variable expects — follow them. Use the verbatim code extracted in Step 4, substituting
   domain-specific names with generic equivalents (Order, User, Product, Payment) while preserving
   the structure and logic exactly — only the names change.
-  Build the HTTP Status Code table from real exception-to-status mappings found in the code.
+  Build the domain event to topic routing table from real mappings found in the code.
+  Document the broker technology, serialization format, delivery guarantee, and outbox pattern if present.
   Anti-patterns for "Possible outsider" entries come from the manifest's Possible outsider column (✓).
 
   # Step 6: Write the output file
 
-  - Write the completed document to {{manifest_path}}/wow/ddd-controller-wow.md
+  - Write the completed document to {{manifest_path}}/wow/ddd-event-producer-wow.md
   - Strip everything from "Template Variables Reference" onward — the final file must contain
     no template instructions

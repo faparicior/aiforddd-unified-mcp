@@ -1,8 +1,10 @@
-# 🎯 DDD UI Layer - {{PackageName}} Package (Generic Guidelines)
+# 🎯 DDD UI Layer - REST Controllers - {{PackageName}} Package (Generic Guidelines)
 
 > **Instructions**: Fill in each section below with patterns and examples found in the specific codebase. Use generic business concepts (Order, User, Product, etc.) instead of actual business logic from the codebase.
 
-> This document defines the UI layer patterns and guidelines for the `{{PackageName}}` package following DDD architectural principles.
+> This document defines the REST Controller patterns and guidelines for the `{{PackageName}}` package following DDD architectural principles.
+>
+> **Related templates**: `template-ddd-event-consumer-wow.md` | `template-ddd-scheduler-wow.md`
 
 ---
 
@@ -11,16 +13,18 @@
 1. [📌 Overview](#-overview)
 2. [🏗️ Architecture Position](#-architecture-position)
 3. [📐 Core Patterns and Rules](#-core-patterns-and-rules)
-4. [🛠️ Implementation Guidelines](#-implementation-guidelines)
-5. [⚠️ Error Handling Strategy](#-error-handling-strategy)
-6. [🧪 Testing Approach](#-testing-approach)
-7. [⚡ Performance Considerations](#-performance-considerations)
-8. [🔒 Security Guidelines](#-security-guidelines)
-9. [📝 Implementation Notes](#-implementation-notes)
-10. [🚫 Anti-Patterns to Avoid](#-anti-patterns-to-avoid)
-11. [Summary](#summary)
-12. [Pattern Index](#pattern-index)
-13. [❓ Open Questions](#-open-questions)
+4. [🗺️ Request / Response Mapping](#-request--response-mapping)
+5. [🔢 HTTP Status Code Strategy](#-http-status-code-strategy)
+6. [🛠️ Implementation Guidelines](#-implementation-guidelines)
+7. [⚠️ Error Handling Strategy](#-error-handling-strategy)
+8. [🧪 Testing Approach](#-testing-approach)
+9. [⚡ Performance Considerations](#-performance-considerations)
+10. [🔒 Security Guidelines](#-security-guidelines)
+11. [📝 Implementation Notes](#-implementation-notes)
+12. [🚫 Anti-Patterns to Avoid](#-anti-patterns-to-avoid)
+13. [Summary](#summary)
+14. [Pattern Index](#pattern-index)
+15. [❓ Open Questions](#-open-questions)
 
 ---
 
@@ -32,17 +36,17 @@
 
 **Domain Purpose:** {{DomainPurpose}}
 
-**Architecture Layer:** UI Layer - {{SpecificUILayer}}
+**Architecture Layer:** UI Layer - REST Controllers
 
 ---
 
 ## 🏗️ Architecture Position
 
 ```
-{{ExternalSystems}} → UI Layer ({{PackageName}}) → Application Layer ({{ApplicationComponents}}) → Domain Layer
+HTTP Client → Controller ({{PackageName}}) → Application Layer ({{ApplicationComponents}}) → Domain Layer
 ```
 
-The `{{PackageName}}` layer sits at the system boundary, {{ArchitectureDescription}} while maintaining proper separation of concerns and {{SpecificConcerns}}.
+The `{{PackageName}}` controllers sit at the HTTP boundary, translating HTTP requests into application layer commands/queries and mapping domain responses back to HTTP, while maintaining proper separation of concerns.
 
 ### Package Structure Convention
 _[Describe the package naming and organization pattern]_
@@ -97,12 +101,67 @@ Examples:
 
 ---
 
+## 🗺️ Request / Response Mapping
+
+### Request Mapping Strategy
+- **{{RequestMappingPattern}}**: {{RequestMappingDescription}}
+- **Validation Approach**: {{ValidationApproach}}
+- **Deserialization**: {{DeserializationStrategy}}
+
+### Response Mapping Strategy
+- **{{ResponseMappingPattern}}**: {{ResponseMappingDescription}}
+- **Serialization**: {{SerializationStrategy}}
+- **Null Handling**: {{NullHandlingStrategy}}
+
+{{#MappingPatternRules}}
+##### Rule {{RuleId}}: {{PatternName}} Pattern
+
+**✅ GOOD - {{PatternDescription}}:**
+```kotlin
+{{GoodPatternExample}}
+```
+**Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
+
+**❌ BAD - {{AntiPatternDescription}}:**
+```kotlin
+{{AntiPatternExample}}
+```
+
+**Why it's bad:**
+{{#AntiPatternReasons}}
+- {{Reason}}
+{{/AntiPatternReasons}}
+
+{{/MappingPatternRules}}
+
+---
+
+## 🔢 HTTP Status Code Strategy
+
+### Domain Exception to HTTP Status Mapping
+
+| Domain Exception / Outcome | HTTP Status | Description |
+|---|---|---|
+| `{{DomainException1}}` | `{{HttpStatus1}}` | {{StatusDescription1}} |
+| `{{DomainException2}}` | `{{HttpStatus2}}` | {{StatusDescription2}} |
+| `{{DomainException3}}` | `{{HttpStatus3}}` | {{StatusDescription3}} |
+
+### Status Code Rules
+- **{{StatusCodeRule1}}**: {{StatusCodeRuleDescription1}}
+- **{{StatusCodeRule2}}**: {{StatusCodeRuleDescription2}}
+
+---
+
 ## 🛠️ Implementation Guidelines
 
 ### Dependency Injection
 - **{{DIPattern}}**: {{DIDescription}}
 - **Configuration**: {{ConfigurationApproach}}
 - **Lifecycle**: {{LifecycleManagement}}
+
+### Input Validation
+- **{{ValidationPattern}}**: {{ValidationDescription}}
+- **Boundary Validation**: {{BoundaryValidationDescription}}
 
 {{#ImplementationGuidelines}}
 ### {{GuidelineName}}
@@ -137,13 +196,28 @@ Examples:
 - **Mock Strategy**: {{MockStrategy}}
 - **Coverage Target**: {{CoverageTarget}}
 
-### Integration Testing
+### Integration Testing (MockMvc / WebMvcTest)
 - **{{IntegrationTestPattern}}**: {{IntegrationTestDescription}}
 - **Test Environment**: {{TestEnvironment}}
 - **Data Setup**: {{DataSetupStrategy}}
 
-### {{SpecificTestingConcern}}
-{{SpecificTestingDescription}}
+### Controller Testing Rules
+
+{{#GoodTestExamples}}
+#### ✅ Good Test Structure
+```kotlin
+{{GoodTestExample}}
+```
+
+{{/GoodTestExamples}}
+
+{{#BadTestExamples}}
+#### ❌ Bad Test Patterns
+```kotlin
+{{BadTestExample}}
+```
+
+{{/BadTestExamples}}
 
 ---
 
@@ -158,6 +232,15 @@ Examples:
 ---
 
 ## 🔒 Security Guidelines
+
+### Input Sanitization
+- **{{InputSanitizationPattern}}**: {{InputSanitizationDescription}}
+
+### Authentication & Authorization
+- **{{AuthPattern}}**: {{AuthDescription}}
+
+### CSRF Protection
+- **{{CsrfPattern}}**: {{CsrfDescription}}
 
 {{#SecurityPatterns}}
 ### {{SecurityPatternName}}
@@ -219,9 +302,9 @@ Examples:
 {{/PatternCategories}}
 
 ### Coverage Summary
-**Total {{LayerName}} Interfaces Analyzed**: {{TotalInterfaceCount}}
+**Total UI Layer Controllers Analyzed**: {{TotalInterfaceCount}}
 {{#CoverageByCategory}}
-- **{{CategoryName}}**: {{InterfaceCount}} interfaces ({{CoveragePercentage}}% coverage)
+- **{{CategoryName}}**: {{InterfaceCount}} controllers ({{CoveragePercentage}}% coverage)
 {{/CoverageByCategory}}
 
 **Key Files Analyzed**:
@@ -248,18 +331,23 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 ### Pattern Definition Variables
 - `{{PatternCount}}` - Total number of patterns found in analysis
 - `{{PatternRules}}` - Array of pattern rule objects for dynamic iteration
+- `{{MappingPatternRules}}` - Array of request/response mapping pattern rules
 - `{{PatternCategories}}` - Array of pattern category objects with nested patterns
-- `{{PatternId}}` - Unique pattern identifier (e.g., "UI-EXT-01", "UI-ORC-01")
-- `{{PatternName}}` - Descriptive name of the pattern (e.g., "Event Consumer Base Class Pattern")
+- `{{PatternId}}` - Unique pattern identifier (e.g., "CTL-REQ-01", "CTL-RSP-01")
+- `{{PatternName}}` - Descriptive name of the pattern (e.g., "Command Delegation Pattern")
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "OrderEventConsumer.kt")
+- `{{FileName}}` - Source file name (e.g., "OrderController.kt")
 - `{{Benefits}}` - Array of benefit objects with BenefitName and BenefitDescription
 - `{{AntiPatternReasons}}` - Array of reason strings for anti-pattern explanations
 - `{{SourceFiles}}` - Array of source file objects with ClassIndexIdentifier and FileName
 
+### HTTP Status Mapping Variables
+- `{{DomainException1}}` - Domain exception class name (e.g., "OrderNotFoundException")
+- `{{HttpStatus1}}` - HTTP status code (e.g., "404 Not Found")
+- `{{StatusDescription1}}` - Description of when this status is returned
+
 ### Coverage Summary Variables
-- `{{LayerName}}` - Architecture layer name (e.g., "UI Layer")
-- `{{TotalInterfaceCount}}` - Total number of interfaces analyzed
+- `{{TotalInterfaceCount}}` - Total number of controllers analyzed
 - `{{CoverageByCategory}}` - Array of coverage objects with CategoryName, InterfaceCount, and CoveragePercentage
 
 ### File Analysis Variables
@@ -270,143 +358,62 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 ## Usage Instructions
 
 ### 1. Pattern Identification
-For each UI pattern found in your analysis:
-1. Assign a unique pattern ID following the format: `{{LayerPrefix}}-{{CategoryPrefix}}-{{Number}}`
-   - Layer Prefix: "UI" for UI Layer
-   - Category Prefix: "EXT" for External Interface, "ORC" for Orchestrator, etc.
-   - Number: Sequential numbering (01, 02, 03...)
+For each controller pattern found in your analysis:
+1. Assign a unique pattern ID following the format: `CTL-{{CategoryPrefix}}-{{Number}}`
+   - `CTL-REQ-XX`: Request handling and deserialization patterns
+   - `CTL-RSP-XX`: Response mapping and serialization patterns
+   - `CTL-ERR-XX`: Error handling and HTTP status mapping patterns
+   - `CTL-VAL-XX`: Input validation patterns
+   - `CTL-SEC-XX`: Security and authorization patterns
 
-2. Create descriptive pattern names that capture the essence of the pattern
+2. Create descriptive pattern names that capture the architectural intent
 3. Reference the source file using the class index identifier
 
-### 2. Coverage Tracking
-- Track total interfaces analyzed per category
-- Calculate coverage percentages
-- List all analyzed files with their identifiers
+### 2. What to Analyze
+- **Request Structure**: DTO definitions, deserialization, validation annotations
+- **Application Layer Delegation**: How controllers delegate to use cases (Command/Query objects)
+- **Response Mapping**: How domain results are converted to response DTOs
+- **HTTP Status Strategy**: Exception handler mappings, `@ControllerAdvice` usage
+- **Authentication/Authorization**: How security context is accessed and validated
 
-### 3. Example Usage - Dynamic Pattern Structure
-
-**AI Input Data Structure Example:**
-```json
-{
-  "PatternCount": 5,
-  "PatternCategories": [
-    {
-      "CategoryName": "UI Layer - External Interface Patterns",
-      "Patterns": [
-        {
-          "PatternIndex": 1,
-          "PatternId": "UI-EXT-01",
-          "PatternName": "Event Consumer Base Class Pattern",
-          "ClassIndexIdentifier": "a1b2c3d4e5f6",
-          "FileName": "OrderEventConsumer.kt"
-        }
-      ]
-    }
-  ],
-  "CoverageByCategory": [
-    {
-      "CategoryName": "UI Layer - External Interface",
-      "InterfaceCount": 3,
-      "CoveragePercentage": 100
-    }
-  ]
-}
-```
-
-**Template Output Example:**
-```markdown
-## Pattern Index
-
-### UI Layer - External Interface Patterns
-1. **UI-EXT-01**: Event Consumer Base Class Pattern - [a1b2c3d4e5f6] OrderEventConsumer.kt
-2. **UI-EXT-02**: Smart Gateway Filtering Pattern - [b2c3d4e5f6a1] ProductEventConsumer.kt
-
-### UI Layer - Orchestrator Patterns
-1. **UI-ORC-01**: Scheduled Component Pattern - [d4e5f6a1b2c3] ProcessOrderBatch.kt
-
-### Coverage Summary
-**Total UI Layer Interfaces Analyzed**: 8
-- **UI Layer - External Interface**: 3 interfaces (100% coverage)
-- **UI Layer - Orchestrator**: 5 interfaces (100% coverage)
-```
-
-### 4. Pattern Naming Conventions
+### 3. Pattern Naming Conventions
 
 #### Good Pattern Names
-- ✅ **Event Consumer Base Class Pattern** - Clear architectural intent
-- ✅ **Smart Gateway Filtering Pattern** - Describes DDD UI layer responsibility
-- ✅ **Batch Processing Orchestrator Pattern** - Common orchestration pattern
 - ✅ **Command Delegation Pattern** - Describes application layer interaction
+- ✅ **Domain Exception Translation Pattern** - Describes HTTP error mapping
+- ✅ **Boundary DTO Pattern** - Describes isolation of transport model
+- ✅ **Request Validation Gate Pattern** - Describes input validation at boundary
 
 #### Bad Pattern Names
-- ❌ **Kafka Consumer Pattern** - Too technology-specific
-- ❌ **Database Pattern** - Too generic
-- ❌ **Helper Pattern** - Vague and unhelpful
-- ❌ **Utility Pattern** - Doesn't describe purpose
+- ❌ **Spring Controller Pattern** - Too technology-specific
+- ❌ **REST Pattern** - Too generic
+- ❌ **Handler Pattern** - Vague and unhelpful
 
-### 5. Category Organization
+### 4. Controller Analysis Guidelines
 
-#### UI Layer Categories
-- **External Interface Patterns**: External system integration, event consumers, API gateways
-- **Orchestrator Patterns**: Scheduled tasks, batch processors, workflow coordinators
-- **Controller Patterns**: REST endpoints, web interfaces
-- **Gateway Patterns**: API gateways, proxy interfaces
-
-#### Pattern ID Prefixes
-- `UI-EXT-XX`: External interfaces (event consumers, API gateways)
-- `UI-ORC-XX`: Orchestrators (scheduled components, workflow coordinators)
-- `UI-CTL-XX`: Controllers (REST endpoints, web controllers)
-- `UI-GTW-XX`: Gateways (proxy interfaces, service gateways)
-
-### 6. UI Component Analysis Guidelines
-
-#### What to Analyze
-- **Component Structure**: Service annotations, dependency injection patterns, lifecycle management
-- **External Integration**: Event consumer patterns, API gateway implementations, external service connections
-- **Application Layer Interaction**: How UI components delegate to application layer use cases
-- **Error Handling**: Exception handling patterns, error recovery strategies, user feedback mechanisms
-- **Configuration Management**: Environment-specific configurations, feature toggles, runtime parameters
-
-#### Pattern Categories to Look For
-1. **External Interface Patterns**: How UI components interact with external systems
-2. **Orchestration Patterns**: Complex workflow coordination and batch processing
-3. **Delegation Patterns**: How UI layer delegates business operations to application layer
-4. **Integration Patterns**: Event processing, message handling, API integration approaches
-5. **Configuration Patterns**: Runtime configuration, environment management, feature flags
-
-#### UI Layer Responsibilities
-- **System Boundary Management**: Acting as entry points for external requests
-- **Protocol Translation**: Converting external formats to internal domain models
-- **Application Coordination**: Orchestrating multiple application layer operations
-- **Error Translation**: Converting domain exceptions to appropriate UI responses
-- **Cross-Cutting Concerns**: Logging, monitoring, security, authentication
-
-#### Common UI Layer Components
-- **Event Consumers**: Kafka consumers, message processors, stream handlers
-- **Scheduled Tasks**: Batch jobs, maintenance tasks, periodic operations
-- **REST Controllers**: API endpoints, web interfaces, HTTP handlers
-- **Gateway Components**: Proxy services, API gateways, service facades
-- **Console Applications**: Command-line tools, batch processors, utilities
+#### What to Look For
+- **Thin Controller Rule**: Controllers should only translate and delegate — no business logic
+- **DTO Isolation**: Request/response objects must not leak domain types to clients
+- **Use Case Dependency**: Each endpoint delegates to exactly one use case
+- **Error Boundary**: All domain exceptions are translated to HTTP responses in one place
 
 #### Anti-Patterns to Identify
-- **Business Logic in UI**: Domain rules implemented at UI layer
-- **Direct Database Access**: UI components bypassing application layer
-- **Technology Coupling**: Over-reliance on specific technologies
-- **Monolithic Controllers**: Single components handling too many responsibilities
-- **Missing Error Handling**: Inadequate exception handling and user feedback
+- **Fat Controller**: Business logic or multiple domain operations in one endpoint handler
+- **Domain Leakage**: Domain objects used directly as request/response bodies
+- **Inline Error Handling**: `try/catch` blocks in each method instead of centralized `@ControllerAdvice`
+- **Validation Bypass**: Accepting raw user input without boundary validation
 
-### 7. Template Completion Checklist
+### 5. Template Completion Checklist
 
-- [ ] All UI component files analyzed and catalogued
-- [ ] Pattern IDs assigned following naming convention
-- [ ] Coverage percentages calculated per category
+- [ ] All controller files analyzed and catalogued
+- [ ] Pattern IDs assigned following `CTL-XX-XX` convention
+- [ ] HTTP status mapping table completed
+- [ ] Request/response mapping patterns documented
 - [ ] Good/bad examples provided for major patterns
 - [ ] Source references include class index identifiers
-- [ ] Implementation guidelines completed for each pattern category
-- [ ] Error handling strategies documented
-- [ ] Testing approaches specified
+- [ ] Input validation approach documented
+- [ ] Security section completed (auth, CSRF, sanitization)
+- [ ] MockMvc/WebMvcTest integration testing approach described
 - [ ] Performance considerations addressed
-- [ ] Security guidelines included where relevant
 - [ ] Anti-patterns documented with solutions
 - [ ] Summary section completed with actionable guidelines

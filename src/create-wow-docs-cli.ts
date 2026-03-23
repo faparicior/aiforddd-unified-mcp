@@ -3,20 +3,42 @@
 import { Command } from 'commander'
 import { resolve, join } from 'path'
 import { existsSync, writeFileSync, unlinkSync, mkdirSync } from 'fs'
+import { fileURLToPath } from 'url'
 import { runClaudeWithStreaming } from './shared/cli/claude-runner.js'
 import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
 
+export const WOW_TYPES: Record<string, { prompt: string; outputFile: string }> = {
+    'controller':      { prompt: 'create-ui-wow',             outputFile: 'ddd-controller-wow.md' },
+    'event-consumer':  { prompt: 'create-event-consumer-wow', outputFile: 'ddd-event-consumer-wow.md' },
+    'scheduler':       { prompt: 'create-scheduler-wow',      outputFile: 'ddd-scheduler-wow.md' },
+    'repository':      { prompt: 'create-repository-wow',     outputFile: 'ddd-repository-wow.md' },
+    'event-producer':  { prompt: 'create-event-producer-wow', outputFile: 'ddd-event-producer-wow.md' },
+    'api-client':      { prompt: 'create-api-client-wow',     outputFile: 'ddd-api-client-wow.md' },
+    'use-case':        { prompt: 'create-use-case-wow',       outputFile: 'ddd-use-case-wow.md' },
+    'value-object':    { prompt: 'create-value-object-wow',   outputFile: 'ddd-value-object-wow.md' },
+}
+
+const VALID_TYPES = Object.keys(WOW_TYPES).join(', ')
+
 const program = new Command()
 
 program
-    .name('ddd-create-ui-wow')
-    .description('Analyze UI layer patterns in a code manifest and generate a DDD UI Layer WoW document using Claude CLI')
+    .name('ddd-create-wow')
+    .description('Generate a DDD Way of Working (WoW) document by analyzing patterns in a code manifest')
     .version('1.0.0')
+    .requiredOption('-t, --type <type>', `Type of WoW document to generate. Valid values: ${VALID_TYPES}`)
     .option('-r, --repository <path>', 'Path to the repository root (defaults to current directory)', '.')
     .option('-p, --print-only', 'Print the generated prompt without executing Claude')
     .action(async (options) => {
         try {
+            const wowConfig = WOW_TYPES[options.type]
+            if (!wowConfig) {
+                console.error(`Unknown type: "${options.type}"`)
+                console.error(`Valid values: ${VALID_TYPES}`)
+                process.exit(1)
+            }
+
             const repositoryPath = resolve(process.cwd(), options.repository)
             const configPath = join(repositoryPath, '.aiforddd/code_manifest.json')
 
@@ -25,7 +47,6 @@ program
                 process.exit(1)
             }
 
-            // Read the config to find the destination folder where code-manifest.md is located
             const appConfig = readConfig<any>(configPath, '')
             const destinationFolder = resolve(repositoryPath, appConfig.destination_folder || '.aiforddd')
             const manifestFile = join(destinationFolder, 'code-manifest.md')
@@ -36,11 +57,8 @@ program
                 process.exit(1)
             }
 
-            // The prompt uses manifest_path as the folder (not file), since it writes to
-            // {{manifest_path}}/wow/ddd-ui-wow.md
             const manifestPath = destinationFolder
 
-            // Ensure output directory exists
             const wowOutputDir = join(manifestPath, 'wow')
             if (!existsSync(wowOutputDir)) {
                 mkdirSync(wowOutputDir, { recursive: true })
@@ -48,22 +66,21 @@ program
 
             const promptManager = new PromptManager()
             const promptArgs = { manifest_path: manifestPath }
-            const promptContent = promptManager.getPromptContent('create-ui-wow', promptArgs)
+            const promptContent = promptManager.getPromptContent(wowConfig.prompt, promptArgs)
 
             if (options.printOnly) {
                 console.log(promptContent)
                 process.exit(0)
             }
 
-            // Write prompt to a temporary file
-            const tempPromptFile = resolve(process.cwd(), '.ddd-ui-wow-prompt-tmp.md')
+            const tempPromptFile = resolve(process.cwd(), `.ddd-wow-${options.type}-prompt-tmp.md`)
             writeFileSync(tempPromptFile, promptContent, 'utf-8')
 
-            console.log(`Executing Claude workflow to generate UI WoW document for: ${manifestFile}`)
+            console.log(`Generating "${options.type}" WoW document for: ${manifestFile}`)
 
-            let exitCode: number;
+            let exitCode: number
             try {
-                exitCode = await runClaudeWithStreaming(tempPromptFile);
+                exitCode = await runClaudeWithStreaming(tempPromptFile)
             } catch (err: any) {
                 console.error('Failed to start claude CLI. Is it installed and in your PATH?')
                 console.error(err)
@@ -79,7 +96,7 @@ program
                 process.exit(exitCode!)
             }
 
-            const outputFile = join(wowOutputDir, 'ddd-ui-wow.md')
+            const outputFile = join(wowOutputDir, wowConfig.outputFile)
             if (existsSync(outputFile)) {
                 console.log(`\nWoW document generated successfully: ${outputFile}`)
             } else {
@@ -90,9 +107,11 @@ program
             process.exit(0)
 
         } catch (e: any) {
-            console.error('Error running create-ui-wow workflow:', e.message || e)
+            console.error('Error running create-wow workflow:', e.message || e)
             process.exit(1)
         }
     })
 
-program.parse(process.argv)
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  program.parse(process.argv)
+}

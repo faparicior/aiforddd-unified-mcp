@@ -12,9 +12,7 @@
     "ddd-mcp": "./dist/mcp-server.js",
     "ddd-create-code-manifest": "./dist/tools/code-manifest/main.js",
     "ddd-catalog-code-manifest": "./dist/catalog-manifest-cli.js",
-    "ddd-create-use-case-wow": "./dist/create-use-case-wow-cli.js",
-    "ddd-create-ui-wow": "./dist/create-ui-wow-cli.js",
-    "ddd-create-value-object-wow": "./dist/create-value-object-wow-cli.js",
+    "ddd-create-wow": "./dist/create-wow-docs-cli.js",
     "ddd-tool": "./dist/cli-tools.js",
     "ddd-run": "./dist/cli-workflow.js"
   },
