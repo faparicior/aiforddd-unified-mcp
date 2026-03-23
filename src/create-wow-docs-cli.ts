@@ -3,7 +3,6 @@
 import { Command } from 'commander'
 import { resolve, join } from 'path'
 import { existsSync, writeFileSync, unlinkSync, mkdirSync } from 'fs'
-import { fileURLToPath } from 'url'
 import { runClaudeWithStreaming } from './shared/cli/claude-runner.js'
 import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
@@ -112,6 +111,4 @@ program
         }
     })
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  program.parse(process.argv)
-}
+program.parse(process.argv)
