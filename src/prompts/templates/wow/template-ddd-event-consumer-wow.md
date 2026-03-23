@@ -4,7 +4,7 @@
 
 > This document defines the Event Consumer patterns and guidelines for the `{{PackageName}}` package following DDD architectural principles.
 >
-> **Related templates**: `template-ddd-ui-wow.md` (Controllers) | `template-ddd-scheduler-wow.md`
+> **Related templates**: `template-ddd-controller-wow.md` (Controllers) | `template-ddd-scheduler-wow.md`
 
 ---
 

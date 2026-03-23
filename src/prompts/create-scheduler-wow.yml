@@ -10,7 +10,7 @@ messages: |
   The output file must be written to: {{manifest_path}}/wow/ddd-scheduler-wow.md
 
   Note: For other UI layer concerns use the dedicated prompts:
-  - REST controllers → create-ui-wow
+  - REST controllers → create-controller-wow
   - Event consumers → create-event-consumer-wow
 
   Follow these steps to produce a high-quality, pattern-rich WoW document.

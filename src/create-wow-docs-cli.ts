@@ -9,7 +9,7 @@ import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
 
 export const WOW_TYPES: Record<string, { prompt: string; outputFile: string }> = {
-    'controller':      { prompt: 'create-ui-wow',             outputFile: 'ddd-controller-wow.md' },
+    'controller':      { prompt: 'create-controller-wow',     outputFile: 'ddd-controller-wow.md' },
     'event-consumer':  { prompt: 'create-event-consumer-wow', outputFile: 'ddd-event-consumer-wow.md' },
     'scheduler':       { prompt: 'create-scheduler-wow',      outputFile: 'ddd-scheduler-wow.md' },
     'repository':      { prompt: 'create-repository-wow',     outputFile: 'ddd-repository-wow.md' },

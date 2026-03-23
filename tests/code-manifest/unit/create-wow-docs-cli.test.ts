@@ -32,7 +32,7 @@ describe('WOW_TYPES map', () => {
   })
 
   it.each([
-    ['controller',     'create-ui-wow',             'ddd-controller-wow.md'],
+    ['controller',     'create-controller-wow',     'ddd-controller-wow.md'],
     ['event-consumer', 'create-event-consumer-wow',  'ddd-event-consumer-wow.md'],
     ['scheduler',      'create-scheduler-wow',       'ddd-scheduler-wow.md'],
     ['repository',     'create-repository-wow',      'ddd-repository-wow.md'],

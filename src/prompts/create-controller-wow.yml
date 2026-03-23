@@ -1,4 +1,4 @@
-name: create-ui-wow
+name: create-controller-wow
 description: Analyze REST Controller patterns in a code manifest and generate a DDD UI Layer Controller WoW document
 arguments:
   - name: manifest_path

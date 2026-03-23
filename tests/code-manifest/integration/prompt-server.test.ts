@@ -8,7 +8,7 @@ import { PromptManager } from '../../../src/tools/code-manifest/core.ts'
 // we'll test the core functionality that would be used by MCP clients
 
 const WOW_PROMPT_NAMES = [
-  'create-ui-wow',
+  'create-controller-wow',
   'create-use-case-wow',
   'create-value-object-wow',
   'create-event-consumer-wow',

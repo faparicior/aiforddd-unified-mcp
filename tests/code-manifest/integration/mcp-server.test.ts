@@ -589,7 +589,7 @@ data class User(val id: String)`
     })
 
     it.each([
-      ['create-ui-wow',            'ddd-controller-wow.md'],
+      ['create-controller-wow',    'ddd-controller-wow.md'],
       ['create-event-consumer-wow','ddd-event-consumer-wow.md'],
       ['create-scheduler-wow',     'ddd-scheduler-wow.md'],
       ['create-repository-wow',    'ddd-repository-wow.md'],
