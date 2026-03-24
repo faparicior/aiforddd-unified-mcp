@@ -22,22 +22,20 @@ messages: |
 
   # Step 1: Assess the manifest
 
-  - Call `filter_and_count_rows` to count Scheduled task classes in the User Interface Layer
-    (Layer = "User Interface Layer", Category = "Scheduled task")
-  - Call `filter_and_count_rows` to count Orchestrator classes in the User Interface Layer
-    (Layer = "User Interface Layer", Category = "Orchestrator")
-  - If either call fails, stop immediately and report the error — do not infer counts from retrieval results
-  - Record both counts; the total determines the retrieval strategy in Step 2
+  - Call `filter_and_count_rows` to count Scheduler classes in the User Interface Layer
+    (Layer = "User Interface Layer", Category = "Scheduler")
+  - If the call fails, stop immediately and report the error — do not infer counts from retrieval results
+  - Record the count; it determines the retrieval strategy in Step 2
 
   # Step 2: Collect all relevant classes
 
-  Use the total count from Step 1 to plan retrieval:
+  Use the count from Step 1 to plan retrieval:
   - If the total is ≤ 30 classes: retrieve all in a single `get_multiple_rows_by_column` call
-    with maxRows set to the total from Step 1
+    with maxRows set to the count from Step 1
   - If the total is > 30 classes: retrieve in sequential batches of 20, incrementing the offset
-    until the total retrieved equals the Step 1 total
-  - Verify: the sum of all retrieved rows must equal the Step 1 total before proceeding
-  - Focus exclusively on: Scheduled task and Orchestrator categories
+    until the total retrieved equals the Step 1 count
+  - Verify: the sum of all retrieved rows must equal the Step 1 count before proceeding
+  - Focus exclusively on: Scheduler category
   - Note all classes where the "Possible outsider" column is marked (✓) — these are candidate
     anti-pattern examples for the Anti-Patterns section of the document
 

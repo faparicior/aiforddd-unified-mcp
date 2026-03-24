@@ -18,21 +18,25 @@ messages: |
 
   # Step 1: Assess the manifest
 
-  - Call `filter_and_count_rows` to count classes in the Application Layer (Layer = "Application Layer")
-  - Call `filter_and_count_rows` to count classes in the User Interface Layer (Layer = "User Interface Layer")
-  - If either call fails, stop immediately and report the error — do not infer counts from retrieval results
-  - Record both counts explicitly; they determine the retrieval strategy in Step 2
+  - Call `filter_and_count_rows` to count Use case classes in the Application Layer
+    (Layer = "Application Layer", Category = "Use case")
+  - Call `filter_and_count_rows` to count Command classes in the Application Layer
+    (Layer = "Application Layer", Category = "Command")
+  - Call `filter_and_count_rows` to count Query classes in the Application Layer
+    (Layer = "Application Layer", Category = "Query")
+  - If any call fails, stop immediately and report the error — do not infer counts from retrieval results
+  - Record all counts explicitly; the total determines the retrieval strategy in Step 2
   - Identify the total number of use cases, commands, and queries to analyze
 
   # Step 2: Collect all relevant classes
 
-  Use the counts from Step 1 to plan retrieval for each layer:
-  - If the layer has ≤ 30 classes: retrieve all in a single `get_multiple_rows_by_column` call
-    with maxRows set to the count from Step 1
-  - If the layer has > 30 classes: retrieve in sequential batches of 20, incrementing the offset
-    until the total retrieved equals the Step 1 count
-  - Verify: the sum of all retrieved rows must equal the Step 1 count before proceeding
-  - Focus on: Use case, Command, Query, Response, Controller, Event consumer categories
+  Use the total count from Step 1 to plan retrieval:
+  - If the total is ≤ 30 classes: retrieve all in a single `get_multiple_rows_by_column` call
+    with maxRows set to the total from Step 1
+  - If the total is > 30 classes: retrieve in sequential batches of 20, incrementing the offset
+    until the total retrieved equals the Step 1 total
+  - Verify: the sum of all retrieved rows must equal the Step 1 total before proceeding
+  - Focus exclusively on: Use case, Command, Query, Response categories
   - Note all classes where the "Possible outsider" column is marked (✓) — these are candidate
     anti-pattern examples for the Anti-Patterns section of the document
 

@@ -30,6 +30,7 @@
 | Repository | Infrastructure | Provides access to domain objects, typically through persistence mechanisms.|
 | API client | Infrastructure | Implements outbound port interfaces to call external REST/HTTP APIs, translating domain calls into HTTP requests and parsing responses back into domain objects.|
 | Gateway | Infrastructure | Facade that aggregates multiple external API calls or provides anti-corruption layer translation for complex external service integrations.|
+| Event producer | Infrastructure | Publishes domain events or integration events to message brokers or event streams, implementing outbound messaging port interfaces.|
 | Integration event | Infrastructure | Represents a significant change in the system, often used for event sourcing.|
 | Integration service | Infrastructure | Provides integration with external systems and services.|
 | Configuration | Infrastructure | Defines system configuration and setup for technical capabilities.|
