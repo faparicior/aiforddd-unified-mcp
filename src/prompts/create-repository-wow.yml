@@ -102,3 +102,8 @@ messages: |
   - Write the completed document to {{manifest_path}}/wow/ddd-repository-wow.md
   - Strip everything from "Template Variables Reference" onward — the final file must contain
     no template instructions
+
+  # Step 7: Mark classes as processed
+
+  For every class retrieved in Step 2, call `update_row_by_column` using the Identifier column value
+  to mark the Processed column with ✓. Process all classes — do not skip any.
