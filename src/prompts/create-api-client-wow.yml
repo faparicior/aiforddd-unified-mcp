@@ -27,6 +27,10 @@ messages: |
   - Call `filter_and_count_rows` to count Gateway classes in the Infrastructure Layer
     (Layer = "Infrastructure Layer", Category = "Gateway")
   - If either call fails, stop immediately and report the error — do not infer counts from retrieval results
+  - If the total count is 0, do not search for alternatives or classes in other layers/categories.
+    Write the output file with a note stating that no classes were found for the expected layer/categories,
+    and that the developer must ensure the manifest is catalogued correctly before running this prompt again.
+    Then stop — do not proceed to Step 2.
   - Record both counts; the total determines the retrieval strategy in Step 2
 
   # Step 2: Collect all relevant classes

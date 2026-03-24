@@ -25,6 +25,10 @@ messages: |
   - Call `filter_and_count_rows` to count Scheduler classes in the User Interface Layer
     (Layer = "User Interface Layer", Category = "Scheduler")
   - If the call fails, stop immediately and report the error — do not infer counts from retrieval results
+  - If the count is 0, do not search for alternatives or classes in other layers/categories.
+    Write the output file with a note stating that no classes were found for the expected layer/category,
+    and that the developer must ensure the manifest is catalogued correctly before running this prompt again.
+    Then stop — do not proceed to Step 2.
   - Record the count; it determines the retrieval strategy in Step 2
 
   # Step 2: Collect all relevant classes

@@ -20,6 +20,10 @@ messages: |
 
   - Call `filter_and_count_rows` to count classes in the Domain Layer (Layer = "Domain Layer",  Category = "Value object")
   - If the call fails, stop immediately and report the error — do not infer counts from retrieval results
+  - If the count is 0, do not search for alternatives or classes in other layers/categories.
+    Write the output file with a note stating that no classes were found for the expected layer/category,
+    and that the developer must ensure the manifest is catalogued correctly before running this prompt again.
+    Then stop — do not proceed to Step 2.
   - Record the count explicitly; it determines the retrieval strategy in Step 2
   - Identify the total number of value objects to analyze
 
