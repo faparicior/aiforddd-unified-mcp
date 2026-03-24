@@ -8,14 +8,20 @@ import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
 
 export const WOW_TYPES: Record<string, { prompt: string; outputFile: string }> = {
-    'controller':      { prompt: 'create-controller-wow',     outputFile: 'ddd-controller-wow.md' },
-    'event-consumer':  { prompt: 'create-event-consumer-wow', outputFile: 'ddd-event-consumer-wow.md' },
-    'scheduler':       { prompt: 'create-scheduler-wow',      outputFile: 'ddd-scheduler-wow.md' },
-    'repository':      { prompt: 'create-repository-wow',     outputFile: 'ddd-repository-wow.md' },
-    'event-producer':  { prompt: 'create-event-producer-wow', outputFile: 'ddd-event-producer-wow.md' },
-    'api-client':      { prompt: 'create-api-client-wow',     outputFile: 'ddd-api-client-wow.md' },
-    'use-case':        { prompt: 'create-use-case-wow',       outputFile: 'ddd-use-case-wow.md' },
-    'value-object':    { prompt: 'create-value-object-wow',   outputFile: 'ddd-value-object-wow.md' },
+    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md' },
+    'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md' },
+    'scheduler':           { prompt: 'create-scheduler-wow',           outputFile: 'ddd-scheduler-wow.md' },
+    'repository':          { prompt: 'create-repository-wow',          outputFile: 'ddd-repository-wow.md' },
+    'event-producer':      { prompt: 'create-event-producer-wow',      outputFile: 'ddd-event-producer-wow.md' },
+    'api-client':          { prompt: 'create-api-client-wow',          outputFile: 'ddd-api-client-wow.md' },
+    'use-case':            { prompt: 'create-use-case-wow',            outputFile: 'ddd-use-case-wow.md' },
+    'value-object':        { prompt: 'create-value-object-wow',        outputFile: 'ddd-value-object-wow.md' },
+    'entity':              { prompt: 'create-entity-wow',              outputFile: 'ddd-entity-wow.md' },
+    'domain-exception':    { prompt: 'create-domain-exception-wow',    outputFile: 'ddd-domain-exception-wow.md' },
+    'integration-event':   { prompt: 'create-integration-event-wow',   outputFile: 'ddd-integration-event-wow.md' },
+    'integration-service': { prompt: 'create-integration-service-wow', outputFile: 'ddd-integration-service-wow.md' },
+    'configuration':       { prompt: 'create-configuration-wow',       outputFile: 'ddd-configuration-wow.md' },
+    'response':            { prompt: 'create-response-wow',            outputFile: 'ddd-response-wow.md' },
 }
 
 const VALID_TYPES = Object.keys(WOW_TYPES).join(', ')
