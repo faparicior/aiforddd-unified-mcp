@@ -2,26 +2,25 @@
 
 > **Instructions**: Fill in each section below with patterns and examples found in the specific codebase. Use generic business concepts (Order, User, Product, etc.) instead of actual business logic from the codebase.
 
-## Table of Contents
+## 🧭 Table of Contents
 
-1. [Overview](#overview)
-2. [Architecture Position](#️-architecture-position)
-3. [Architecture Rules](#architecture-rules)
+1. [📌 Overview](#-overview)
+2. [🏗️ Architecture Position](#️-architecture-position)
+3. [📋 Architecture Rules](#-architecture-rules)
    - [Layer Responsibility](#1-layer-responsibility)
    - [Package Structure Convention](#2-package-structure-convention)
-4. [Value Object Patterns](#value-object-patterns)
-5. [Validation Patterns](#validation-patterns)
-6. [Implementation Guidelines](#️-implementation-guidelines)
-7. [Error Handling Strategy](#️-error-handling-strategy)
-8. [Testing Approach](#-testing-approach)
-9. [Performance Considerations](#-performance-considerations)
-10. [Anti-Patterns to Avoid](#-anti-patterns-to-avoid)
+4. [📐 Value Object Patterns](#-value-object-patterns)
+5. [🛡️ Validation Patterns](#-validation-patterns)
+6. [🛠️ Implementation Guidelines](#️-implementation-guidelines)
+7. [⚠️ Error Handling Strategy](#️-error-handling-strategy)
+8. [🧪 Testing Approach](#-testing-approach)
+9. [⚡ Performance Considerations](#-performance-considerations)
+10. [🚫 Anti-Patterns to Avoid](#-anti-patterns-to-avoid)
 11. [Summary](#summary)
 12. [Pattern Index](#pattern-index)
-13. [Open Questions](#-open-questions)
-14. [Changelog](#-changelog)
+13. [❓ Open Questions](#-open-questions)
 
-## Overview
+## 📌 Overview
 
 **Package:** `{{PackageName}}`  
 **Description:** {{PackageDescription}}  
@@ -41,7 +40,7 @@ The `{{PackageName}}` value objects form the foundation of the domain model, {{A
 
 ---
 
-## Architecture Rules
+## 📋 Architecture Rules
 
 ### 1. Layer Responsibility
 - **Purpose**: {{LayerMainPurpose}}
@@ -56,7 +55,7 @@ Examples:
 - {{PackageExample2}}
 - {{PackageExample3}}
 
-## Value Object Patterns
+## 📐 Value Object Patterns
 
 ### Value Object rules by Category
 
@@ -89,7 +88,7 @@ Examples:
 
 {{/ValueObjectPatternRules}}
 
-## Validation Patterns
+## 🛡️ Validation Patterns
 
 ### Validation rules by Category
 
