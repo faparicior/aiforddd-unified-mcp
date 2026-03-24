@@ -3,8 +3,8 @@
 import { Command } from 'commander'
 import { resolve, join } from 'path'
 import { existsSync, writeFileSync, unlinkSync } from 'fs'
-import { spawnSync } from 'child_process'
 import { filterAndCountRows } from './tools/markdown/utils/parser.js'
+import { runClaudeWithStreaming } from './shared/cli/claude-runner.js'
 import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
 
@@ -16,7 +16,7 @@ program
     .version('1.0.0')
     .option('-r, --repository <path>', 'Path to the repository root (defaults to current directory)', '.')
     .option('-p, --print-only', 'Print the generated prompt without executing Claude')
-    .action((options) => {
+    .action(async (options) => {
         try {
             const repositoryPath = resolve(process.cwd(), options.repository)
             const configPath = join(repositoryPath, '.aiforddd/code_manifest.json')
@@ -61,21 +61,19 @@ program
             while (!isCompleted) {
                 console.log(`Executing Claude workflow for: ${manifestPath}`)
 
-                // Spawn claude CLI using cat <prompt> | claude --dangerously-skip-permissions -p
-                const claudeProcess = spawnSync('sh', ['-c', `cat "${tempPromptFile}" | claude --dangerously-skip-permissions -p`], {
-                    stdio: 'inherit'
-                })
-
-                if (claudeProcess.error) {
+                let exitCode: number
+                try {
+                    exitCode = await runClaudeWithStreaming(tempPromptFile)
+                } catch (err: any) {
                     console.error('Failed to start claude CLI. Is it installed and in your PATH?')
-                    console.error(claudeProcess.error)
+                    console.error(err)
                     if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
                     process.exit(1)
                 }
 
-                if (claudeProcess.status !== 0) {
+                if (exitCode! !== 0) {
                     if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
-                    process.exit(claudeProcess.status ?? 1)
+                    process.exit(exitCode!)
                 }
 
                 try {
