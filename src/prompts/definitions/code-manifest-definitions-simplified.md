@@ -20,8 +20,12 @@ Inbound communication | Outbound communication | Integration Rules | Validation 
 
 ### Outbound communication
 **What**: Exit points that communicate with external systems  
-**Where**: API clients, event publishers, message producers, external service adapters  
+**Where**: API clients, gateways, event publishers, message producers, external service adapters  
 **Mark ✓ if**: Makes HTTP/API calls, publishes events/messages, or calls external services
+
+> **API client**: Infrastructure adapter implementing an application-layer outbound port to call an external REST/HTTP API. Translates domain calls into HTTP requests, handles retries/timeouts, and maps HTTP responses to domain objects. Always mark: Outbound communication ✓, External Dependencies ✓, Side Effects ✓. Often also: Error Handling ✓, Transformations ✓.
+
+> **Gateway**: Infrastructure facade that aggregates calls to multiple external APIs or provides anti-corruption layer translation. Broader than a single API client. Always mark: Outbound communication ✓, External Dependencies ✓, Side Effects ✓, Transformations ✓.
 
 ### Integration Rules
 **What**: Boundary protection from external systems  

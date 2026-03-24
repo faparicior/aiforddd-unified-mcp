@@ -328,6 +328,26 @@ class OrderController(private val createOrder: CreateOrderUseCase) {
 
 ### Outbound Communication
 
+✅ **API Client**
+```kotlin
+class UserServiceApiClient(
+    private val httpClient: HttpClient,
+    private val retryPolicy: RetryPolicy
+) : UserServicePort {
+    fun findUser(userId: UserId): User? {
+        return retryPolicy.execute {
+            val response = httpClient.get("/users/${userId.value}")
+            when (response.status) {
+                200 -> response.body<UserDto>().toDomain()
+                404 -> null
+                else -> throw ExternalServiceException(response.status)
+            }
+        }
+    }
+}
+```
+**Classification**: Outbound communication ✓, External Dependencies ✓, Side Effects ✓, Error Handling ✓, Transformations ✓
+
 ✅ **Event publisher**
 ```kotlin
 class OrderEventPublisher(private val eventBus: EventBus) {

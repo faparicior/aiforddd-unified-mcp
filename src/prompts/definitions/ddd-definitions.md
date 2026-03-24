@@ -28,6 +28,8 @@
 | Value object | Domain | Represents a descriptive aspect of the domain without identity.|
 | Domain exception | Domain | Exceptions that represent domain rule violations or business logic failures.|
 | Repository | Infrastructure | Provides access to domain objects, typically through persistence mechanisms.|
+| API client | Infrastructure | Implements outbound port interfaces to call external REST/HTTP APIs, translating domain calls into HTTP requests and parsing responses back into domain objects.|
+| Gateway | Infrastructure | Facade that aggregates multiple external API calls or provides anti-corruption layer translation for complex external service integrations.|
 | Integration event | Infrastructure | Represents a significant change in the system, often used for event sourcing.|
 | Integration service | Infrastructure | Provides integration with external systems and services.|
 | Configuration | Infrastructure | Defines system configuration and setup for technical capabilities.|

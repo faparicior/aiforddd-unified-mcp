@@ -197,7 +197,16 @@ Classes showing DDD violations.
 - ✅ Inbound communication, Validation Rules
 - Sometimes: Business Rules, External Dependencies
 
-### API Clients / Event Publishers
+### API Clients
+- ✅ Outbound communication, External Dependencies, Side Effects
+- Sometimes: Transformations, Error Handling, Validation Rules
+- Often: Error Handling (retry, circuit breaker, timeout)
+
+### Gateways
+- ✅ Outbound communication, External Dependencies, Side Effects, Transformations
+- Sometimes: Error Handling, Integration Rules
+
+### Event Publishers
 - ✅ Outbound communication, External Dependencies, Side Effects
 - Sometimes: Transformations, Error Handling
 
@@ -238,6 +247,8 @@ Before finalizing classification, verify:
 - [ ] Controllers/REST endpoints have Inbound communication ✓
 - [ ] Message consumers/event listeners have Inbound communication ✓
 - [ ] API clients/HTTP calls have Outbound communication ✓
+- [ ] API clients implementing port interfaces have External Dependencies ✓
+- [ ] API clients with retry/timeout logic have Error Handling ✓
 - [ ] Event publishers/message producers have Outbound communication ✓
 - [ ] Integration event classes have Integration event ✓
 - [ ] Classes with layer violations marked as Possible outsider ✓

@@ -414,7 +414,7 @@ Ask these questions to classify:
 | **Lifecycle Management** | Domain | Entity/Aggregate | Entities, Aggregates only |
 | **Domain Events** | Domain | Aggregate/Event | Aggregates, Event classes |
 | **Aggregate Consistency** | Domain | Aggregate Root | Aggregate Roots only |
-| **External Dependencies** | Domain/Application | Domain Service/App Service | Services with external calls |
+| **External Dependencies** | Domain/Application/Infrastructure | Domain Service/App Service/API Client | Services with external calls, API clients, gateways |
 | **Event Mapping** | Infrastructure | Consumer/Adapter | Event Consumers, ACL |
 | **Error Handling** | Infrastructure/Application | Service/Consumer | Services, Consumers |
 | **Idempotency** | Infrastructure/Application | Consumer/Handler | Event Consumers, API Handlers |

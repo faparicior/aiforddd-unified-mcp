@@ -78,7 +78,7 @@ messages: |
     - **User Interface Layer**: Controller, Event consumer, Console command, Scheduler, Response
     - **Application Layer**: Command, Query, Use case, Response
     - **Domain Layer**: Domain service, Domain event, Domain interface, Entity, Aggregate root, Value object, Domain exception
-    - **Infrastructure Layer**: Repository, Integration event, Integration service, Configuration, Infrastructure exception
+    - **Infrastructure Layer**: Repository, API client, Gateway, Integration event, Integration service, Configuration, Infrastructure exception
     - **FORBIDDEN CATEGORIES**: Never use "Messaging", "Metrics", "External Systems", "Persistence", or any category not listed in ddd-definitions.md
   - **Description**: Core functionality and purpose of the class
   
@@ -171,7 +171,9 @@ messages: |
   - **Consumers**: Typically have Integration Rules ✓, Event Mapping ✓, External Dependencies ✓, Inbound communication ✓, often Error Handling ✓, Idempotency ✓, Outbound communication ✓
   - **Integration Events**: Typically have Integration event ✓, sometimes Transformations ✓ (NEVER Business Rules, Domain Events, Side Effects)
   - **Controllers**: Typically have Inbound communication ✓, Validation Rules ✓, sometimes Business Rules ✓, External Dependencies ✓
-  - **API Clients / Event Publishers**: Typically have Outbound communication ✓, External Dependencies ✓, Side Effects ✓, sometimes Transformations ✓, Error Handling ✓
+  - **API Clients**: Typically have Outbound communication ✓, External Dependencies ✓, Side Effects ✓, often Error Handling ✓, sometimes Transformations ✓
+  - **Gateways**: Typically have Outbound communication ✓, External Dependencies ✓, Side Effects ✓, Transformations ✓, sometimes Error Handling ✓, Integration Rules ✓
+  - **Event Publishers**: Typically have Outbound communication ✓, External Dependencies ✓, Side Effects ✓, sometimes Transformations ✓
   - **Mappers**: Typically have Validation Rules ✓, Transformations ✓ (NEVER Business Rules, Inbound/Outbound communications)
   - **Simple DTOs/Commands**: All columns empty ❌
 
