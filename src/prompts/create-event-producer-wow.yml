@@ -61,7 +61,7 @@ messages: |
   port interface (application) and adapter (infrastructure), domain event isolation.
 
   ## Event Serialization Patterns
-  Focus on: Serialization format (JSON, Avro, Protobuf), event envelope/wrapper structure,
+  Focus on: Serialization format (JSON, binary, schema-based, etc.), event envelope/wrapper structure,
   schema registry usage, null handling, backward compatibility approach.
 
   ## Topic Routing Patterns

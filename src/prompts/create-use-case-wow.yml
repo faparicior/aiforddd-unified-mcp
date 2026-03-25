@@ -62,7 +62,7 @@ messages: |
   immutability, factory methods, constructor patterns.
 
   ## Use Case Patterns
-  Focus on: How use cases orchestrate domain operations, transaction boundaries (@Transactional usage),
+  Focus on: How use cases orchestrate domain operations, transaction boundaries (transaction annotation or decorator usage),
   dependency injection style, error handling and exception propagation, repository usage,
   domain event emission, response mapping.
 

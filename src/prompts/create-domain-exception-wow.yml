@@ -59,11 +59,11 @@ messages: |
 
   ## Exception Hierarchy Patterns
   Focus on: Base exception classes (retryable vs non-retryable), inheritance structure,
-  how the hierarchy communicates retry intent to infrastructure consumers, sealed class hierarchies.
+  how the hierarchy communicates retry intent to infrastructure consumers, sealed/closed type hierarchies.
 
   ## Exception Construction Patterns
-  Focus on: Constructor signatures (message-only, cause-only, message+cause), companion object
-  factory methods, contextual data carried in the exception (IDs, field names, invalid values).
+  Focus on: Constructor signatures (message-only, cause-only, message+cause), static factory methods,
+  contextual data carried in the exception (IDs, field names, invalid values).
 
   ## Exception Semantics Patterns
   Focus on: How exception names encode domain language, which domain invariants or business rules

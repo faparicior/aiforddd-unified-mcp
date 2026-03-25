@@ -59,9 +59,9 @@ messages: |
 
   Analyze each integration service class and extract reusable patterns. Focus on:
 
-  ## Result Mapper / RowMapper Patterns
-  Focus on: JDBC RowMapper implementations, ResultSet to domain object translation, null-safe field
-  extraction, date/time type mapping (LocalDate, Instant, OffsetDateTime), UUID parsing from strings,
+  ## Result Mapper Patterns
+  Focus on: Data source result mapper implementations, data source result to domain object translation, null-safe field
+  extraction, date/time type mapping, identifier parsing from strings,
   how composite domain objects are assembled from flat result sets.
 
   ## Data Transformation Patterns
@@ -80,13 +80,13 @@ messages: |
   exceptions are translated to infrastructure decisions (reject, retry, DLQ).
 
   ## Utility & Extension Patterns
-  Focus on: Kotlin extension functions on infrastructure types (OffsetDateTime, String),
+  Focus on: Extension methods or utility functions on infrastructure types,
   shared parsing utilities used across multiple consumers, validation helpers that protect
   domain layer from infrastructure-specific types.
 
   For each pattern found:
   - Assign a unique pattern ID following the format:
-    - `SVC-MAP-XX` for result mapper and RowMapper patterns
+    - `SVC-MAP-XX` for result mapper patterns
     - `SVC-TRN-XX` for data transformation and aggregation patterns
     - `SVC-MET-XX` for metrics and observability patterns
     - `SVC-EVT-XX` for event processing support patterns

@@ -68,7 +68,7 @@ messages: |
   optional fields handling, how related data is grouped in the response shape.
 
   ## Serialization Patterns
-  Focus on: JSON serialization annotations (@JsonProperty, @JsonInclude, @JsonFormat),
+  Focus on: Serialization annotations or decorators (e.g. @JsonProperty, @JsonInclude, @JsonFormat or equivalent),
   date/time formatting conventions, null field handling (include vs. exclude), enum serialization.
 
   ## Layer-Specific Response Patterns

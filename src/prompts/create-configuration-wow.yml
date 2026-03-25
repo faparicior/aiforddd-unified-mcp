@@ -58,31 +58,31 @@ messages: |
   Analyze each configuration class and extract reusable patterns. Focus on:
 
   ## Application Wiring Patterns
-  Focus on: How use cases and application services are wired (constructor injection, @Bean methods),
-  separation of application layer beans vs. infrastructure beans, how port interfaces are connected
+  Focus on: How use cases and application services are wired (constructor injection, bean/component registration),
+  separation of application layer components vs. infrastructure components, how port interfaces are connected
   to their adapter implementations.
 
-  ## Infrastructure Bean Patterns
+  ## Infrastructure Component Patterns
   Focus on: How infrastructure adapters (repositories, API clients, event producers) are instantiated,
-  multi-instance bean creation (per-site configurations, per-tenant), how environment-specific config
-  properties are injected (@Value, @ConfigurationProperties).
+  multi-instance component creation (per-site configurations, per-tenant), how environment-specific config
+  properties are injected (environment variables, configuration files, or property injection mechanisms).
 
   ## External Client Configuration Patterns
-  Focus on: Feign/RestTemplate/WebClient configuration, retry policies, timeout settings,
+  Focus on: HTTP client configuration, retry policies, timeout settings,
   connection pool configuration, base URL and auth key injection, per-client customization.
 
   ## Messaging Configuration Patterns
-  Focus on: Kafka consumer/producer bean wiring, stream binding configuration, consumer group
-  setup, how multiple consumers for different sites/topics are configured consistently.
+  Focus on: Messaging broker consumer/producer wiring, stream binding configuration, consumer group
+  setup, how multiple consumers for different topics are configured consistently.
 
   ## Application Entry Point Patterns
-  Focus on: Main class annotations (@SpringBootApplication, @EnableFeignClients, component scan
-  configuration), bootstrap configuration, profile activation.
+  Focus on: Application entry point annotations or decorators, component scan / auto-discovery
+  configuration, bootstrap configuration, profile or environment activation.
 
   For each pattern found:
   - Assign a unique pattern ID following the format:
     - `CFG-WIR-XX` for application wiring and bean composition patterns
-    - `CFG-INF-XX` for infrastructure bean instantiation patterns
+    - `CFG-INF-XX` for infrastructure component instantiation patterns
     - `CFG-CLT-XX` for external client configuration patterns
     - `CFG-MSG-XX` for messaging and stream configuration patterns
     - `CFG-APP-XX` for application entry point and bootstrap patterns

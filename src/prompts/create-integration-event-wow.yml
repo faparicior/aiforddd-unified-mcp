@@ -70,12 +70,12 @@ messages: |
   Device, Page), naming conventions for nested types, co-location in the same file vs. separate files.
 
   ## Deserialization Annotation Patterns
-  Focus on: Jackson annotations (@JsonProperty, @JsonAnySetter, @JsonAnyGetter, @JsonAlias),
-  schema registry annotations, dynamic property handling, version tolerance patterns.
+  Focus on: Deserialization annotations or decorators (e.g. @JsonProperty or equivalent),
+  schema binding annotations, dynamic property handling, version tolerance patterns.
 
   ## Domain Mapping Patterns
-  Focus on: How integration event DTOs provide mapping methods (toCommand(), toIncreaseStatCommand(),
-  agencyId()), the anti-corruption boundary between external event shape and domain model,
+  Focus on: How integration event DTOs provide mapping methods (e.g. toCommand(), toDomainModel()),
+  the anti-corruption boundary between external event shape and domain model,
   validation at mapping time (null checks, format parsing).
 
   For each pattern found:

@@ -66,7 +66,7 @@ messages: |
 
   ## Error Handling Patterns
   Focus on: Domain exception to HTTP status translation, centralized exception handler
-  (@ControllerAdvice or equivalent), error response body structure.
+  (global error handler, middleware, exception filter, or equivalent mechanism), error response body structure.
 
   ## Security Patterns
   Focus on: Authentication/authorization integration, input sanitization, CSRF protection.

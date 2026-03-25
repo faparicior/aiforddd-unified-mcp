@@ -65,11 +65,11 @@ messages: |
   mapper class usage vs. factory methods, value object reconstruction, association loading strategy.
 
   ## Query Builder Patterns
-  Focus on: Query construction mechanism (JPQL, QueryDSL, Spring Data, jOOQ), dynamic filter
+  Focus on: Query construction mechanism (ORM query language, query builder, or data access framework), dynamic filter
   composition, parameterized query enforcement, pagination and sorting.
 
   ## Transaction Management Patterns
-  Focus on: @Transactional placement (use case vs. repository), propagation attributes,
+  Focus on: Transaction annotation/decorator placement (use case vs. repository), propagation attributes,
   isolation levels, optimistic locking (version field), pessimistic locking usage.
 
   ## Infrastructure Exception Translation Patterns

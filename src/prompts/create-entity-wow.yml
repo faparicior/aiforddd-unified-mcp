@@ -64,7 +64,7 @@ messages: |
   methods that advance entity state, lifecycle hooks (onCreate, onUpdate equivalents).
 
   ## Invariant Enforcement Patterns
-  Focus on: Constructor validation with require/check, init blocks, how entities protect themselves
+  Focus on: Constructor validation with guard clauses and precondition checks, how entities protect themselves
   from invalid state at creation time, which invariants are enforced vs. delegated to domain services.
 
   ## Behavior Patterns
@@ -73,8 +73,8 @@ messages: |
   self-encapsulation of business rules.
 
   ## Factory & Reconstruction Patterns
-  Focus on: Static factory methods (companion object), factory classes, how entities are
-  reconstructed from persistence (fromPersistence pattern), builder patterns if present.
+  Focus on: Static factory methods, factory classes, how entities are
+  reconstructed from persistence (e.g. fromPersistence pattern), builder patterns if present.
 
   For each pattern found:
   - Assign a unique pattern ID following the format:

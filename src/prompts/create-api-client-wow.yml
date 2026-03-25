@@ -71,8 +71,8 @@ messages: |
   circuit breaker mechanism and threshold configuration, open-state fallback.
 
   ## Authentication Propagation Patterns
-  Focus on: Bearer token / API key / OAuth2 mechanism, token source (SecurityContext, dedicated
-  provider), header injection approach (interceptor, per-request), token refresh strategy.
+  Focus on: Bearer token / API key / OAuth2 mechanism, token source (security context, dedicated
+  token provider), header injection approach (interceptor, per-request), token refresh strategy.
 
   ## Error Translation Patterns
   Focus on: HTTP status code to domain exception mapping, timeout and network error handling,
