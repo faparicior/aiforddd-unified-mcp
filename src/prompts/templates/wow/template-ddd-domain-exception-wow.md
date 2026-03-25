@@ -86,7 +86,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -97,7 +97,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -119,7 +119,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -130,7 +130,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -152,7 +152,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -163,7 +163,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -221,7 +221,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -229,7 +229,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 

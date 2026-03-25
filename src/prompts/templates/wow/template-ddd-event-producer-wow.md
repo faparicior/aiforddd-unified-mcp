@@ -81,7 +81,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{UseCasePatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -92,7 +92,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{UseCaseAntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -117,13 +117,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -169,13 +169,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -197,7 +197,7 @@ Examples:
 - **Alerting on DLT**: {{DeadLetterAlertingStrategy}}
 
 **Example:**
-```kotlin
+```
 {{RetryErrorRoutingExample}}
 ```
 
@@ -238,7 +238,7 @@ Examples:
 {{SendFailureStrategy}}
 
 **Example:**
-```kotlin
+```
 {{SendFailureExample}}
 ```
 
@@ -270,7 +270,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -278,7 +278,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -411,7 +411,7 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 - `{{PatternId}}` - Unique pattern identifier (e.g., "PRD-SER-01", "PRD-IDM-01")
 - `{{PatternName}}` - Descriptive name of the pattern
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "KafkaOrderEventProducer.kt")
+- `{{FileName}}` - Source file name (e.g., "OrderEventProducer.ext")
 
 ### Producer-Specific Variables
 - `{{EventPublisherPortInterface}}` - Name of the port interface this producer implements

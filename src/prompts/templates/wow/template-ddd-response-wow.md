@@ -80,7 +80,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -91,7 +91,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -115,7 +115,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -126,7 +126,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -150,7 +150,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -161,7 +161,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -185,7 +185,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -196,7 +196,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -220,7 +220,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -231,7 +231,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -271,7 +271,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -279,7 +279,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -375,7 +375,7 @@ Examples:
 - `RSP-DRV-XX`: Derived and computed field patterns
 
 ### 2. Key Analysis Points
-- **Mapping**: Does the response use companion object factory (fromDomain(), of())?
+- **Mapping**: Does the response use a static factory method (fromDomain(), of())?
 - **Layers**: Are Application Layer and UI Layer responses clearly separated?
 - **Serialization**: What Jackson annotations are used? How are nulls handled?
 - **Derived fields**: Are any fields computed from multiple domain values?

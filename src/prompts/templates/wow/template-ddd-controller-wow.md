@@ -77,7 +77,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{UseCasePatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -88,7 +88,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{UseCaseAntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -117,13 +117,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -177,7 +177,7 @@ Examples:
 {{ErrorHandlingDescription}}
 
 **Example:**
-```kotlin
+```
 {{ErrorHandlingExample}}
 ```
 
@@ -205,7 +205,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -213,7 +213,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -336,7 +336,7 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 - `{{PatternId}}` - Unique pattern identifier (e.g., "CTL-REQ-01", "CTL-RSP-01")
 - `{{PatternName}}` - Descriptive name of the pattern (e.g., "Command Delegation Pattern")
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "OrderController.kt")
+- `{{FileName}}` - Source file name (e.g., "OrderController.ext")
 - `{{Benefits}}` - Array of benefit objects with BenefitName and BenefitDescription
 - `{{AntiPatternReasons}}` - Array of reason strings for anti-pattern explanations
 - `{{SourceFiles}}` - Array of source file objects with ClassIndexIdentifier and FileName
@@ -373,7 +373,7 @@ For each controller pattern found in your analysis:
 - **Request Structure**: DTO definitions, deserialization, validation annotations
 - **Application Layer Delegation**: How controllers delegate to use cases (Command/Query objects)
 - **Response Mapping**: How domain results are converted to response DTOs
-- **HTTP Status Strategy**: Exception handler mappings, `@ControllerAdvice` usage
+- **HTTP Status Strategy**: Exception handler mappings, centralized error handler usage
 - **Authentication/Authorization**: How security context is accessed and validated
 
 ### 3. Pattern Naming Conventions
@@ -400,7 +400,7 @@ For each controller pattern found in your analysis:
 #### Anti-Patterns to Identify
 - **Fat Controller**: Business logic or multiple domain operations in one endpoint handler
 - **Domain Leakage**: Domain objects used directly as request/response bodies
-- **Inline Error Handling**: `try/catch` blocks in each method instead of centralized `@ControllerAdvice`
+- **Inline Error Handling**: `try/catch` blocks in each method instead of a centralized error handler
 - **Validation Bypass**: Accepting raw user input without boundary validation
 
 ### 5. Template Completion Checklist

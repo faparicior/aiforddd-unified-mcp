@@ -75,7 +75,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -86,7 +86,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -110,7 +110,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -121,7 +121,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -145,7 +145,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -156,7 +156,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -180,7 +180,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -191,7 +191,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -215,7 +215,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -226,7 +226,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -266,7 +266,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -274,7 +274,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -376,7 +376,7 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 ### 2. Key Analysis Points
 - **Split**: How are configuration concerns split across multiple @Configuration classes?
 - **Ports & Adapters**: How are domain port interfaces connected to infrastructure adapters?
-- **Properties**: How are external config properties (@Value, @ConfigurationProperties) injected?
+- **Properties**: How are external config properties (environment variables, property injection mechanisms) injected?
 - **Multi-instance**: Are beans created per-site, per-tenant, or per-topic? How?
 - **Entry point**: What annotations are on the main class? How is component scan scoped?
 

@@ -80,7 +80,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{UseCasePatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -91,7 +91,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{UseCaseAntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -116,13 +116,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -147,13 +147,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -176,7 +176,7 @@ Examples:
 - **Pessimistic Locking**: {{PessimisticLockingUseCase}}
 
 **Example:**
-```kotlin
+```
 {{TransactionExample}}
 ```
 
@@ -193,13 +193,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -237,7 +237,7 @@ Examples:
 {{InfrastructureExceptionTranslation}}
 
 **Example:**
-```kotlin
+```
 {{ExceptionTranslationExample}}
 ```
 
@@ -265,7 +265,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -273,7 +273,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -410,7 +410,7 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 - `{{PatternId}}` - Unique pattern identifier (e.g., "REP-AGG-01", "REP-QRY-01")
 - `{{PatternName}}` - Descriptive name of the pattern
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "JpaOrderRepository.kt")
+- `{{FileName}}` - Source file name (e.g., "OrderRepository.ext")
 - `{{Benefits}}` - Array of benefit objects with BenefitName and BenefitDescription
 - `{{AntiPatternReasons}}` - Array of reason strings for anti-pattern explanations
 - `{{SourceFiles}}` - Array of source file objects with ClassIndexIdentifier and FileName
@@ -451,7 +451,7 @@ For each repository pattern found in your analysis:
 - **Persistence Model Separation**: Whether entity/table models are separate from domain aggregates
 - **Aggregate Mapping**: How persistence entities are converted to/from domain aggregates
 - **Query Construction**: Use of parameterized queries, ORM, or query builders
-- **Transaction Boundaries**: Where `@Transactional` is placed and why
+- **Transaction Boundaries**: Where transaction annotations/decorators are placed and why
 - **Exception Translation**: How DB exceptions are translated to domain exceptions
 
 ### 3. Pattern Naming Conventions

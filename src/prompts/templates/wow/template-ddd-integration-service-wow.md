@@ -74,7 +74,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -85,7 +85,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -109,7 +109,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -120,7 +120,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -144,7 +144,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -155,7 +155,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -186,7 +186,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -197,7 +197,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -221,7 +221,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -232,7 +232,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -272,7 +272,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -280,7 +280,7 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 

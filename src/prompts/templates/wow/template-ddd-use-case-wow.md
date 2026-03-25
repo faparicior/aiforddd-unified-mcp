@@ -65,7 +65,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -76,7 +76,7 @@ Examples:
   {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -97,7 +97,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -108,7 +108,7 @@ Examples:
   {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -143,7 +143,7 @@ Examples:
 {{ErrorHandlingPatternDescription}}
 
 **Example:**
-```kotlin
+```
 {{ErrorHandlingExample}}
 ```
 
@@ -167,7 +167,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -175,7 +175,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -265,7 +265,7 @@ Examples:
 - `{{PatternId}}` - Unique pattern identifier (e.g., "UC-CMD-01", "UC-QRY-01")
 - `{{PatternName}}` - Descriptive name of the pattern (e.g., "Domain Orchestration Pattern")
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "CreateOrderUseCase.kt")
+- `{{FileName}}` - Source file name (e.g., "CreateOrderUseCase.ext")
 
 ### Coverage Summary Variables
 - `{{LayerName}}` - Architecture layer name (e.g., "Application Layer")
@@ -302,7 +302,7 @@ For each use case pattern found in your analysis:
 ## Pattern Index
 
 ### Application Layer - Command Operations Patterns
-- **UC-CMD-01**: Domain Orchestration Pattern - [a1b2c3d4e5f6] CreateOrderUseCase.kt
+- **UC-CMD-01**: Domain Orchestration Pattern - [a1b2c3d4e5f6] CreateOrderUseCase.ext
 - **UC-CMD-02**: Transaction Boundary Pattern - [b2c3d4e5f6a1] ProcessPaymentUseCase.kt
 - **UC-CMD-03**: State Validation Pattern - [c3d4e5f6a1b2] UpdateOrderUseCase.kt
 
@@ -350,7 +350,7 @@ For each use case pattern found in your analysis:
 
 #### What to Analyze
 - **Use Case Structure**: Service annotations, dependency injection patterns
-- **Transaction Management**: @Transactional usage, transaction boundary patterns
+- **Transaction Management**: Transaction annotation/decorator usage, transaction boundary patterns
 - **Domain Interaction**: How use cases orchestrate domain operations
 - **Error Handling**: Exception handling patterns, validation approaches
 - **Repository Usage**: Data access patterns, repository coordination

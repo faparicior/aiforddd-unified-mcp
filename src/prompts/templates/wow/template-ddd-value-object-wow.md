@@ -66,7 +66,7 @@ Examples:
 
 **✅ GOOD - {{PatternDescription}}:**
 
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -77,7 +77,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -98,7 +98,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -109,7 +109,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -146,7 +146,7 @@ Examples:
 {{ErrorHandlingDescription}}
 
 **Example:**
-```kotlin
+```
 {{ErrorHandlingExample}}
 ```
 
@@ -174,7 +174,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -182,7 +182,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -275,7 +275,7 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 - `{{PatternId}}` - Unique pattern identifier (e.g., "VO-PRM-01", "VO-CPX-01")
 - `{{PatternName}}` - Descriptive name of the pattern (e.g., "UUID Identifier Pattern")
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "OrderId.kt")
+- `{{FileName}}` - Source file name (e.g., "OrderId.ext")
 
 ### Coverage Summary Variables
 - `{{LayerName}}` - Architecture layer name (e.g., "Domain Layer")
@@ -312,8 +312,8 @@ For each value object pattern found in your analysis:
 ## Pattern Index
 
 ### Domain Layer - Primitive Wrappers Patterns
-- **VO-PRM-01**: UUID Identifier Pattern - [a1b2c3d4e5f6] OrderId.kt
-- **VO-PRM-02**: String Validation Pattern - [b2c3d4e5f6a1] EmailAddress.kt
+- **VO-PRM-01**: UUID Identifier Pattern - [a1b2c3d4e5f6] OrderId.ext
+- **VO-PRM-02**: String Validation Pattern - [b2c3d4e5f6a1] EmailAddress.ext
 - **VO-PRM-03**: Numeric Range Pattern - [c3d4e5f6a1b2] Price.kt
 
 ### Domain Layer - Complex Value Objects Patterns
@@ -359,7 +359,7 @@ For each value object pattern found in your analysis:
 ### 6. Value Object Analysis Guidelines
 
 #### What to Analyze
-- **Immutability**: Data class structure, val properties, immutable design
+- **Immutability**: Immutable class structure, read-only properties, immutable design
 - **Validation**: Constructor validation, business rule enforcement
 - **Equality**: equals/hashCode implementation, value-based equality
 - **Encapsulation**: Private validation methods, clean public interface
@@ -387,7 +387,7 @@ For each value object pattern found in your analysis:
 - **Composite Values**: Addresses, date ranges, complex structures
 
 #### Anti-Patterns to Identify
-- **Mutable Value Objects**: Value objects with var properties or mutable state
+- **Mutable Value Objects**: Value objects with mutable properties or mutable state
 - **Missing Validation**: Value objects without proper constraint enforcement
 - **Anemic Value Objects**: Value objects with only getters and no behavior
 - **Technology Coupling**: Value objects dependent on specific frameworks

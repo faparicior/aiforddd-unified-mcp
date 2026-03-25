@@ -79,7 +79,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{UseCasePatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -90,7 +90,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{UseCaseAntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -116,7 +116,7 @@ Examples:
 - **{{CronRule2}}**: {{CronRuleDescription2}}
 
 **Example:**
-```kotlin
+```
 {{TriggerConfigExample}}
 ```
 
@@ -135,13 +135,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -167,7 +167,7 @@ Examples:
 - **{{RecoveryPattern2}}**: {{RecoveryDescription2}}
 
 **Example:**
-```kotlin
+```
 {{PartialFailureExample}}
 ```
 
@@ -207,7 +207,7 @@ Examples:
 {{PerItemErrorStrategy}}
 
 **Example:**
-```kotlin
+```
 {{PerItemErrorExample}}
 ```
 
@@ -235,7 +235,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -243,7 +243,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -373,7 +373,7 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 - `{{PatternId}}` - Unique pattern identifier (e.g., "SCH-TRG-01", "SCH-LCK-01")
 - `{{PatternName}}` - Descriptive name of the pattern
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "ProcessExpiredOrdersBatch.kt")
+- `{{FileName}}` - Source file name (e.g., "ProcessExpiredOrdersBatch.ext")
 - `{{Benefits}}` - Array of benefit objects with BenefitName and BenefitDescription
 - `{{AntiPatternReasons}}` - Array of reason strings for anti-pattern explanations
 - `{{SourceFiles}}` - Array of source file objects with ClassIndexIdentifier and FileName

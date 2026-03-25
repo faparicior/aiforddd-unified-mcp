@@ -79,7 +79,7 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{UseCasePatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
@@ -90,7 +90,7 @@ Examples:
 {{/Benefits}}
 
 **❌ BAD - {{UseCaseAntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -115,13 +115,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -159,13 +159,13 @@ Examples:
 ##### Rule {{RuleId}}: {{PatternName}} Pattern
 
 **✅ GOOD - {{PatternDescription}}:**
-```kotlin
+```
 {{GoodPatternExample}}
 ```
 **Source**: {{#SourceFiles}}[{{ClassIndexIdentifier}}] {{FileName}}{{#HasNext}}, {{/HasNext}}{{/SourceFiles}}
 
 **❌ BAD - {{AntiPatternDescription}}:**
-```kotlin
+```
 {{AntiPatternExample}}
 ```
 
@@ -187,7 +187,7 @@ Examples:
 - **Alerting**: {{DeadLetterAlertingStrategy}}
 
 **Example DLQ configuration:**
-```kotlin
+```
 {{DeadLetterConfigExample}}
 ```
 
@@ -218,7 +218,7 @@ Examples:
 {{TransientErrorStrategy}}
 
 **Example:**
-```kotlin
+```
 {{TransientErrorExample}}
 ```
 
@@ -246,7 +246,7 @@ Examples:
 
 {{#GoodTestExamples}}
 #### ✅ Good Test Structure
-```kotlin
+```
 {{GoodTestExample}}
 ```
 
@@ -254,7 +254,7 @@ Examples:
 
 {{#BadTestExamples}}
 #### ❌ Bad Test Patterns
-```kotlin
+```
 {{BadTestExample}}
 ```
 
@@ -385,7 +385,7 @@ Use @context/templates/ai-development/ai-definitions/ddd-discovery/definition-te
 - `{{PatternId}}` - Unique pattern identifier (e.g., "CSM-HDL-01", "CSM-IDM-01")
 - `{{PatternName}}` - Descriptive name of the pattern
 - `{{ClassIndexIdentifier}}` - Hash identifier from class index (e.g., "a1b2c3d4e5f6")
-- `{{FileName}}` - Source file name (e.g., "OrderEventConsumer.kt")
+- `{{FileName}}` - Source file name (e.g., "OrderEventConsumer.ext")
 - `{{Benefits}}` - Array of benefit objects with BenefitName and BenefitDescription
 - `{{AntiPatternReasons}}` - Array of reason strings for anti-pattern explanations
 - `{{SourceFiles}}` - Array of source file objects with ClassIndexIdentifier and FileName
