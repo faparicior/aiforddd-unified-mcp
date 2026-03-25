@@ -84,7 +84,7 @@ messages: |
     - `ENT-BHV-XX` for behavior and business rule patterns
     - `ENT-FAC-XX` for factory and reconstruction patterns
   - Write a descriptive pattern name capturing the architectural intent
-  - Extract a GOOD code example verbatim from the source file (use real code, not invented)
+  - Extract a GOOD code example from the source file — copy the structure and logic exactly, but IMMEDIATELY replace every domain-specific class name, method name, field name, enum value, and identifier with a generic equivalent (Order, User, Product, Payment, Item, Customer). NO real names from the codebase may appear in the example.
   - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
   - Record the source file name and class index identifier from the manifest
   - For classes flagged as "Possible outsider" (✓), document why the class may not belong in its
@@ -94,9 +94,9 @@ messages: |
 
   Replace every `{{Variable}}` in the loaded template with content derived from the codebase analysis.
   The template's own "Usage Instructions" and "Template Variables Reference" sections describe exactly
-  what each variable expects — follow them. Use the verbatim code extracted in Step 4, substituting
-  domain-specific names with generic equivalents (Order, User, Product, Payment) while preserving
-  the structure and logic exactly — only the names change.
+  what each variable expects — follow them. Use the generic code produced in Step 4 directly —
+  all names are already generic. Preserve
+  the structure and logic exactly as-is.
   Document the identity strategy, state machine design, and how invariants are enforced.
   Anti-patterns for "Possible outsider" entries come from the manifest's Possible outsider column (✓).
 
