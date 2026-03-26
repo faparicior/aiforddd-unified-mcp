@@ -176,6 +176,11 @@ program
                     mkdirSync(tmpDir, { recursive: true })
                 }
 
+                const filters = WOW_TYPE_FILTERS[options.type]
+                const manifestFilters = filters
+                    ? filters.map(f => `Layer = "${f.layer}", Category = "${f.value}"`).join('\n')
+                    : ''
+
                 const promptManager = new PromptManager()
                 const promptArgs = {
                     manifest_path: manifestPath,
@@ -184,6 +189,7 @@ program
                     batch_size: options.batchSize,
                     chunk_index: options.chunkIndex,
                     output_dir: tmpDir,
+                    manifest_filters: manifestFilters,
                 }
                 const promptContent = promptManager.getPromptContent('analyze-wow-chunk', promptArgs)
 

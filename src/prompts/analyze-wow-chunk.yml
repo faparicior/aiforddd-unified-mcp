@@ -13,6 +13,8 @@ arguments:
     required: true
   - name: output_dir
     required: true
+  - name: manifest_filters
+    required: true
 messages: |
   You are to analyze a chunk of source files from a code manifest and produce a structured
   intermediate analysis document. This analysis will later be merged with other chunk analyses
@@ -32,11 +34,16 @@ messages: |
   Call `get_multiple_rows_by_column` on the manifest file {{manifest_path}}/code-manifest.md
   to retrieve rows for this chunk.
 
-  Use offset={{offset}} and maxRows={{batch_size}} to get only the classes assigned to this chunk.
+  Use EXACTLY these filter criteria (one or more lines — retrieve rows matching ANY of them):
+  {{manifest_filters}}
 
-  You need to retrieve all classes that match the WoW type "{{wow_type}}". The manifest has
-  Layer and Category columns that classify each class. Retrieve rows matching the appropriate
-  layer and category for this WoW type, using the offset and maxRows parameters.
+  For each filter line above, call `get_multiple_rows_by_column` using:
+  - columnName = "Layer", value = the Layer value from the filter line
+  Then from the returned rows, keep only those where the "Category" column matches
+  the Category value from the same filter line.
+
+  Apply offset={{offset}} and maxRows={{batch_size}} to the COMBINED filtered results
+  to get only the classes assigned to this chunk.
 
   If no rows are returned for this chunk, write the output file with a note that this chunk
   had no matching classes, and stop.
