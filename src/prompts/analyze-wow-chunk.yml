@@ -1,0 +1,134 @@
+name: analyze-wow-chunk
+description: Analyze a chunk of source files from the code manifest and produce a structured intermediate analysis for later composition into a WoW document
+arguments:
+  - name: manifest_path
+    required: true
+  - name: wow_type
+    required: true
+  - name: offset
+    required: true
+  - name: batch_size
+    required: true
+  - name: chunk_index
+    required: true
+  - name: output_dir
+    required: true
+messages: |
+  You are to analyze a chunk of source files from a code manifest and produce a structured
+  intermediate analysis document. This analysis will later be merged with other chunk analyses
+  to compose a final Way of Working (WoW) document.
+
+  Manifest file: {{manifest_path}}/code-manifest.md
+  WoW type: {{wow_type}}
+  Chunk index: {{chunk_index}}
+  Offset: {{offset}}
+  Batch size: {{batch_size}}
+  Output file: {{output_dir}}/analysis-chunk-{{chunk_index}}.md
+
+  Follow these steps precisely.
+
+  # Step 1: Retrieve this chunk's classes from the manifest
+
+  Call `get_multiple_rows_by_column` on the manifest file {{manifest_path}}/code-manifest.md
+  to retrieve rows for this chunk.
+
+  Use offset={{offset}} and maxRows={{batch_size}} to get only the classes assigned to this chunk.
+
+  You need to retrieve all classes that match the WoW type "{{wow_type}}". The manifest has
+  Layer and Category columns that classify each class. Retrieve rows matching the appropriate
+  layer and category for this WoW type, using the offset and maxRows parameters.
+
+  If no rows are returned for this chunk, write the output file with a note that this chunk
+  had no matching classes, and stop.
+
+  Record all retrieved rows — you will need the File column and Identifier column for each.
+  Note any rows where the "Possible outsider" column is marked (✓).
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File column value from manifest>
+  (the manifest_path points to the .aiforddd directory; source files are relative to the repo root above it)
+
+  Process source files in batches of 6–8 files per `read_multiple_files_compressed` call.
+  Complete analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  # Step 3: Analyze patterns
+
+  For each file read, analyze and discover patterns organically. Do NOT constrain yourself to
+  predefined pattern categories — discover what patterns exist naturally in the code.
+
+  For each pattern you identify:
+  - Give it a descriptive name capturing the architectural intent
+  - Describe what the pattern does and why it matters
+  - Extract a GOOD code example from the source file — copy the structure and logic exactly,
+    but IMMEDIATELY replace every domain-specific class name, method name, field name, enum value,
+    and identifier with a generic equivalent (Order, User, Product, Payment, Item, Customer).
+    NO real names from the codebase may appear in the example.
+  - If you observe an anti-pattern or violation, derive a BAD counterexample
+  - Record the source file name and class Identifier from the manifest
+
+  Also observe and document:
+  - Dependency injection patterns
+  - Error handling approaches
+  - Configuration patterns
+  - Testing patterns (if test files are present)
+  - Naming conventions
+  - Architectural layering compliance
+  - For classes flagged as "Possible outsider" (✓), document why the class may not belong
+    in its current layer
+
+  # Step 4: Write the intermediate analysis
+
+  Write the analysis to: {{output_dir}}/analysis-chunk-{{chunk_index}}.md
+
+  Use EXACTLY this structure:
+
+  ```
+  # WoW Chunk Analysis: {{wow_type}} — Chunk {{chunk_index}}
+
+  ## Files Analyzed
+
+  | # | File | Identifier | Category | Layer | Possible Outsider |
+  |---|------|------------|----------|-------|-------------------|
+  (one row per file analyzed)
+
+  ## Patterns Identified
+
+  ### Pattern: [Descriptive Pattern Name]
+  - **Description**: [What this pattern does and why it matters]
+  - **Source**: [Identifier from manifest] — [File name]
+  - **Good Example**:
+  ```[language]
+  // Anonymized code example
+  ```
+  - **Anti-Pattern** (if observed):
+  ```[language]
+  // What NOT to do
+  ```
+
+  (repeat for each pattern found)
+
+  ## Architecture Observations
+
+  - **DI Pattern**: [description of dependency injection approach]
+  - **Error Handling**: [description of error handling strategy]
+  - **Configuration**: [description of configuration approach]
+  - **Testing**: [description of testing patterns if observed]
+  - **Naming Conventions**: [observed naming patterns]
+
+  ## Outsider Analysis
+
+  (For each class marked as Possible Outsider)
+  - **[Identifier]** — [File]: [explanation of why it may not belong]
+
+  ## Summary
+
+  - Files analyzed: [N]
+  - Patterns found: [N]
+  - Categories covered: [list of categories seen]
+  - Outsiders flagged: [N]
+  ```
+
+  Do NOT write any other files. Do NOT mark classes as processed.
+  Only write the single analysis file at the specified output path.

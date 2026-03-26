@@ -1,0 +1,87 @@
+name: compose-wow-document
+description: Compose a final WoW document by merging intermediate chunk analyses and filling a type-specific template
+arguments:
+  - name: manifest_path
+    required: true
+  - name: wow_type
+    required: true
+  - name: analysis_dir
+    required: true
+  - name: output_file
+    required: true
+  - name: total_chunks
+    required: true
+messages: |
+  You are to compose a final Way of Working (WoW) document by merging intermediate analysis
+  files produced from separate chunks of source code, and filling in a type-specific template.
+
+  Manifest file: {{manifest_path}}/code-manifest.md
+  WoW type: {{wow_type}}
+  Analysis directory: {{analysis_dir}}
+  Total chunks: {{total_chunks}}
+  Output file: {{manifest_path}}/wow/{{output_file}}
+
+  Follow these steps precisely.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-{{wow_type}}-wow.md" to retrieve
+  the full template. Keep it in context — you will fill every variable in it during Step 3.
+
+  # Step 1: Read all intermediate analyses
+
+  Read ALL analysis chunk files from the directory: {{analysis_dir}}
+
+  The files are named `analysis-chunk-0.md`, `analysis-chunk-1.md`, etc., up to
+  `analysis-chunk-{{total_chunks}}` (some chunk numbers may be missing if they had no matching classes).
+
+  Use `read_multiple_files_compressed` to read them in a single call (or batches of 6-8 if there
+  are many chunks). Read each file completely.
+
+  After reading all chunks, you should have:
+  - A combined list of all files analyzed across all chunks
+  - All patterns discovered across all chunks
+  - All architecture observations from all chunks
+  - All outsider analyses
+
+  # Step 2: Merge, deduplicate, and categorize patterns
+
+  Across all chunks, patterns were discovered organically. Now you must:
+
+  1. **Merge**: Combine all patterns from all chunks into a unified collection
+  2. **Deduplicate**: If multiple chunks identified the same pattern (same concept, different examples),
+     keep the best/clearest example and note all source files that exhibit it
+  3. **Categorize**: Assign each pattern to the appropriate category as defined by the template.
+     Study the template's pattern sections to understand what categories exist and assign patterns
+     to them. If a pattern doesn't fit any template category, create a "General Patterns" section.
+  4. **Assign pattern IDs**: Follow the template's pattern ID conventions (e.g., `ENT-IDN-XX`,
+     `CTL-REQ-XX`, `UC-CMD-XX`, etc.) — the template will specify the format for each category.
+     Number patterns sequentially within each category starting from 01.
+  5. **Select best examples**: For each pattern, choose the clearest and most representative code
+     example from the available chunks. Ensure all names are already anonymized.
+  6. **Anti-patterns**: Consolidate anti-pattern examples. Include entries from "Possible outsider"
+     classes as documented in the chunk analyses.
+
+  # Step 3: Fill in the template
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the merged analysis.
+  The template's own "Usage Instructions" and "Template Variables Reference" sections describe exactly
+  what each variable expects — follow them.
+
+  Key guidelines:
+  - Use the generic/anonymized code from the chunk analyses directly — all names should already be
+    generic (Order, User, Product, Payment, Item, Customer)
+  - Merge architecture observations (DI pattern, error handling, configuration, testing) from all
+    chunks into coherent descriptions
+  - Build the Pattern Index table referencing all source files across all chunks
+  - Calculate Coverage Summary using the total files analyzed across all chunks
+  - Preserve the template structure exactly as defined
+
+  # Step 4: Write the output file
+
+  - Write the completed document to {{manifest_path}}/wow/{{output_file}}
+  - Strip everything from "Template Variables Reference" onward — the final file must contain
+    no template instructions
+
+  Do NOT mark classes as processed — that is handled separately.
+  Do NOT delete the analysis chunk files — cleanup is handled by the orchestrator.

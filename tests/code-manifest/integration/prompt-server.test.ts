@@ -26,10 +26,23 @@ describe('Prompt Server Integration Tests', () => {
 
       const manager = new PromptManager()
 
+      // Provide all possible required arguments so new multi-arg prompts don't throw
+      const dummyArgs: Record<string, string> = {
+        manifest_path: '/test',
+        wow_type: 'entity',
+        offset: '0',
+        batch_size: '25',
+        chunk_index: '0',
+        output_dir: '/test/tmp',
+        analysis_dir: '/test/tmp',
+        output_file: 'test.md',
+        total_chunks: '1',
+      }
+
       for (const file of ymlFiles) {
         const promptName = file.replace('.yml', '')
-        // getPromptContent throws if the prompt is not loaded — use a dummy manifest_path
-        expect(() => manager.getPromptContent(promptName, { manifest_path: '/test' })).not.toThrow()
+        // getPromptContent throws if the prompt is not loaded — use dummy args
+        expect(() => manager.getPromptContent(promptName, dummyArgs)).not.toThrow()
       }
     })
 
