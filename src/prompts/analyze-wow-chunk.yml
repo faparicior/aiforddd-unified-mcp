@@ -5,15 +5,11 @@ arguments:
     required: true
   - name: wow_type
     required: true
-  - name: offset
-    required: true
-  - name: batch_size
-    required: true
   - name: chunk_index
     required: true
   - name: output_dir
     required: true
-  - name: manifest_filters
+  - name: files_json
     required: true
 messages: |
   You are to analyze a chunk of source files from a code manifest and produce a structured
@@ -23,33 +19,27 @@ messages: |
   Manifest file: {{manifest_path}}/code-manifest.md
   WoW type: {{wow_type}}
   Chunk index: {{chunk_index}}
-  Offset: {{offset}}
-  Batch size: {{batch_size}}
   Output file: {{output_dir}}/analysis-chunk-{{chunk_index}}.md
 
   Follow these steps precisely.
 
-  # Step 1: Retrieve this chunk's classes from the manifest
+  # Step 1: Review this chunk's classes
 
-  Call `get_multiple_rows_by_column` on the manifest file {{manifest_path}}/code-manifest.md
-  to retrieve rows for this chunk.
+  The following classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
 
-  Use EXACTLY these filter criteria (one or more lines — retrieve rows matching ANY of them):
-  {{manifest_filters}}
+  Parse this JSON to obtain the list of classes to analyze. Each object contains these fields:
+  - File: the source file path relative to the repository root
+  - Identifier: the unique class identifier from the manifest
+  - Category: the class category
+  - Layer: the architectural layer
+  - Possible outsider: "\u2713" if flagged as a candidate anti-pattern, empty otherwise
 
-  For each filter line above, call `get_multiple_rows_by_column` using:
-  - columnName = "Layer", value = the Layer value from the filter line
-  Then from the returned rows, keep only those where the "Category" column matches
-  the Category value from the same filter line.
+  If the array is empty, write the output file with a note that this chunk had no matching
+  classes, and stop.
 
-  Apply offset={{offset}} and maxRows={{batch_size}} to the COMBINED filtered results
-  to get only the classes assigned to this chunk.
-
-  If no rows are returned for this chunk, write the output file with a note that this chunk
-  had no matching classes, and stop.
-
-  Record all retrieved rows — you will need the File column and Identifier column for each.
-  Note any rows where the "Possible outsider" column is marked (✓).
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "\u2713".
 
   # Step 2: Read source files
 

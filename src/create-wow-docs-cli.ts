@@ -6,7 +6,7 @@ import { existsSync, writeFileSync, unlinkSync, mkdirSync, readdirSync, rmSync }
 import { runClaudeWithStreaming } from './shared/cli/claude-runner.js'
 import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
-import { filterAndCountRows, getMultipleRowsByColumn, updateRowByColumn } from './tools/markdown/utils/parser.js'
+import { getMultipleRowsByMultipleColumns, updateRowByColumn } from './tools/markdown/utils/parser.js'
 
 export const WOW_TYPES: Record<string, { prompt: string; outputFile: string }> = {
     'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md' },
@@ -58,7 +58,7 @@ export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
 }
 
 const VALID_TYPES = Object.keys(WOW_TYPES).join(', ')
-const VALID_MODES = ['full', 'count', 'analyze', 'compose', 'mark-processed']
+const VALID_MODES = ['full', 'count', 'analyze', 'compose', 'mark-processed', 'generate-initial', 'enrich']
 
 const program = new Command()
 
@@ -124,10 +124,11 @@ program
                 let total = 0
                 for (const filter of filters) {
                     try {
-                        const count = filterAndCountRows(manifestFile, 'Layer', filter.layer)
-                        const rows = getMultipleRowsByColumn(manifestFile, 'Layer', filter.layer)
-                        const matchingRows = rows.filter(r => r[filter.column] === filter.value)
-                        total += matchingRows.length
+                        const rows = getMultipleRowsByMultipleColumns(manifestFile, {
+                            'Layer': filter.layer,
+                            'Category': filter.value,
+                        })
+                        total += rows.length
                     } catch {
                         // Column or table not found — count as 0 for this filter
                     }
@@ -147,9 +148,11 @@ program
                 let totalMarked = 0
                 for (const filter of filters) {
                     try {
-                        const rows = getMultipleRowsByColumn(manifestFile, 'Layer', filter.layer)
-                        const matchingRows = rows.filter(r => r[filter.column] === filter.value)
-                        for (const row of matchingRows) {
+                        const rows = getMultipleRowsByMultipleColumns(manifestFile, {
+                            'Layer': filter.layer,
+                            'Category': filter.value,
+                        })
+                        for (const row of rows) {
                             const identifier = row['Identifier']
                             if (identifier) {
                                 try {
@@ -176,20 +179,36 @@ program
                     mkdirSync(tmpDir, { recursive: true })
                 }
 
+                // Resolve the exact rows for this chunk in TypeScript — no manifest querying
+                // needed inside the prompt. This avoids Claude having to do two-column filtering
+                // and works around the lack of offset support in manifest tools.
                 const filters = WOW_TYPE_FILTERS[options.type]
-                const manifestFilters = filters
-                    ? filters.map(f => `Layer = "${f.layer}", Category = "${f.value}"`).join('\n')
-                    : ''
+                const allRows: Record<string, string>[] = []
+                if (filters) {
+                    for (const filter of filters) {
+                        try {
+                            const rows = getMultipleRowsByMultipleColumns(manifestFile, {
+                                'Layer': filter.layer,
+                                'Category': filter.value,
+                            })
+                            allRows.push(...rows)
+                        } catch {
+                            // Skip if filter fails (e.g. column not found)
+                        }
+                    }
+                }
+                const offset = Number(options.offset)
+                const batchSize = Number(options.batchSize)
+                const chunkRows = allRows.slice(offset, offset + batchSize)
+                const filesJson = JSON.stringify(chunkRows)
 
                 const promptManager = new PromptManager()
                 const promptArgs = {
                     manifest_path: manifestPath,
                     wow_type: options.type,
-                    offset: options.offset,
-                    batch_size: options.batchSize,
                     chunk_index: options.chunkIndex,
                     output_dir: tmpDir,
-                    manifest_filters: manifestFilters,
+                    files_json: filesJson,
                 }
                 const promptContent = promptManager.getPromptContent('analyze-wow-chunk', promptArgs)
 
@@ -278,6 +297,125 @@ program
                 } else {
                     console.warn(`\nWarning: Expected output file not found at: ${outputFile}`)
                 }
+                process.exit(0)
+            }
+
+            // ── GENERATE-INITIAL MODE ───────────────────────────────────
+            if (options.mode === 'generate-initial') {
+                const filters = WOW_TYPE_FILTERS[options.type]
+                const allRows: Record<string, string>[] = []
+                if (filters) {
+                    for (const filter of filters) {
+                        try {
+                            const rows = getMultipleRowsByMultipleColumns(manifestFile, {
+                                'Layer': filter.layer,
+                                'Category': filter.value,
+                            })
+                            allRows.push(...rows)
+                        } catch {
+                            // Skip if filter fails
+                        }
+                    }
+                }
+                const batchSize = Number(options.batchSize)
+                const chunkRows = allRows.slice(0, batchSize)
+                const totalChunks = Math.ceil(allRows.length / batchSize)
+
+                const promptManager = new PromptManager()
+                const promptArgs = {
+                    manifest_path: manifestPath,
+                    wow_type: options.type,
+                    output_file: wowConfig.outputFile,
+                    total_files: String(allRows.length),
+                    chunk_total: String(totalChunks),
+                    files_json: JSON.stringify(chunkRows),
+                }
+                const promptContent = promptManager.getPromptContent('generate-initial-wow', promptArgs)
+
+                if (options.printOnly) {
+                    console.log(promptContent)
+                    process.exit(0)
+                }
+
+                const tempPromptFile = resolve(process.cwd(), `.ddd-wow-initial-${options.type}-prompt-tmp.md`)
+                writeFileSync(tempPromptFile, promptContent, 'utf-8')
+                console.log(`Generating initial "${options.type}" WoW document (chunk 1/${totalChunks}, ${chunkRows.length} files)`)
+
+                let exitCode: number
+                try {
+                    exitCode = await runClaudeWithStreaming(tempPromptFile)
+                } catch (err: any) {
+                    console.error('Failed to start claude CLI.')
+                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                    process.exit(1)
+                }
+
+                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                if (exitCode! !== 0) process.exit(exitCode!)
+
+                const outputFile = join(wowOutputDir, wowConfig.outputFile)
+                if (existsSync(outputFile)) {
+                    console.log(`\nInitial WoW document written: ${outputFile}`)
+                } else {
+                    console.warn(`\nWarning: Expected output file not found at: ${outputFile}`)
+                }
+                process.exit(0)
+            }
+
+            // ── ENRICH MODE ─────────────────────────────────────────────
+            if (options.mode === 'enrich') {
+                const filters = WOW_TYPE_FILTERS[options.type]
+                const allRows: Record<string, string>[] = []
+                if (filters) {
+                    for (const filter of filters) {
+                        try {
+                            const rows = getMultipleRowsByMultipleColumns(manifestFile, {
+                                'Layer': filter.layer,
+                                'Category': filter.value,
+                            })
+                            allRows.push(...rows)
+                        } catch {
+                            // Skip if filter fails
+                        }
+                    }
+                }
+                const offset = Number(options.offset)
+                const batchSize = Number(options.batchSize)
+                const chunkNumber = Number(options.chunkIndex)
+                const totalChunks = Math.ceil(allRows.length / batchSize)
+                const chunkRows = allRows.slice(offset, offset + batchSize)
+
+                const promptManager = new PromptManager()
+                const promptArgs = {
+                    manifest_path: manifestPath,
+                    wow_type: options.type,
+                    output_file: wowConfig.outputFile,
+                    chunk_number: String(chunkNumber),
+                    chunk_total: String(totalChunks),
+                    files_json: JSON.stringify(chunkRows),
+                }
+                const promptContent = promptManager.getPromptContent('enrich-wow-document', promptArgs)
+
+                if (options.printOnly) {
+                    console.log(promptContent)
+                    process.exit(0)
+                }
+
+                const tempPromptFile = resolve(process.cwd(), `.ddd-wow-enrich-${options.type}-chunk-${chunkNumber}-prompt-tmp.md`)
+                writeFileSync(tempPromptFile, promptContent, 'utf-8')
+                console.log(`Enriching "${options.type}" WoW document (chunk ${chunkNumber}/${totalChunks}, ${chunkRows.length} files)`)
+
+                let exitCode: number
+                try {
+                    exitCode = await runClaudeWithStreaming(tempPromptFile)
+                } catch (err: any) {
+                    console.error('Failed to start claude CLI.')
+                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                    process.exit(1)
+                }
+
+                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                if (exitCode! !== 0) process.exit(exitCode!)
                 process.exit(0)
             }
 

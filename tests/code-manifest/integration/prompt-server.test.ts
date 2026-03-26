@@ -37,7 +37,7 @@ describe('Prompt Server Integration Tests', () => {
         analysis_dir: '/test/tmp',
         output_file: 'test.md',
         total_chunks: '1',
-        manifest_filters: 'Layer = "Domain Layer", Category = "Entity"',
+        files_json: '[]',
       }
 
       for (const file of ymlFiles) {
