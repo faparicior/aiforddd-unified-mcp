@@ -8,6 +8,16 @@ import { PromptManager } from './tools/code-manifest/core.js'
 import { readConfig } from './shared/config/config-reader.js'
 import { getMultipleRowsByMultipleColumns, updateRowByColumn } from './tools/markdown/utils/parser.js'
 
+const isClaudeDebug = process.env['AIFORDDD_CLAUDE_DEBUG'] === '1'
+
+function cleanupTempFile(filePath: string) {
+    if (isClaudeDebug) {
+        console.error(`[DEBUG] Keeping temp prompt file: ${filePath}`)
+        return
+    }
+    if (existsSync(filePath)) unlinkSync(filePath)
+}
+
 export const WOW_TYPES: Record<string, { prompt: string; outputFile: string }> = {
     'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md' },
     'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md' },
@@ -227,11 +237,11 @@ program
                     exitCode = await runClaudeWithStreaming(tempPromptFile)
                 } catch (err: any) {
                     console.error('Failed to start claude CLI. Is it installed and in your PATH?')
-                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                    cleanupTempFile(tempPromptFile)
                     process.exit(1)
                 }
 
-                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                cleanupTempFile(tempPromptFile)
                 if (exitCode! !== 0) process.exit(exitCode!)
 
                 const expectedOutput = join(tmpDir, `analysis-chunk-${options.chunkIndex}.md`)
@@ -284,11 +294,11 @@ program
                     exitCode = await runClaudeWithStreaming(tempPromptFile)
                 } catch (err: any) {
                     console.error('Failed to start claude CLI. Is it installed and in your PATH?')
-                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                    cleanupTempFile(tempPromptFile)
                     process.exit(1)
                 }
 
-                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                cleanupTempFile(tempPromptFile)
                 if (exitCode! !== 0) process.exit(exitCode!)
 
                 const outputFile = join(wowOutputDir, wowConfig.outputFile)
@@ -346,11 +356,11 @@ program
                     exitCode = await runClaudeWithStreaming(tempPromptFile)
                 } catch (err: any) {
                     console.error('Failed to start claude CLI.')
-                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                    cleanupTempFile(tempPromptFile)
                     process.exit(1)
                 }
 
-                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                cleanupTempFile(tempPromptFile)
                 if (exitCode! !== 0) process.exit(exitCode!)
 
                 const outputFile = join(wowOutputDir, wowConfig.outputFile)
@@ -410,11 +420,11 @@ program
                     exitCode = await runClaudeWithStreaming(tempPromptFile)
                 } catch (err: any) {
                     console.error('Failed to start claude CLI.')
-                    if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                    cleanupTempFile(tempPromptFile)
                     process.exit(1)
                 }
 
-                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                cleanupTempFile(tempPromptFile)
                 if (exitCode! !== 0) process.exit(exitCode!)
                 process.exit(0)
             }
@@ -440,13 +450,11 @@ program
             } catch (err: any) {
                 console.error('Failed to start claude CLI. Is it installed and in your PATH?')
                 console.error(err)
-                if (existsSync(tempPromptFile)) unlinkSync(tempPromptFile)
+                cleanupTempFile(tempPromptFile)
                 process.exit(1)
             }
 
-            if (existsSync(tempPromptFile)) {
-                unlinkSync(tempPromptFile)
-            }
+            cleanupTempFile(tempPromptFile)
 
             if (exitCode! !== 0) {
                 process.exit(exitCode!)

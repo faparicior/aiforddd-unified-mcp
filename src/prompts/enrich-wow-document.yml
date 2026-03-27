@@ -67,13 +67,17 @@ messages: |
   For code examples: IMMEDIATELY replace every domain-specific name with a generic equivalent
   (Order, User, Product, Payment, Item, Customer). NO real names may appear in examples.
 
-  # Step 3: Update the document
+  # Step 3: Update the document with targeted edits
 
-  Produce an updated version of the document with:
-  1. New pattern entries appended after existing patterns in their respective sections
-  2. New rows added to the Pattern Index table
-  3. Coverage Summary updated: increment the analyzed count by the number of new files
-  4. Architecture Observations section: add any new observations or strengthen existing ones
+  CRITICAL: Do NOT rewrite the entire file in a single operation. The document is large and
+  full-file writes will cause streaming timeouts. Instead, apply a series of small, targeted
+  edits — each modifying only the specific section that needs to change.
+
+  Apply changes as a series of targeted edit operations on {{manifest_path}}/wow/{{output_file}}:
+  1. For each new pattern entry: insert it after the last existing pattern in its section
+  2. For the Pattern Index table: append new rows before the table's closing
+  3. For Coverage Summary: update the analyzed count numbers
+  4. For Architecture Observations: append or update observations
 
   If this is the LAST chunk ({{chunk_number}} == {{chunk_total}}):
   - Remove the "Note: This document was generated from chunk..." line entirely
@@ -82,8 +86,11 @@ messages: |
   If this is NOT the last chunk:
   - Update the note to: "> **Note**: This document covers chunks 1–{{chunk_number}} of {{chunk_total}}."
 
-  # Step 4: Write the updated document
+  Each edit should target a small, specific section. Make multiple edit calls rather than one
+  large change. Never write the full document content in a single tool call.
 
-  - Overwrite {{manifest_path}}/wow/{{output_file}} with the updated content
-  - The document must remain complete and valid after this update
+  # Step 4: Verify the result
+
+  - Read {{manifest_path}}/wow/{{output_file}} to verify all edits were applied correctly
+  - The document must remain complete and valid after the edits
   - Strip any template instructions if accidentally reintroduced
