@@ -94,3 +94,30 @@ messages: |
   - Read {{manifest_path}}/wow/{{output_file}} to verify all edits were applied correctly
   - The document must remain complete and valid after the edits
   - Strip any template instructions if accidentally reintroduced
+
+  # Step 5: Quality review and cleanup
+
+  Only run this step if {{chunk_number}} == {{chunk_total}} (last chunk) OR if reviewing is
+  worthwhile given the edits just made.
+
+  Re-read the full document and apply the following cleanup as targeted edits:
+
+  **Duplicate pattern detection**: If two or more patterns describe the same concept, merge
+  them into the richer one and remove the weaker entry. Update all Pattern Index references
+  and reassign IDs if needed to keep sequences gapless.
+
+  **Pattern completeness**: For any pattern that is missing a ✅ GOOD code example, a ❌ BAD
+  counter-example, or a "Why it's bad" explanation, add the missing piece using evidence
+  from the source files already read in this session.
+
+  **Open questions cleanup**: For each item in the "❓ Open Questions" section, check whether
+  any source file read during this session (or any earlier chunk referenced in the document)
+  already answers it. For each answered question:
+  - Remove it from the open questions list
+  - Add the answer as a note or observation in the most relevant pattern or in the
+    Implementation Guidelines section
+
+  **Dangling references**: If any pattern entry in the body references a file identifier
+  (e.g. [abc123]) that is not listed in the Pattern Index table, add the missing row.
+
+  Apply all cleanup as targeted edits — never rewrite the full document.
