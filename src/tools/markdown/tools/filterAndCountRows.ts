@@ -3,7 +3,7 @@ import { filterAndCountRows } from "../utils/parser.js";
 
 export const filterAndCountRowsTool: Tool = {
   name: "filter_and_count_rows",
-  description: "Filter markdown table rows by column value and return the count",
+  description: "Filter markdown table rows by column value (and optional additional column filters) and return the count",
   inputSchema: {
     type: "object",
     properties: {
@@ -13,16 +13,30 @@ export const filterAndCountRowsTool: Tool = {
       },
       columnName: {
         type: "string",
-        description: "Name of the column to filter by",
+        description: "Name of the primary column to filter by",
       },
       value: {
         type: "string",
-        description: "Value to match in the column",
+        description: "Value to match in the primary column",
       },
       tableIndex: {
         type: "number",
         description: "Index of the table to filter (0-based, defaults to 0)",
         default: 0,
+      },
+      extraFilters: {
+        type: "object",
+        description: "Optional additional column filters applied with AND logic (e.g. { \"Category\": \"Integration event\" } when the primary filter is on Layer).",
+        additionalProperties: {
+          type: "string",
+        },
+      },
+      excludeFilters: {
+        type: "object",
+        description: "Optional column filters for rows to exclude. Rows where any specified column matches the given value are not counted (e.g. { \"Processed\": \"✓\" } to count only unprocessed rows).",
+        additionalProperties: {
+          type: "string",
+        },
       },
     },
     required: ["filePath", "columnName", "value"],
@@ -35,7 +49,9 @@ export async function handleFilterAndCountRows(args: Record<string, unknown>) {
     const columnName = args?.columnName as string;
     const value = args?.value as string;
     const tableIndex = (args?.tableIndex as number) ?? 0;
-    const count = filterAndCountRows(filePath, columnName, value, tableIndex);
+    const extraFilters = args?.extraFilters as Record<string, string> | undefined;
+    const excludeFilters = args?.excludeFilters as Record<string, string> | undefined;
+    const count = filterAndCountRows(filePath, columnName, value, tableIndex, extraFilters, excludeFilters);
     return {
       content: [
         {

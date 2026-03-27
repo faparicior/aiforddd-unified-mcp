@@ -27,16 +27,30 @@ export const getMultipleRowsByMultipleColumnsTool = {
         description: "Index of the table to search in (0-based, defaults to 0)",
         default: 0,
       },
+      excludeFilters: {
+        type: "object",
+        description: "Optional object with column names as keys and values to exclude. Rows where any specified column matches the given value are removed from results (e.g. { \"Processed\": \"✓\" } to skip already-processed rows).",
+        additionalProperties: {
+          type: "string",
+        },
+      },
+      selectColumns: {
+        type: "array",
+        description: "Optional list of column names to include in each returned row. If omitted, all columns are returned. Use this to reduce response size when only a few fields are needed (e.g. [\"Class name\", \"File\", \"Possible outsider\"]).",
+        items: {
+          type: "string",
+        },
+      },
     },
     required: ["filePath", "filters"],
   },
 };
 
 export async function handleGetMultipleRowsByMultipleColumns(args: any) {
-  const { filePath, filters, maxRows, tableIndex = 0 } = args;
+  const { filePath, filters, maxRows, tableIndex = 0, excludeFilters, selectColumns } = args;
 
   try {
-    const rows = getMultipleRowsByMultipleColumns(filePath, filters, maxRows, tableIndex);
+    const rows = getMultipleRowsByMultipleColumns(filePath, filters, maxRows, tableIndex, excludeFilters, selectColumns);
     return {
       content: [
         {

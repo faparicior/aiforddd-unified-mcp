@@ -18,6 +18,25 @@ function cleanupTempFile(filePath: string) {
     if (existsSync(filePath)) unlinkSync(filePath)
 }
 
+function getUnprocessedRows(manifestFile: string, filters: WowTypeFilter[]): Record<string, string>[] {
+    const allRows: Record<string, string>[] = []
+    for (const filter of filters) {
+        try {
+            const rows = getMultipleRowsByMultipleColumns(
+                manifestFile,
+                { 'Layer': filter.layer, 'Category': filter.value },
+                undefined,
+                0,
+                { 'Processed': '✓' },
+            )
+            allRows.push(...rows)
+        } catch {
+            // Column or table not found — skip
+        }
+    }
+    return allRows
+}
+
 export const WOW_TYPES: Record<string, { prompt: string; outputFile: string }> = {
     'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md' },
     'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md' },
@@ -131,18 +150,7 @@ program
                     console.error(`No filters defined for type: ${options.type}`)
                     process.exit(1)
                 }
-                let total = 0
-                for (const filter of filters) {
-                    try {
-                        const rows = getMultipleRowsByMultipleColumns(manifestFile, {
-                            'Layer': filter.layer,
-                            'Category': filter.value,
-                        })
-                        total += rows.length
-                    } catch {
-                        // Column or table not found — count as 0 for this filter
-                    }
-                }
+                const total = getUnprocessedRows(manifestFile, filters).length
                 const result = JSON.stringify({ count: total, type: options.type })
                 process.stdout.write(result)
                 process.exit(0)
@@ -192,21 +200,9 @@ program
                 // Resolve the exact rows for this chunk in TypeScript — no manifest querying
                 // needed inside the prompt. This avoids Claude having to do two-column filtering
                 // and works around the lack of offset support in manifest tools.
+                // Only include rows that have NOT been marked as processed (Processed ≠ ✓).
                 const filters = WOW_TYPE_FILTERS[options.type]
-                const allRows: Record<string, string>[] = []
-                if (filters) {
-                    for (const filter of filters) {
-                        try {
-                            const rows = getMultipleRowsByMultipleColumns(manifestFile, {
-                                'Layer': filter.layer,
-                                'Category': filter.value,
-                            })
-                            allRows.push(...rows)
-                        } catch {
-                            // Skip if filter fails (e.g. column not found)
-                        }
-                    }
-                }
+                const allRows = filters ? getUnprocessedRows(manifestFile, filters) : []
                 const offset = Number(options.offset)
                 const batchSize = Number(options.batchSize)
                 const chunkRows = allRows.slice(offset, offset + batchSize)
@@ -313,20 +309,7 @@ program
             // ── GENERATE-INITIAL MODE ───────────────────────────────────
             if (options.mode === 'generate-initial') {
                 const filters = WOW_TYPE_FILTERS[options.type]
-                const allRows: Record<string, string>[] = []
-                if (filters) {
-                    for (const filter of filters) {
-                        try {
-                            const rows = getMultipleRowsByMultipleColumns(manifestFile, {
-                                'Layer': filter.layer,
-                                'Category': filter.value,
-                            })
-                            allRows.push(...rows)
-                        } catch {
-                            // Skip if filter fails
-                        }
-                    }
-                }
+                const allRows = filters ? getUnprocessedRows(manifestFile, filters) : []
                 const batchSize = Number(options.batchSize)
                 const chunkRows = allRows.slice(0, batchSize)
                 const totalChunks = Math.ceil(allRows.length / batchSize)
@@ -375,20 +358,7 @@ program
             // ── ENRICH MODE ─────────────────────────────────────────────
             if (options.mode === 'enrich') {
                 const filters = WOW_TYPE_FILTERS[options.type]
-                const allRows: Record<string, string>[] = []
-                if (filters) {
-                    for (const filter of filters) {
-                        try {
-                            const rows = getMultipleRowsByMultipleColumns(manifestFile, {
-                                'Layer': filter.layer,
-                                'Category': filter.value,
-                            })
-                            allRows.push(...rows)
-                        } catch {
-                            // Skip if filter fails
-                        }
-                    }
-                }
+                const allRows = filters ? getUnprocessedRows(manifestFile, filters) : []
                 const offset = Number(options.offset)
                 const batchSize = Number(options.batchSize)
                 const chunkNumber = Number(options.chunkIndex)

@@ -18,7 +18,7 @@ messages: |
 
   # Step 1: Assess the manifest
 
-  - Call `filter_and_count_rows` to count classes in the Domain Layer (Layer = "Domain Layer",  Category = "Value object")
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Domain Layer"`, `extraFilters = { "Category": "Value object" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Value object classes
   - If the call fails, stop immediately and report the error — do not infer counts from retrieval results
   - If the count is 0, do not search for alternatives or classes in other layers/categories.
     Write the output file with a note stating that no classes were found for the expected layer/category,
@@ -29,12 +29,12 @@ messages: |
 
   # Step 2: Collect all relevant classes
 
-  Use the count from Step 1 to plan retrieval:
-  - If the layer has ≤ 30 classes: retrieve all in a single `get_multiple_rows_by_column` call
-    with maxRows set to the count from Step 1
-  - If the layer has > 30 classes: retrieve in sequential batches of 20, incrementing the offset
-    until the total retrieved equals the Step 1 count
-  - Verify: the sum of all retrieved rows must equal the Step 1 count before proceeding
+  - Retrieve all unprocessed Value object, Enum, and Domain primitive classes via three `get_multiple_rows_by_multiple_columns` calls:
+    - filters = { "Layer": "Domain Layer", "Category": "Value object" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+    - filters = { "Layer": "Domain Layer", "Category": "Enum" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+    - filters = { "Layer": "Domain Layer", "Category": "Domain primitive" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+  - Combine all result sets into a single working set for analysis
+  - If the combined result is empty, write a note to the output file stating all classes are already documented, then stop
   - Focus on: Value object, Enum, Domain primitive categories
 
   # Step 3: Read source files

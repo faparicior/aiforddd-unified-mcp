@@ -22,10 +22,8 @@ messages: |
 
   # Step 1: Assess the manifest
 
-  - Call `filter_and_count_rows` to count API client classes in the Infrastructure Layer
-    (Layer = "Infrastructure Layer", Category = "API client")
-  - Call `filter_and_count_rows` to count Gateway classes in the Infrastructure Layer
-    (Layer = "Infrastructure Layer", Category = "Gateway")
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Infrastructure Layer"`, `extraFilters = { "Category": "API client" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed API client classes
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Infrastructure Layer"`, `extraFilters = { "Category": "Gateway" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Gateway classes
   - If either call fails, stop immediately and report the error — do not infer counts from retrieval results
   - If the total count is 0, do not search for alternatives or classes in other layers/categories.
     Write the output file with a note stating that no classes were found for the expected layer/categories,
@@ -35,12 +33,11 @@ messages: |
 
   # Step 2: Collect all relevant classes
 
-  Use the total count from Step 1 to plan retrieval:
-  - If the total is ≤ 30 classes: retrieve all in a single `get_multiple_rows_by_column` call
-    with maxRows set to the total from Step 1
-  - If the total is > 30 classes: retrieve in sequential batches of 20, incrementing the offset
-    until the total retrieved equals the Step 1 total
-  - Verify: the sum of all retrieved rows must equal the Step 1 total before proceeding
+  - Retrieve all unprocessed API client and Gateway classes via two `get_multiple_rows_by_multiple_columns` calls:
+    - filters = { "Layer": "Infrastructure Layer", "Category": "API client" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+    - filters = { "Layer": "Infrastructure Layer", "Category": "Gateway" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+  - Combine both result sets into a single working set for analysis
+  - If the combined result is empty, write a note to the output file stating all classes are already documented, then stop
   - Focus exclusively on: API client and Gateway categories
   - Note all classes where the "Possible outsider" column is marked (✓) — these are candidate
     anti-pattern examples for the Anti-Patterns section of the document

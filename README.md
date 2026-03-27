@@ -152,6 +152,25 @@ If you only want to view the generated prompt text without executing `claude`, u
 npx ddd-run dist/prompts/catalog-manifest.yml --args '{"manifest_path": "./docs/manifests/code_manifest.md"}' --print-only
 ```
 
+## Debugging
+
+### Claude stream debug logging
+
+When the AI execution stalls or you need visibility into what Claude is doing, set the `AIFORDDD_CLAUDE_DEBUG` environment variable before running any CLI that invokes `claude`:
+
+```bash
+AIFORDDD_CLAUDE_DEBUG=1 npx ddd-create-wow --mode full --type controller ...
+```
+
+**What it does:**
+
+- Writes the full raw Claude JSON stream to `.claude-debug-logs/claude-stream-<timestamp>.jsonl` in the current working directory. Each line is one SSE event from the Bedrock/Claude streaming API.
+- Keeps temporary prompt files on disk (normally deleted after the run) so you can inspect the exact prompt that was sent.
+
+**Log location:** `.claude-debug-logs/` relative to your working directory.
+
+**Tip:** Each run appends a new timestamped file, so you can compare multiple executions side by side.
+
 ## Development
 
 1. Install dependencies:

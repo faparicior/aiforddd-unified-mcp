@@ -28,16 +28,23 @@ export const getMultipleRowsByColumnTool = {
         description: "Index of the table to search in (0-based, defaults to 0)",
         default: 0,
       },
+      excludeFilters: {
+        type: "object",
+        description: "Optional object with column names as keys and values to exclude. Rows where any specified column matches the given value are removed from results (e.g. { \"Processed\": \"✓\" } to skip already-processed rows).",
+        additionalProperties: {
+          type: "string",
+        },
+      },
     },
     required: ["filePath", "columnName", "value"],
   },
 };
 
 export async function handleGetMultipleRowsByColumn(args: any) {
-  const { filePath, columnName, value, maxRows, tableIndex = 0 } = args;
+  const { filePath, columnName, value, maxRows, tableIndex = 0, excludeFilters } = args;
 
   try {
-    const rows = getMultipleRowsByColumn(filePath, columnName, value, maxRows, tableIndex);
+    const rows = getMultipleRowsByColumn(filePath, columnName, value, maxRows, tableIndex, excludeFilters);
     return {
       content: [
         {

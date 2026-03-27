@@ -35,7 +35,9 @@ export function filterAndCountRows(
   filePath: string,
   columnName: string,
   value: string,
-  tableIndex: number = 0
+  tableIndex: number = 0,
+  extraFilters?: Record<string, string>,
+  excludeFilters?: Record<string, string>
 ): number {
   const rows = parseMarkdownTableByIndex(filePath, tableIndex);
 
@@ -49,12 +51,15 @@ export function filterAndCountRows(
     throw new Error(`Column '${columnName}' does not exist in the table`);
   }
 
-  // Count rows where column value matches
+  // Build combined inclusion filters (primary + extras)
+  const allFilters: Record<string, string> = { [columnName]: value, ...extraFilters };
+
+  // Count rows matching all inclusion filters (AND logic) and not matching any exclusion filter
   let count = 0;
   for (const row of rows) {
-    if (row[columnName] === value) {
-      count++;
-    }
+    if (!Object.entries(allFilters).every(([col, val]) => row[col] === val)) continue;
+    if (excludeFilters && Object.entries(excludeFilters).some(([col, val]) => row[col] === val)) continue;
+    count++;
   }
 
   return count;
@@ -182,7 +187,8 @@ export function getMultipleRowsByColumn(
   columnName: string,
   value: string,
   maxRows?: number,
-  tableIndex: number = 0
+  tableIndex: number = 0,
+  excludeFilters?: Record<string, string>
 ): MarkdownTableRow[] {
   const rows = parseMarkdownTableByIndex(filePath, tableIndex);
 
@@ -197,7 +203,14 @@ export function getMultipleRowsByColumn(
   }
 
   // Find all matching rows
-  const matchingRows = rows.filter((row) => row[columnName] === value);
+  let matchingRows = rows.filter((row) => row[columnName] === value);
+
+  // Exclude rows where any excludeFilters column matches the specified value
+  if (excludeFilters && Object.keys(excludeFilters).length > 0) {
+    matchingRows = matchingRows.filter((row) =>
+      !Object.entries(excludeFilters).some(([col, val]) => row[col] === val)
+    );
+  }
 
   // Apply maxRows limit if specified
   if (maxRows !== undefined && maxRows >= 0) {
@@ -220,7 +233,9 @@ export function getMultipleRowsByMultipleColumns(
   filePath: string,
   filters: Record<string, string>,
   maxRows?: number,
-  tableIndex: number = 0
+  tableIndex: number = 0,
+  excludeFilters?: Record<string, string>,
+  selectColumns?: string[]
 ): MarkdownTableRow[] {
   const rows = parseMarkdownTableByIndex(filePath, tableIndex);
 
@@ -237,13 +252,31 @@ export function getMultipleRowsByMultipleColumns(
   }
 
   // Find all matching rows (AND logic)
-  const matchingRows = rows.filter((row) => {
+  let matchingRows = rows.filter((row) => {
     return Object.entries(filters).every(([columnName, value]) => row[columnName] === value);
   });
 
+  // Exclude rows where any excludeFilters column matches the specified value
+  if (excludeFilters && Object.keys(excludeFilters).length > 0) {
+    matchingRows = matchingRows.filter((row) =>
+      !Object.entries(excludeFilters).some(([col, val]) => row[col] === val)
+    );
+  }
+
   // Apply maxRows limit if specified
   if (maxRows !== undefined && maxRows >= 0) {
-    return matchingRows.slice(0, maxRows);
+    matchingRows = matchingRows.slice(0, maxRows);
+  }
+
+  // Project to selected columns if specified
+  if (selectColumns && selectColumns.length > 0) {
+    return matchingRows.map((row) => {
+      const projected: MarkdownTableRow = {};
+      for (const col of selectColumns) {
+        if (col in row) projected[col] = row[col];
+      }
+      return projected;
+    });
   }
 
   return matchingRows;

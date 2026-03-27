@@ -18,12 +18,9 @@ messages: |
 
   # Step 1: Assess the manifest
 
-  - Call `filter_and_count_rows` to count Use case classes in the Application Layer
-    (Layer = "Application Layer", Category = "Use case")
-  - Call `filter_and_count_rows` to count Command classes in the Application Layer
-    (Layer = "Application Layer", Category = "Command")
-  - Call `filter_and_count_rows` to count Query classes in the Application Layer
-    (Layer = "Application Layer", Category = "Query")
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Application Layer"`, `extraFilters = { "Category": "Use case" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Use case classes
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Application Layer"`, `extraFilters = { "Category": "Command" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Command classes
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Application Layer"`, `extraFilters = { "Category": "Query" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Query classes
   - If any call fails, stop immediately and report the error — do not infer counts from retrieval results
   - If the total count is 0, do not search for alternatives or classes in other layers/categories.
     Write the output file with a note stating that no classes were found for the expected layer/categories,
@@ -34,12 +31,12 @@ messages: |
 
   # Step 2: Collect all relevant classes
 
-  Use the total count from Step 1 to plan retrieval:
-  - If the total is ≤ 30 classes: retrieve all in a single `get_multiple_rows_by_column` call
-    with maxRows set to the total from Step 1
-  - If the total is > 30 classes: retrieve in sequential batches of 20, incrementing the offset
-    until the total retrieved equals the Step 1 total
-  - Verify: the sum of all retrieved rows must equal the Step 1 total before proceeding
+  - Retrieve all unprocessed Use case, Command, and Query classes via three `get_multiple_rows_by_multiple_columns` calls:
+    - filters = { "Layer": "Application Layer", "Category": "Use case" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+    - filters = { "Layer": "Application Layer", "Category": "Command" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+    - filters = { "Layer": "Application Layer", "Category": "Query" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+  - Combine all result sets into a single working set for analysis
+  - If the combined result is empty, write a note to the output file stating all classes are already documented, then stop
   - Focus exclusively on: Use case, Command, Query, Response categories
   - Note all classes where the "Possible outsider" column is marked (✓) — these are candidate
     anti-pattern examples for the Anti-Patterns section of the document
