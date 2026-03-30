@@ -151,7 +151,8 @@ program
                     process.exit(1)
                 }
                 const total = getUnprocessedRows(manifestFile, filters).length
-                const result = JSON.stringify({ count: total, type: options.type })
+                const outputFilePath = join(wowOutputDir, wowConfig.outputFile)
+                const result = JSON.stringify({ count: total, type: options.type, outputExists: existsSync(outputFilePath) })
                 process.stdout.write(result)
                 process.exit(0)
             }
