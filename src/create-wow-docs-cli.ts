@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander'
-import { resolve, join } from 'path'
+import { resolve, join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { existsSync, writeFileSync, unlinkSync, mkdirSync, readdirSync, rmSync } from 'fs'
 import { runClaudeWithStreaming } from './shared/cli/claude-runner.js'
 import { PromptManager } from './tools/code-manifest/core.js'
@@ -38,20 +39,20 @@ function getUnprocessedRows(manifestFile: string, filters: WowTypeFilter[]): Rec
 }
 
 export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; initialPrompt?: string; enrichPrompt?: string }> = {
-    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md',          initialPrompt: 'create-controller-initial-wow', enrichPrompt: 'enrich-controller-wow' },
-    'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md' },
-    'scheduler':           { prompt: 'create-scheduler-wow',           outputFile: 'ddd-scheduler-wow.md' },
-    'repository':          { prompt: 'create-repository-wow',          outputFile: 'ddd-repository-wow.md' },
-    'event-producer':      { prompt: 'create-event-producer-wow',      outputFile: 'ddd-event-producer-wow.md' },
-    'api-client':          { prompt: 'create-api-client-wow',          outputFile: 'ddd-api-client-wow.md' },
-    'use-case':            { prompt: 'create-use-case-wow',            outputFile: 'ddd-use-case-wow.md' },
-    'value-object':        { prompt: 'create-value-object-wow',        outputFile: 'ddd-value-object-wow.md' },
-    'entity':              { prompt: 'create-entity-wow',              outputFile: 'ddd-entity-wow.md' },
-    'domain-exception':    { prompt: 'create-domain-exception-wow',    outputFile: 'ddd-domain-exception-wow.md' },
-    'integration-event':   { prompt: 'create-integration-event-wow',   outputFile: 'ddd-integration-event-wow.md' },
-    'integration-service': { prompt: 'create-integration-service-wow', outputFile: 'ddd-integration-service-wow.md' },
-    'configuration':       { prompt: 'create-configuration-wow',       outputFile: 'ddd-configuration-wow.md' },
-    'response':            { prompt: 'create-response-wow',            outputFile: 'ddd-response-wow.md' },
+    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md',          initialPrompt: 'create-controller-initial-wow',          enrichPrompt: 'enrich-controller-wow' },
+    'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md',      initialPrompt: 'create-event-consumer-initial-wow',      enrichPrompt: 'enrich-event-consumer-wow' },
+    'scheduler':           { prompt: 'create-scheduler-wow',           outputFile: 'ddd-scheduler-wow.md',           initialPrompt: 'create-scheduler-initial-wow',           enrichPrompt: 'enrich-scheduler-wow' },
+    'repository':          { prompt: 'create-repository-wow',          outputFile: 'ddd-repository-wow.md',          initialPrompt: 'create-repository-initial-wow',          enrichPrompt: 'enrich-repository-wow' },
+    'event-producer':      { prompt: 'create-event-producer-wow',      outputFile: 'ddd-event-producer-wow.md',      initialPrompt: 'create-event-producer-initial-wow',      enrichPrompt: 'enrich-event-producer-wow' },
+    'api-client':          { prompt: 'create-api-client-wow',          outputFile: 'ddd-api-client-wow.md',          initialPrompt: 'create-api-client-initial-wow',          enrichPrompt: 'enrich-api-client-wow' },
+    'use-case':            { prompt: 'create-use-case-wow',            outputFile: 'ddd-use-case-wow.md',            initialPrompt: 'create-use-case-initial-wow',            enrichPrompt: 'enrich-use-case-wow' },
+    'value-object':        { prompt: 'create-value-object-wow',        outputFile: 'ddd-value-object-wow.md',        initialPrompt: 'create-value-object-initial-wow',        enrichPrompt: 'enrich-value-object-wow' },
+    'entity':              { prompt: 'create-entity-wow',              outputFile: 'ddd-entity-wow.md',              initialPrompt: 'create-entity-initial-wow',              enrichPrompt: 'enrich-entity-wow' },
+    'domain-exception':    { prompt: 'create-domain-exception-wow',    outputFile: 'ddd-domain-exception-wow.md',    initialPrompt: 'create-domain-exception-initial-wow',    enrichPrompt: 'enrich-domain-exception-wow' },
+    'integration-event':   { prompt: 'create-integration-event-wow',   outputFile: 'ddd-integration-event-wow.md',   initialPrompt: 'create-integration-event-initial-wow',   enrichPrompt: 'enrich-integration-event-wow' },
+    'integration-service': { prompt: 'create-integration-service-wow', outputFile: 'ddd-integration-service-wow.md', initialPrompt: 'create-integration-service-initial-wow', enrichPrompt: 'enrich-integration-service-wow' },
+    'configuration':       { prompt: 'create-configuration-wow',       outputFile: 'ddd-configuration-wow.md',       initialPrompt: 'create-configuration-initial-wow',       enrichPrompt: 'enrich-configuration-wow' },
+    'response':            { prompt: 'create-response-wow',            outputFile: 'ddd-response-wow.md',            initialPrompt: 'create-response-initial-wow',            enrichPrompt: 'enrich-response-wow' },
 }
 
 export type WowTypeFilter = { column: string; value: string; layer: string }
@@ -71,7 +72,11 @@ export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
         { column: 'Category', value: 'Command',  layer: 'Application Layer' },
         { column: 'Category', value: 'Query',     layer: 'Application Layer' },
     ],
-    'value-object':        [{ column: 'Category', value: 'Value object',        layer: 'Domain Layer' }],
+    'value-object':        [
+        { column: 'Category', value: 'Value object',      layer: 'Domain Layer' },
+        { column: 'Category', value: 'Enum',              layer: 'Domain Layer' },
+        { column: 'Category', value: 'Domain primitive',  layer: 'Domain Layer' },
+    ],
     'entity':              [{ column: 'Category', value: 'Entity',              layer: 'Domain Layer' }],
     'domain-exception':    [
         { column: 'Category', value: 'Domain exception', layer: 'Domain Layer' },
@@ -453,4 +458,7 @@ program
         }
     })
 
-program.parse(process.argv)
+if (process.argv[1] === fileURLToPath(import.meta.url) ||
+    process.argv[1]?.endsWith('/create-wow-docs-cli.js')) {
+    program.parse(process.argv)
+}

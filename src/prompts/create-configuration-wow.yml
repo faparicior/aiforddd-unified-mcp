@@ -50,6 +50,42 @@ messages: |
   of codebase size. Complete pattern analysis for each batch before reading the next.
   Read the ENTIRE file — no line limits, no shortcuts.
 
+  ## Proactive cross-cutting discovery
+  Before reading configuration files, query the manifest for classes in the Infrastructure
+  Layer that are NOT Configuration and have not been processed — these may be repositories,
+  API clients, or event producers that the configuration classes wire together.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Infrastructure Layer" },
+    excludeFilters = { "Category": "Configuration", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the configuration files.
+  3. Record its Identifier and file path for the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence is itself informative.
+
+  ## Adjacent collaborator discovery
+  While reading each source file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the configuration's role — for example:
+  - An application service or use case being wired
+  - A repository implementation being configured and bound to a port
+  - An API client or event producer being initialized
+  - An external library class being configured
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row.
+  2. If not found in the manifest, skip.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis.
+  6. Record its Identifier and file path for the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed.
+
   # Step 4: Identify patterns
 
   Analyze each configuration class and extract reusable patterns. Focus on:
@@ -75,6 +111,14 @@ messages: |
   ## Application Entry Point Patterns
   Focus on: Application entry point annotations or decorators, component scan / auto-discovery
   configuration, bootstrap configuration, profile or environment activation.
+
+  IMPORTANT — configuration scope boundary:
+  The configuration WoW covers only wiring and bootstrap: dependency injection, infrastructure
+  initialization, client setup, messaging configuration, and application bootstrap.
+  Repository persistence logic belongs in the Repository WoW.
+  API client HTTP mechanics belong in the API Client WoW.
+  Event consumer listener mechanics belong in the Event Consumer WoW.
+  Add a cross-reference note when encountering out-of-scope patterns.
 
   For each pattern found:
   - Assign a unique pattern ID following the format:
@@ -111,3 +155,20 @@ messages: |
 
   For every class retrieved in Step 2, call `update_row_by_column` using the Identifier column value
   to mark the Processed column with ✓. Process all classes — do not skip any.
+
+  # Step 8: Quality review and cleanup
+
+  Re-read the full document and apply the following cleanup:
+
+  **Duplicate pattern detection**: If two or more patterns describe the same concept, merge
+  them into the richer one and remove the weaker entry. Update all Pattern Index references.
+
+  **Pattern completeness**: For any pattern missing a ✅ GOOD code example, a ❌ BAD
+  counter-example, or a "Why it's bad" explanation, add the missing piece.
+
+  **Open questions**: For each item in the "❓ Open Questions" section, check whether
+  any source file read during this session already answers it. Remove answered questions and
+  add the answer in the relevant section.
+
+  **Dangling references**: If any pattern entry references a file identifier not listed in
+  the Pattern Index table, add the missing row.

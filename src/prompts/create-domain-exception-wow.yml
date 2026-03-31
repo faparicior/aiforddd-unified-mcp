@@ -50,6 +50,47 @@ messages: |
   of codebase size. Complete pattern analysis for each batch before reading the next.
   Read the ENTIRE file — no line limits, no shortcuts.
 
+  ## Proactive cross-cutting discovery
+  Before reading exception files, query the manifest for classes in the Domain Layer
+  that are NOT Domain Exceptions and have not been processed — these may be entities or
+  value objects that throw the exceptions, providing context for exception usage.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Domain Layer" },
+    excludeFilters = { "Category": "Domain exception", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  Also query the Application Layer for non-exception classes:
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Application Layer" },
+    excludeFilters = { "Category": "Domain exception", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the exception files.
+  3. Record its Identifier and file path for the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the calls return nothing, continue — the absence is itself informative.
+
+  ## Adjacent collaborator discovery
+  While reading each source file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the exception's role — for example:
+  - A base exception class in the hierarchy
+  - An entity or value object that throws this exception
+  - A controller or consumer that catches and translates this exception
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row.
+  2. If not found in the manifest, skip.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis.
+  6. Record its Identifier and file path for the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed.
+
   # Step 4: Identify patterns
 
   Analyze each domain exception class and extract reusable patterns. Focus on:
@@ -69,6 +110,13 @@ messages: |
   ## Exception Usage Patterns
   Focus on: Where exceptions are thrown (constructors, factory methods, domain services, use cases),
   how they propagate through layers, how infrastructure consumers (consumers, controllers) map them.
+
+  IMPORTANT — domain exception scope boundary:
+  The domain exception WoW covers only exception design: hierarchy, construction, semantics,
+  usage, and boundary mapping.
+  Controller error handling mechanisms belong in the Controller WoW.
+  Event consumer error routing belongs in the Event Consumer WoW.
+  Add a cross-reference note when encountering out-of-scope patterns.
 
   For each pattern found:
   - Assign a unique pattern ID following the format:
@@ -105,3 +153,20 @@ messages: |
 
   For every class retrieved in Step 2, call `update_row_by_column` using the Identifier column value
   to mark the Processed column with ✓. Process all classes — do not skip any.
+
+  # Step 8: Quality review and cleanup
+
+  Re-read the full document and apply the following cleanup:
+
+  **Duplicate pattern detection**: If two or more patterns describe the same concept, merge
+  them into the richer one and remove the weaker entry. Update all Pattern Index references.
+
+  **Pattern completeness**: For any pattern missing a ✅ GOOD code example, a ❌ BAD
+  counter-example, or a "Why it's bad" explanation, add the missing piece.
+
+  **Open questions**: For each item in the "❓ Open Questions" section, check whether
+  any source file read during this session already answers it. Remove answered questions and
+  add the answer in the relevant section.
+
+  **Dangling references**: If any pattern entry references a file identifier not listed in
+  the Pattern Index table, add the missing row.

@@ -1,0 +1,199 @@
+name: enrich-integration-service-wow
+description: >
+  Enrich an existing Integration Service WoW document with additional patterns from a new
+  chunk of Integration Service source files pre-selected by the CLI. The CLI provides the
+  file list as files_json so this prompt never queries the manifest for primary
+  Integration Service classes. Adjacent collaborators and cross-cutting classes are still
+  discovered reactively.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: files_json
+    required: true
+  - name: chunk_number
+    required: true
+  - name: chunk_total
+    required: true
+messages: |
+  You are to enrich an existing DDD Infrastructure Layer - Integration Services Way of Working (WoW)
+  document with additional patterns discovered from a new chunk of Integration Service source files.
+
+  This is chunk {{chunk_number}} of {{chunk_total}}.
+  Existing document: {{manifest_path}}/wow/{{output_file}}
+
+  Follow these steps precisely.
+
+  # Step 0: Read the existing document
+
+  Call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
+  Keep it fully in context — you will update it in Step 4.
+
+  Also call `get_template_content` with templatePath "wow/template-ddd-integration-service-wow.md".
+  Keep it in context — it provides the pattern ID conventions and section structure.
+
+  Scan the existing document to determine:
+  - Which pattern IDs are already used (SVC-MAP-XX, SVC-TRN-XX, SVC-MET-XX, SVC-EVT-XX, SVC-UTL-XX)
+  - Which source file identifiers have already been documented in the Pattern Index
+  - The current coverage count numbers
+
+  # Step 1: Review this chunk's Integration Service classes
+
+  The following Integration Service classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
+
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+
+  If the array is empty, stop without modifying the document.
+
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "✓".
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+  (manifest_path points to .aiforddd; source files are relative to the repo root above it)
+
+  ## Proactive cross-cutting discovery
+  Before reading any integration service file, query the manifest for classes in the Infrastructure
+  Layer that are NOT Integration Services and have not been processed — these may be repositories,
+  API clients, or event producers that use integration service utilities.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Infrastructure Layer" },
+    excludeFilters = { "Category": "Integration service", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the integration service files.
+  3. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence is itself informative.
+
+  Process all files (integration services from Step 1 + cross-cutting classes) in batches of 6–8 per
+  `read_multiple_files_compressed` call.
+  Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Adjacent collaborator discovery
+  While reading each source file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the service's role — for example:
+  - A repository that uses a mapper provided by this service
+  - An event consumer that delegates to a processing wrapper
+  - A domain entity that the mapper converts to/from
+  - A base utility or helper class
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row,
+     including its `File` path and `Identifier`.
+  2. If not found in the manifest, skip — do not search the filesystem directly.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis as if it were part of the batch.
+  6. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  # Step 3: Identify new patterns
+
+  For each file, identify patterns that are NOT already documented in the existing document.
+  Focus on:
+
+  ## Mapper Patterns
+  Focus on: How mappers translate between domain models and infrastructure representations
+  (DB entities, DTOs, event payloads), null handling, default value strategies, bi-directional
+  mapping, extension function mappers.
+
+  ## Transaction Utility Patterns
+  Focus on: Shared transaction wrappers, retry-with-transaction helpers, transaction template
+  abstractions, how transaction scope is shared across multiple repositories.
+
+  ## Metrics and Monitoring Patterns
+  Focus on: Shared metrics wrappers, timing decorators, health check implementations,
+  logging utility classes, structured logging helpers.
+
+  ## Event Processing Utility Patterns
+  Focus on: Shared event processing wrappers, dead-letter queue helpers, event deserialization
+  utilities, idempotency helpers, event routing utilities.
+
+  ## General Infrastructure Utility Patterns
+  Focus on: Shared base classes for infrastructure adapters, configuration readers, connection
+  pool management, circuit breaker wrappers, retry policy implementations.
+
+  IMPORTANT — integration service scope boundary:
+  The integration service WoW covers only shared infrastructure utilities: mappers, transaction
+  wrappers, metrics helpers, event processing utilities, and general infrastructure helpers.
+  Repository-specific persistence logic belongs in the Repository WoW.
+  API client HTTP mechanics belong in the API Client WoW.
+  Configuration wiring belongs in the Configuration WoW.
+  Add a cross-reference note when encountering out-of-scope patterns.
+
+  For each pattern found:
+  - Assign a unique pattern ID continuing from the highest existing number in each category:
+    - `SVC-MAP-XX` for mapper and translation patterns
+    - `SVC-TRN-XX` for transaction utility patterns
+    - `SVC-MET-XX` for metrics and monitoring patterns
+    - `SVC-EVT-XX` for event processing utility patterns
+    - `SVC-UTL-XX` for general infrastructure utility patterns
+  - Granularity rule: each distinct technique or concern deserves its own pattern entry.
+  - Only document patterns NOT already present in the existing document.
+  - Variations of existing patterns may be added as sub-notes, not new entries.
+  - Write a descriptive pattern name capturing the architectural intent.
+  - Extract a GOOD code example — copy the structure and logic exactly, but IMMEDIATELY replace
+    every domain-specific name with a generic equivalent (Order, User, Product, Payment, Item, Customer).
+    NO real names from the codebase may appear in the example.
+  - Derive an anti-pattern (BAD) counterexample.
+  - Record the source file name and Identifier from the manifest.
+  - For "Possible outsider" (✓) entries, document why the class may not belong in its current layer.
+
+  # Step 4: Update the document with targeted edits
+
+  CRITICAL: Do NOT rewrite the entire file in a single operation. Apply a series of small, targeted
+  edits — each modifying only the specific section that needs to change.
+
+  Apply changes as a series of targeted edit operations on {{manifest_path}}/wow/{{output_file}}:
+  1. For each new pattern entry: insert it after the last existing pattern in its section.
+  2. For the Pattern Index table: append new rows before the table's closing.
+  3. For Coverage Summary: update the analyzed count to include these new files.
+  4. Update the "Key Files Analyzed" list to include newly analyzed files.
+
+  Each edit should target a small, specific section. Make multiple edit calls rather than one
+  large change. Never write the full document content in a single tool call.
+
+  # Step 5: Mark classes as processed
+
+  For every Integration Service class from the JSON array in Step 1, call `update_row_by_column` using
+  the Identifier value to mark the Processed column with ✓. Process all classes — do not skip any.
+  Do NOT mark cross-cutting classes or adjacent collaborator classes discovered in Step 2.
+
+  # Step 6: Verify the result
+
+  - Read {{manifest_path}}/wow/{{output_file}} to verify all edits were applied correctly
+  - The document must remain complete and valid after the edits
+
+  # Step 7: Quality review and cleanup
+
+  Re-read the full document and apply the following cleanup as targeted edits:
+
+  **Duplicate pattern detection**: If two or more patterns describe the same concept, merge
+  them into the richer one and remove the weaker entry. Update all Pattern Index references.
+
+  **Pattern completeness**: For any pattern missing a ✅ GOOD code example, a ❌ BAD
+  counter-example, or a "Why it's bad" explanation, add the missing piece.
+
+  **Open questions cleanup**: For each item in the "❓ Open Questions" section, check whether
+  any source file read during this session already answers it. Remove answered questions and
+  add the answer in the relevant section.
+
+  **Dangling references**: If any pattern entry references a file identifier not listed in
+  the Pattern Index table, add the missing row.
+
+  Apply all cleanup as targeted edits — never rewrite the full document.
