@@ -37,6 +37,9 @@ describe('Prompt Server Integration Tests', () => {
         analysis_dir: '/test/tmp',
         output_file: 'test.md',
         total_chunks: '1',
+        total_files: '0',
+        chunk_total: '1',
+        chunk_number: '1',
         files_json: '[]',
       }
 

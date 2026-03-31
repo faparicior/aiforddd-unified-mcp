@@ -1,5 +1,9 @@
 name: enrich-wow-document
-description: Enrich an existing WoW document with additional patterns by querying the manifest for unprocessed classes of the given type.
+description: >
+  Enrich an existing WoW document with additional patterns from a new chunk of
+  source files pre-selected by the CLI. The CLI provides the file list as files_json
+  so this prompt never queries the manifest for primary classes of the target category.
+  Adjacent collaborators and cross-cutting classes are still discovered reactively.
 arguments:
   - name: manifest_path
     required: true
@@ -7,18 +11,19 @@ arguments:
     required: true
   - name: output_file
     required: true
-  - name: layer
+  - name: files_json
     required: true
-  - name: category
+  - name: chunk_number
+    required: true
+  - name: chunk_total
     required: true
 messages: |
   You are to enrich an existing Way of Working (WoW) document with additional patterns
-  discovered from unprocessed source files in the manifest.
+  discovered from a new chunk of source files.
 
-  Existing document: {{manifest_path}}/wow/{{output_file}}
+  This is chunk {{chunk_number}} of {{chunk_total}}.
   WoW type: {{wow_type}}
-  Manifest layer: {{layer}}
-  Manifest category: {{category}}
+  Existing document: {{manifest_path}}/wow/{{output_file}}
 
   Follow these steps precisely.
 
@@ -27,43 +32,48 @@ messages: |
   Call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
   Keep it fully in context — you will update it in Step 4.
 
+  Also call `get_template_content` with templatePath "wow/template-ddd-{{wow_type}}-wow.md".
+  Keep it in context — it provides the pattern ID conventions and section structure.
+
   Scan it to determine:
   - Which pattern IDs are already used — so you can assign next sequential IDs for new patterns
   - Which source file identifiers have already been documented in the Pattern Index
   - The current coverage numbers
 
-  # Step 1: Assess the manifest
+  # Step 1: Review this chunk's classes
 
-  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "{{layer}}"`,
-    `extraFilters = { "Category": "{{category}}" }`, `excludeFilters = { "Processed": "✓" }`
-    to count unprocessed classes.
-  - If the count is 0: no new patterns to add — stop without modifying the document.
-  - Record the count explicitly.
+  The following classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
 
-  # Step 2: Collect unprocessed classes
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
 
-  - Call `get_multiple_rows_by_multiple_columns` with
-    filters = { "Layer": "{{layer}}", "Category": "{{category}}" },
-    excludeFilters = { "Processed": "✓" },
-    selectColumns = ["Identifier", "Class", "File", "Possible outsider", "Description"]
-  - If the result is empty, stop without modifying the document.
-  - Note all classes where "Possible outsider" is marked (✓).
+  If the array is empty, stop without modifying the document.
 
-  # Step 3: Read source files and identify new patterns
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "✓".
+  Determine the primary Layer and Category from the first entry — these are used for
+  cross-cutting class discovery in Step 2.
+
+  # Step 2: Read source files and identify new patterns
 
   Construct absolute file paths as: {{manifest_path}}/../<File value>
   (manifest_path points to .aiforddd; source files are relative to the repo root above it)
 
   ## Proactive global cross-cutting class discovery
   Before reading primary source files, query the manifest for classes in the same layer
-  that are NOT of category "{{category}}" and have not yet been processed — these are
-  cross-cutting concerns (e.g., global exception handlers, interceptors, global validators,
-  advice classes) that affect all classes in the layer but are not directly referenced
-  from individual source files.
+  that are NOT of the primary category (determined from Step 1) and have not yet been
+  processed — these are cross-cutting concerns (e.g., global exception handlers,
+  interceptors, global validators, advice classes) that affect all classes in the layer
+  but are not directly referenced from individual source files.
 
   Call `get_multiple_rows_by_multiple_columns` with
-    filters = { "Layer": "{{layer}}" },
-    excludeFilters = { "Category": "{{category}}", "Processed": "✓" },
+    filters = { "Layer": "<primary Layer from Step 1>" },
+    excludeFilters = { "Category": "<primary Category from Step 1>", "Processed": "✓" },
     selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
 
   For each class returned:
@@ -116,7 +126,7 @@ messages: |
   For code examples: IMMEDIATELY replace every domain-specific name with a generic equivalent
   (Order, User, Product, Payment, Item, Customer). NO real names may appear in examples.
 
-  # Step 4: Update the document with targeted edits
+  # Step 3: Update the document with targeted edits
 
   CRITICAL: Do NOT rewrite the entire file in a single operation. The document is large and
   full-file writes will cause streaming timeouts. Instead, apply a series of small, targeted
@@ -131,21 +141,21 @@ messages: |
   Each edit should target a small, specific section. Make multiple edit calls rather than one
   large change. Never write the full document content in a single tool call.
 
-  # Step 5: Mark classes as processed
+  # Step 4: Mark classes as processed
 
-  For every class retrieved in Step 2 (primary category "{{category}}" classes), call
+  For every class from the JSON array in Step 1 (primary files only), call
   `update_row_by_column` using the Identifier value to mark the Processed column with ✓.
   Process all classes — do not skip any.
-  Do NOT mark cross-cutting classes or adjacent collaborator classes discovered in Step 3 —
+  Do NOT mark cross-cutting classes or adjacent collaborator classes discovered in Step 2 —
   those will be processed by their own dedicated WoW document.
 
-  # Step 6: Verify the result
+  # Step 5: Verify the result
 
   - Read {{manifest_path}}/wow/{{output_file}} to verify all edits were applied correctly
   - The document must remain complete and valid after the edits
   - Strip any template instructions if accidentally reintroduced
 
-  # Step 7: Quality review and cleanup
+  # Step 6: Quality review and cleanup
 
   Re-read the full document and apply the following cleanup as targeted edits:
 

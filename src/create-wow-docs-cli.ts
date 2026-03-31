@@ -37,8 +37,8 @@ function getUnprocessedRows(manifestFile: string, filters: WowTypeFilter[]): Rec
     return allRows
 }
 
-export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; initialPrompt?: string }> = {
-    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md',          initialPrompt: 'create-controller-initial-wow' },
+export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; initialPrompt?: string; enrichPrompt?: string }> = {
+    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md',          initialPrompt: 'create-controller-initial-wow', enrichPrompt: 'enrich-controller-wow' },
     'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md' },
     'scheduler':           { prompt: 'create-scheduler-wow',           outputFile: 'ddd-scheduler-wow.md' },
     'repository':          { prompt: 'create-repository-wow',          outputFile: 'ddd-repository-wow.md' },
@@ -380,7 +380,8 @@ program
                     chunk_total: String(totalChunks),
                     files_json: JSON.stringify(chunkRows),
                 }
-                const promptContent = promptManager.getPromptContent('enrich-wow-document', promptArgs)
+                const enrichPromptName = wowConfig.enrichPrompt ?? 'enrich-wow-document'
+                const promptContent = promptManager.getPromptContent(enrichPromptName, promptArgs)
 
                 if (options.printOnly) {
                     console.log(promptContent)
