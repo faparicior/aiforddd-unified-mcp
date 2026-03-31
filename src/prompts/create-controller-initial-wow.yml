@@ -112,39 +112,69 @@ messages: |
   Analyze each controller class and extract reusable patterns. Focus on:
 
   ## Request Handling Patterns
-  Focus on: REST endpoint definitions, HTTP method mapping, route parameter extraction,
-  request body deserialization, input validation at the boundary.
+  Focus on: endpoint route definitions, HTTP method mapping, path and query parameter
+  extraction, request body deserialization, typed parameter binding (framework-assisted
+  conversion), optional vs required parameters, and default value handling.
+  Extract a separate pattern for each distinct binding technique observed — for example,
+  typed date binding, enum list binding, UUID/identifier conversion at the boundary, and
+  optional parameter fallback are each separate patterns if present in the codebase.
 
   ## Response Mapping Patterns
-  Focus on: How the controller delegates to the response layer — HTTP status code selection,
-  use of explicit response wrappers (e.g., ResponseEntity), null/empty result handling,
-  and the call pattern used to invoke response mapping (e.g., `.map(Dto::from)`).
-  Do NOT document response DTO internals (field definitions, factory logic, serialization
-  annotations) — those belong in the Response WoW document. Add a cross-reference if found.
+  Focus on the *call patterns* the controller uses to transform domain results into HTTP
+  responses — not the DTO internals. Document each distinct mapping variant as its own
+  pattern:
+  - Simple 1-to-1 collection mapping (e.g. `.map(factory reference)`)
+  - 1-to-many / expansion mapping (e.g. `.flatMap(factory reference)`)
+  - Explicit HTTP status wrapping for mutation/admin endpoints vs. implicit status for
+    read endpoints
+  - Null/empty result handling at the controller level (e.g. empty list, no-content response)
+  Do NOT document DTO field definitions, factory method bodies, or serialization annotations
+  — those belong in the Response WoW document. If encountered, add a brief cross-reference
+  note only.
+
+  ## Input Validation Patterns
+  Focus on: cross-cutting pre-handler validation mechanisms (global validator, advice class,
+  filter, or middleware) and reusable domain-level validator objects or functions that
+  encapsulate validation rules and throw typed exceptions. Document each as a separate
+  pattern:
+  - The cross-cutting advice/middleware mechanism (how it is scoped, when it runs)
+  - The reusable validator object/function (how validation rules are encapsulated and reused
+    independently of the HTTP layer)
 
   ## Error Handling Patterns
-  Focus on: Domain exception to HTTP status translation, centralized exception handler
-  (global error handler, middleware, exception filter, or equivalent mechanism).
-  Do NOT document error response body structures or their factory logic — those belong in
-  the Response WoW document. Add a cross-reference if found.
+  Focus on: the centralized exception handler mechanism — how exceptions thrown anywhere in
+  the request cycle (from parameter binding, validation, application service, or domain) are
+  caught and translated into HTTP status codes. Document:
+  - The wiring mechanism (global handler, middleware, filter, or decorator) and how it is
+    registered without coupling individual controllers to it
+  - The exception→status mapping table: which exception types map to which HTTP status codes
+  - The "no try/catch in controllers" rule — controllers must not handle exceptions locally
+  Do NOT document the error response body structure or factory logic — those belong in the
+  Response WoW document. Add a brief cross-reference note only.
+  If no centralized handler is found, document it explicitly as a gap in the Error Handling
+  section and raise it as an open question.
 
   IMPORTANT — controller scope boundary:
   The controller WoW covers only HTTP mechanics: routing, parameter binding, delegation to
   application services, HTTP status decisions, and exception-handling mechanisms.
   Response DTO internals (field definitions, factory methods, serialization annotations,
-  error body shapes) are owned by the Response WoW document. When encountered in source
-  files, reference that document instead of documenting the DTO structure here.
+  error body shapes) are out of scope — add a cross-reference note when encountered.
 
   ## Security Patterns
-  Focus on: Authentication/authorization integration, input sanitization, CSRF protection.
+  Focus on: authentication/authorization integration, input sanitization at the boundary,
+  protection mechanisms against unauthorized access.
 
   For each pattern found:
   - Assign a unique pattern ID:
-    - `CTL-REQ-XX` for request handling patterns
-    - `CTL-RSP-XX` for response mapping patterns
-    - `CTL-ERR-XX` for error handling patterns
-    - `CTL-VAL-XX` for input validation patterns
+    - `CTL-REQ-XX` for request handling and parameter binding patterns
+    - `CTL-RSP-XX` for response mapping and HTTP status patterns
+    - `CTL-VAL-XX` for input validation patterns (both the advice/middleware mechanism
+      and any reusable validator objects/functions it delegates to)
+    - `CTL-ERR-XX` for error handling and exception translation patterns
     - `CTL-SEC-XX` for security patterns
+  - Granularity rule: each distinct technique or concern deserves its own pattern entry.
+    Do not collapse multiple distinct patterns into one — for example, UUID conversion,
+    date binding, and enum list binding are three separate CTL-REQ patterns.
   - If {{output_exists}} is "true":
     - Only document patterns NOT already present in the existing document.
     - Assign IDs continuing from the highest existing number in each category.
