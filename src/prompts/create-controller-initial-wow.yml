@@ -65,7 +65,27 @@ messages: |
   Construct absolute file paths as: {{manifest_path}}/../<File value>
   (manifest_path points to .aiforddd; source files are relative to the repo root above it)
 
-  Process files in batches of 6–8 per `read_multiple_files_compressed` call.
+  ## Proactive global advice discovery
+  Before reading any controller file, query the manifest for cross-cutting classes that are
+  globally wired to controllers but are not controllers themselves — such as global exception
+  handlers, global validators, request interceptors, or cross-cutting advice classes.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "User Interface Layer" },
+    excludeFilters = { "Category": "Controller", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the controller files.
+  3. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence of such classes is itself informative
+  (document it as "no centralized exception handler found" in the Error Handling section).
+
+  Process all files (controllers + globally-wired classes) in batches of 6–8 per
+  `read_multiple_files_compressed` call.
   Complete pattern analysis for each batch before reading the next.
   Read the ENTIRE file — no line limits, no shortcuts.
 
@@ -77,15 +97,15 @@ messages: |
   - A base class or interface the controller implements
 
   For each such class found:
-  1. Call `find_files` with the repo root as `folder` and the file's extension as `suffix`
-     to get a list of candidate paths, then identify the one matching the class name.
-  2. Call `read_multiple_files_compressed` on the resolved path to read the file.
-  3. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
-     `columnName = "Class"` and the class name as `value` to retrieve its manifest row
-     and Identifier.
-  4. Include its patterns in the analysis as if it were part of the batch.
-  5. Record its Identifier and file path in the Pattern Index and Coverage Summary.
-  6. Add it to the list of classes to mark as processed in Step 6.
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row,
+     including its `File` path and `Identifier`.
+  2. If not found in the manifest, skip — do not search the filesystem directly.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis as if it were part of the batch.
+  6. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
 
   # Step 4: Identify patterns
 
@@ -189,10 +209,10 @@ messages: |
 
   # Step 6: Mark classes as processed
 
-  For every class retrieved in Step 2, call `update_row_by_column` using the Identifier value
-  to mark the Processed column with ✓. Process all classes — do not skip any.
-  Also mark any adjacent collaborator classes discovered in Step 3 if they were retrieved
-  from the manifest.
+  For every class retrieved in Step 2 (Controller classes), call `update_row_by_column` using
+  the Identifier value to mark the Processed column with ✓. Process all classes — do not skip any.
+  Do NOT mark adjacent collaborator classes or cross-cutting classes discovered in Step 3 —
+  those will be processed by their own dedicated WoW document.
 
   # Step 7: Verify
 

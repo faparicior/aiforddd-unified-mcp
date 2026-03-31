@@ -54,7 +54,29 @@ messages: |
   Construct absolute file paths as: {{manifest_path}}/../<File value>
   (manifest_path points to .aiforddd; source files are relative to the repo root above it)
 
-  Process files in batches of 6–8 per `read_multiple_files_compressed` call.
+  ## Proactive global cross-cutting class discovery
+  Before reading primary source files, query the manifest for classes in the same layer
+  that are NOT of category "{{category}}" and have not yet been processed — these are
+  cross-cutting concerns (e.g., global exception handlers, interceptors, global validators,
+  advice classes) that affect all classes in the layer but are not directly referenced
+  from individual source files.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "{{layer}}" },
+    excludeFilters = { "Category": "{{category}}", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the primary source files.
+  3. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — document any absence of cross-cutting concerns
+  (e.g., "no centralized exception handler found") in the relevant section.
+
+  Process all files (primary + cross-cutting) in batches of 6–8 per
+  `read_multiple_files_compressed` call.
   Complete pattern analysis for each batch before reading the next.
   Read the ENTIRE file — no line limits, no shortcuts.
 
@@ -63,15 +85,15 @@ messages: |
   the batch but are relevant to understanding the file's behaviour — for example a global
   exception handler, a shared validator, a base class, or a cross-cutting advice class.
   For each such class found:
-  1. Call `find_files` with the repo root as `folder` and the file's extension as `suffix`
-     to get a list of candidate paths, then identify the one matching the class name.
-  2. Call `read_multiple_files_compressed` on the resolved path to read the file.
-  3. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
-     `columnName = "Class"` and the class name as `value` to retrieve its manifest row
-     and Identifier.
-  4. Include its patterns in the analysis as if it were part of the batch.
-  5. Record its Identifier and file path in the Pattern Index and Coverage Summary.
-  6. Add it to the list of classes to mark as processed in Step 5.
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row,
+     including its `File` path and `Identifier`.
+  2. If not found in the manifest, skip — do not search the filesystem directly.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis as if it were part of the batch.
+  6. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
 
   For each file, identify patterns that are NOT already documented in the existing document.
   Look for:
@@ -111,10 +133,11 @@ messages: |
 
   # Step 5: Mark classes as processed
 
-  For every class retrieved in Step 2, call `update_row_by_column` using the Identifier value
-  to mark the Processed column with ✓. Process all classes — do not skip any.
-  Also mark any adjacent collaborator classes discovered in Step 3 if they were retrieved
-  from the manifest.
+  For every class retrieved in Step 2 (primary category "{{category}}" classes), call
+  `update_row_by_column` using the Identifier value to mark the Processed column with ✓.
+  Process all classes — do not skip any.
+  Do NOT mark cross-cutting classes or adjacent collaborator classes discovered in Step 3 —
+  those will be processed by their own dedicated WoW document.
 
   # Step 6: Verify the result
 
