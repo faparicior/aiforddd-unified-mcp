@@ -37,8 +37,8 @@ function getUnprocessedRows(manifestFile: string, filters: WowTypeFilter[]): Rec
     return allRows
 }
 
-export const WOW_TYPES: Record<string, { prompt: string; outputFile: string }> = {
-    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md' },
+export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; initialPrompt?: string }> = {
+    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md',          initialPrompt: 'create-controller-initial-wow' },
     'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md' },
     'scheduler':           { prompt: 'create-scheduler-wow',           outputFile: 'ddd-scheduler-wow.md' },
     'repository':          { prompt: 'create-repository-wow',          outputFile: 'ddd-repository-wow.md' },
@@ -315,6 +315,10 @@ program
                 const chunkRows = allRows.slice(0, batchSize)
                 const totalChunks = Math.ceil(allRows.length / batchSize)
 
+                const outputFilePath = join(wowOutputDir, wowConfig.outputFile)
+                const outputFileExists = existsSync(outputFilePath)
+                const initialPromptName = wowConfig.initialPrompt ?? 'generate-initial-wow'
+
                 const promptManager = new PromptManager()
                 const promptArgs = {
                     manifest_path: manifestPath,
@@ -323,8 +327,9 @@ program
                     total_files: String(allRows.length),
                     chunk_total: String(totalChunks),
                     files_json: JSON.stringify(chunkRows),
+                    output_exists: String(outputFileExists),
                 }
-                const promptContent = promptManager.getPromptContent('generate-initial-wow', promptArgs)
+                const promptContent = promptManager.getPromptContent(initialPromptName, promptArgs)
 
                 if (options.printOnly) {
                     console.log(promptContent)

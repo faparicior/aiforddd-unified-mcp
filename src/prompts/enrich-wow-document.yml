@@ -1,5 +1,5 @@
 name: enrich-wow-document
-description: Enrich an existing WoW document with additional patterns discovered from a new batch of source files.
+description: Enrich an existing WoW document with additional patterns by querying the manifest for unprocessed classes of the given type.
 arguments:
   - name: manifest_path
     required: true
@@ -7,47 +7,49 @@ arguments:
     required: true
   - name: output_file
     required: true
-  - name: chunk_number
+  - name: layer
     required: true
-  - name: chunk_total
-    required: true
-  - name: files_json
+  - name: category
     required: true
 messages: |
-  You are to enrich an existing Way of Working (WoW) document with additional patterns discovered
-  from a new batch of source files. This is chunk {{chunk_number}} of {{chunk_total}}.
+  You are to enrich an existing Way of Working (WoW) document with additional patterns
+  discovered from unprocessed source files in the manifest.
 
   Existing document: {{manifest_path}}/wow/{{output_file}}
   WoW type: {{wow_type}}
+  Manifest layer: {{layer}}
+  Manifest category: {{category}}
 
   Follow these steps precisely.
 
   # Step 0: Read the existing document
 
   Call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
-  Keep it fully in context — you will update it in Step 3.
+  Keep it fully in context — you will update it in Step 4.
 
   Scan it to determine:
-  - Which pattern IDs are already used (e.g., ENT-IDN-01, CTL-REQ-02) — so you can assign
-    the next sequential IDs for new patterns
-  - Which source files have already been documented in the Pattern Index table
+  - Which pattern IDs are already used — so you can assign next sequential IDs for new patterns
+  - Which source file identifiers have already been documented in the Pattern Index
   - The current coverage numbers
 
-  # Step 1: Review this chunk's files
+  # Step 1: Assess the manifest
 
-  The following classes have been pre-selected for this chunk (JSON array):
-  {{files_json}}
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "{{layer}}"`,
+    `extraFilters = { "Category": "{{category}}" }`, `excludeFilters = { "Processed": "✓" }`
+    to count unprocessed classes.
+  - If the count is 0: no new patterns to add — stop without modifying the document.
+  - Record the count explicitly.
 
-  Parse this JSON array. Each object contains:
-  - File: source file path relative to the repository root
-  - Identifier: unique class identifier from the manifest
-  - Category: the class category
-  - Layer: the architectural layer
-  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+  # Step 2: Collect unprocessed classes
 
-  If the array is empty, skip to Step 3 (remove the enrichment note if this is the last chunk).
+  - Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "{{layer}}", "Category": "{{category}}" },
+    excludeFilters = { "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Possible outsider", "Description"]
+  - If the result is empty, stop without modifying the document.
+  - Note all classes where "Possible outsider" is marked (✓).
 
-  # Step 2: Read source files and identify new patterns
+  # Step 3: Read source files and identify new patterns
 
   Construct absolute file paths as: {{manifest_path}}/../<File value>
   (manifest_path points to .aiforddd; source files are relative to the repo root above it)
@@ -56,18 +58,43 @@ messages: |
   Complete pattern analysis for each batch before reading the next.
   Read the ENTIRE file — no line limits, no shortcuts.
 
+  ## Adjacent collaborator discovery
+  While reading each source file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the file's behaviour — for example a global
+  exception handler, a shared validator, a base class, or a cross-cutting advice class.
+  For each such class found:
+  1. Call `find_files` with the repo root as `folder` and the file's extension as `suffix`
+     to get a list of candidate paths, then identify the one matching the class name.
+  2. Call `read_multiple_files_compressed` on the resolved path to read the file.
+  3. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row
+     and Identifier.
+  4. Include its patterns in the analysis as if it were part of the batch.
+  5. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  6. Add it to the list of classes to mark as processed in Step 5.
+
   For each file, identify patterns that are NOT already documented in the existing document.
   Look for:
   - Patterns that add new insights not yet covered
   - Variations or nuances of existing patterns (document as a sub-note, not a new pattern entry)
   - New anti-pattern examples
 
+  WoW type scope boundaries — do NOT document concerns that belong in other WoW documents:
+  - If wow_type is "controller": document only HTTP mechanics (routing, parameter binding,
+    exception-handling mechanism, status code decisions). Response DTO internals (field
+    definitions, factory methods, serialization annotations, error body shapes) belong in
+    the Response WoW document — add a cross-reference wherever a DTO structure is encountered.
+  - If wow_type is "use-case" or "application-service": repository interfaces and
+    infrastructure adapter implementations belong in their own WoW documents.
+  When a pattern is out of scope, add a cross-reference note in the relevant section instead
+  of a full pattern entry.
+
   Assign new pattern IDs continuing from the highest existing ID in each category.
 
   For code examples: IMMEDIATELY replace every domain-specific name with a generic equivalent
   (Order, User, Product, Payment, Item, Customer). NO real names may appear in examples.
 
-  # Step 3: Update the document with targeted edits
+  # Step 4: Update the document with targeted edits
 
   CRITICAL: Do NOT rewrite the entire file in a single operation. The document is large and
   full-file writes will cause streaming timeouts. Instead, apply a series of small, targeted
@@ -79,26 +106,23 @@ messages: |
   3. For Coverage Summary: update the analyzed count numbers
   4. For Architecture Observations: append or update observations
 
-  If this is the LAST chunk ({{chunk_number}} == {{chunk_total}}):
-  - Remove the "Note: This document was generated from chunk..." line entirely
-  - Ensure the Coverage Summary reflects the total files processed across all chunks
-
-  If this is NOT the last chunk:
-  - Update the note to: "> **Note**: This document covers chunks 1–{{chunk_number}} of {{chunk_total}}."
-
   Each edit should target a small, specific section. Make multiple edit calls rather than one
   large change. Never write the full document content in a single tool call.
 
-  # Step 4: Verify the result
+  # Step 5: Mark classes as processed
+
+  For every class retrieved in Step 2, call `update_row_by_column` using the Identifier value
+  to mark the Processed column with ✓. Process all classes — do not skip any.
+  Also mark any adjacent collaborator classes discovered in Step 3 if they were retrieved
+  from the manifest.
+
+  # Step 6: Verify the result
 
   - Read {{manifest_path}}/wow/{{output_file}} to verify all edits were applied correctly
   - The document must remain complete and valid after the edits
   - Strip any template instructions if accidentally reintroduced
 
-  # Step 5: Quality review and cleanup
-
-  Only run this step if {{chunk_number}} == {{chunk_total}} (last chunk) OR if reviewing is
-  worthwhile given the edits just made.
+  # Step 7: Quality review and cleanup
 
   Re-read the full document and apply the following cleanup as targeted edits:
 
@@ -111,8 +135,7 @@ messages: |
   from the source files already read in this session.
 
   **Open questions cleanup**: For each item in the "❓ Open Questions" section, check whether
-  any source file read during this session (or any earlier chunk referenced in the document)
-  already answers it. For each answered question:
+  any source file read during this session already answers it. For each answered question:
   - Remove it from the open questions list
   - Add the answer as a note or observation in the most relevant pattern or in the
     Implementation Guidelines section

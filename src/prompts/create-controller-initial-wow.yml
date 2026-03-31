@@ -1,0 +1,202 @@
+name: create-controller-initial-wow
+description: >
+  Generate (if new) or enrich (if existing) a Controller WoW document by querying
+  the code manifest directly for Controller classes and reading their source files.
+  output_exists = "false" → creates from template.
+  output_exists = "true"  → reads existing doc, adds new patterns via targeted edits.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: output_exists
+    required: true
+messages: |
+  You are to analyze REST Controller source files and produce or enrich a
+  DDD UI Layer - REST Controllers Way of Working (WoW) document.
+
+  Document path: {{manifest_path}}/wow/{{output_file}}
+  Document already exists: {{output_exists}}
+
+  Note: For other UI layer concerns use the dedicated prompts:
+  - Event consumers → create-event-consumer-wow
+  - Schedulers & batch processors → create-scheduler-wow
+
+  Follow these steps precisely.
+
+  # Step 0: Load resources
+
+  Always call `get_template_content` with templatePath "wow/template-ddd-controller-wow.md".
+  Keep it in context — it provides the schema, pattern ID conventions, and variable definitions
+  regardless of whether you are creating or enriching.
+
+  If {{output_exists}} is "true":
+  - Also call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
+  - Scan it to identify:
+    - All pattern IDs already used (CTL-REQ-XX, CTL-RSP-XX, CTL-ERR-XX, CTL-VAL-XX, CTL-SEC-XX)
+    - Source file identifiers already documented in the Pattern Index
+    - The current coverage count numbers
+
+  # Step 1: Assess the manifest
+
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "User Interface Layer"`,
+    `extraFilters = { "Category": "Controller" }`, `excludeFilters = { "Processed": "✓" }`
+    to count unprocessed Controller classes.
+  - If the call fails, stop immediately and report the error — do not infer counts.
+  - If the count is 0:
+    - If {{output_exists}} is "false": write the output file with a note that no unprocessed
+      Controller classes were found, and stop.
+    - If {{output_exists}} is "true": no new patterns to add — stop without modifying the document.
+  - Record the count explicitly; it is used in the Coverage Summary.
+
+  # Step 2: Collect all relevant classes
+
+  - Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "User Interface Layer", "Category": "Controller" },
+    excludeFilters = { "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Possible outsider", "Description"]
+  - If the result is empty, write a note to the output file stating all classes are already
+    documented, then stop.
+  - Note all classes where "Possible outsider" is marked (✓) — these are candidate anti-pattern
+    examples for the Anti-Patterns section.
+
+  # Step 3: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+  (manifest_path points to .aiforddd; source files are relative to the repo root above it)
+
+  Process files in batches of 6–8 per `read_multiple_files_compressed` call.
+  Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Adjacent collaborator discovery
+  While reading each controller file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the controller's behaviour — for example:
+  - A global exception handler wired to the controllers
+  - A shared validator or advice class applied to the controllers
+  - A base class or interface the controller implements
+
+  For each such class found:
+  1. Call `find_files` with the repo root as `folder` and the file's extension as `suffix`
+     to get a list of candidate paths, then identify the one matching the class name.
+  2. Call `read_multiple_files_compressed` on the resolved path to read the file.
+  3. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row
+     and Identifier.
+  4. Include its patterns in the analysis as if it were part of the batch.
+  5. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  6. Add it to the list of classes to mark as processed in Step 6.
+
+  # Step 4: Identify patterns
+
+  Analyze each controller class and extract reusable patterns. Focus on:
+
+  ## Request Handling Patterns
+  Focus on: REST endpoint definitions, HTTP method mapping, route parameter extraction,
+  request body deserialization, input validation at the boundary.
+
+  ## Response Mapping Patterns
+  Focus on: How the controller delegates to the response layer — HTTP status code selection,
+  use of explicit response wrappers (e.g., ResponseEntity), null/empty result handling,
+  and the call pattern used to invoke response mapping (e.g., `.map(Dto::from)`).
+  Do NOT document response DTO internals (field definitions, factory logic, serialization
+  annotations) — those belong in the Response WoW document. Add a cross-reference if found.
+
+  ## Error Handling Patterns
+  Focus on: Domain exception to HTTP status translation, centralized exception handler
+  (global error handler, middleware, exception filter, or equivalent mechanism).
+  Do NOT document error response body structures or their factory logic — those belong in
+  the Response WoW document. Add a cross-reference if found.
+
+  IMPORTANT — controller scope boundary:
+  The controller WoW covers only HTTP mechanics: routing, parameter binding, delegation to
+  application services, HTTP status decisions, and exception-handling mechanisms.
+  Response DTO internals (field definitions, factory methods, serialization annotations,
+  error body shapes) are owned by the Response WoW document. When encountered in source
+  files, reference that document instead of documenting the DTO structure here.
+
+  ## Security Patterns
+  Focus on: Authentication/authorization integration, input sanitization, CSRF protection.
+
+  For each pattern found:
+  - Assign a unique pattern ID:
+    - `CTL-REQ-XX` for request handling patterns
+    - `CTL-RSP-XX` for response mapping patterns
+    - `CTL-ERR-XX` for error handling patterns
+    - `CTL-VAL-XX` for input validation patterns
+    - `CTL-SEC-XX` for security patterns
+  - If {{output_exists}} is "true":
+    - Only document patterns NOT already present in the existing document.
+    - Assign IDs continuing from the highest existing number in each category.
+    - Variations of existing patterns may be added as sub-notes, not new entries.
+  - Write a descriptive pattern name capturing the architectural intent.
+  - Extract a GOOD code example — copy the structure and logic exactly, but IMMEDIATELY replace
+    every domain-specific class name, method name, field name, enum value, and identifier with a
+    generic equivalent (Order, User, Product, Payment, Item, Customer).
+    NO real names from the codebase may appear in the example.
+  - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern.
+  - Record the source file name and Identifier from the manifest.
+  - For "Possible outsider" (✓) entries, document why the class may not belong in its current layer
+    and include it as an anti-pattern entry.
+
+  # Step 5: Write or update the document
+
+  ## If {{output_exists}} is "false" — create a new document
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the analysis.
+  Follow the template's own "Usage Instructions" and "Template Variables Reference" sections
+  exactly — they are authoritative for what each section expects.
+
+  Key sections that MUST be completed from the real code:
+  - **HTTP Status Code table** (`## 🔢 HTTP Status Code Strategy`): populate from actual
+    domain exception → HTTP status mappings found in the source files. Do not use placeholders.
+  - **Request/Response Mapping** (`## 🗺️ Request / Response Mapping`): describe the real
+    deserialization, serialization, and null-handling strategies used.
+  - **Error Handling Strategy** (`## ⚠️ Error Handling Strategy`): document the centralized
+    exception handler mechanism and exception→status mappings only. Response body structures
+    are out of scope — add a cross-reference to the Response WoW document instead.
+  - **Testing Approach** (`## 🧪 Testing Approach`): describe the controller slice test
+    approach used or recommended, with good/bad test structure examples.
+  - **Performance Considerations** (`## ⚡ Performance Considerations`): note any performance
+    patterns observed (e.g., pagination, async, caching at the boundary).
+  - **Security Guidelines** (`## 🔒 Security Guidelines`): describe actual auth/validation
+    mechanisms observed in the controllers.
+  - **Anti-Patterns** (`## 🚫 Anti-Patterns to Avoid`): include any "Possible outsider" (✓)
+    entries and other violations found in the real code.
+  - **Pattern Index** and **Coverage Summary**: must reference real file identifiers from the
+    manifest and accurate counts.
+
+  For the Coverage Summary: use the count from Step 1 as the total class count.
+
+  Write the completed document to {{manifest_path}}/wow/{{output_file}}.
+  Strip everything from "Template Variables Reference" onward — the final file must contain
+  no template instructions.
+
+  ## If {{output_exists}} is "true" — enrich the existing document
+
+  CRITICAL: Do NOT rewrite the entire file in a single operation. Apply only targeted edits
+  to preserve existing content and avoid streaming timeouts.
+
+  Apply changes as a series of targeted edit operations on {{manifest_path}}/wow/{{output_file}}:
+  1. For each new pattern: insert it after the last existing pattern in its section.
+  2. For the Pattern Index table: append new rows before the table's closing.
+  3. For Coverage Summary: update the analyzed count to include these new files.
+  4. Update the "Key Files Analyzed" list to include newly analyzed files.
+  5. If new exception → HTTP status mappings are found that are not in the HTTP Status Code
+     table, append them as new rows to that table.
+  6. If new performance, security, or testing patterns are observed that are not yet documented,
+     append them to the relevant sections.
+
+  # Step 6: Mark classes as processed
+
+  For every class retrieved in Step 2, call `update_row_by_column` using the Identifier value
+  to mark the Processed column with ✓. Process all classes — do not skip any.
+  Also mark any adjacent collaborator classes discovered in Step 3 if they were retrieved
+  from the manifest.
+
+  # Step 7: Verify
+
+  Read {{manifest_path}}/wow/{{output_file}} and confirm:
+  - The document is complete and valid.
+  - All new patterns are inserted in the correct sections.
+  - No template instructions remain in the file.
