@@ -58,8 +58,14 @@ export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; ini
 export type WowTypeFilter = { column: string; value: string; layer: string }
 
 export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
-    'controller':          [{ column: 'Category', value: 'Controller',          layer: 'User Interface Layer' }],
-    'event-consumer':      [{ column: 'Category', value: 'Event consumer',      layer: 'User Interface Layer' }],
+    'controller':          [
+        { column: 'Category', value: 'Controller', layer: 'User Interface Layer' },
+        { column: 'Category', value: 'Controller', layer: 'Infrastructure Layer' },
+    ],
+    'event-consumer':      [
+        { column: 'Category', value: 'Event consumer', layer: 'User Interface Layer' },
+        { column: 'Category', value: 'Event consumer', layer: 'Infrastructure Layer' },
+    ],
     'scheduler':           [{ column: 'Category', value: 'Scheduler',           layer: 'User Interface Layer' }],
     'repository':          [{ column: 'Category', value: 'Repository',          layer: 'Infrastructure Layer' }],
     'event-producer':      [{ column: 'Category', value: 'Event producer',      layer: 'Infrastructure Layer' }],
@@ -459,6 +465,7 @@ program
     })
 
 if (process.argv[1] === fileURLToPath(import.meta.url) ||
-    process.argv[1]?.endsWith('/create-wow-docs-cli.js')) {
+    process.argv[1]?.endsWith('/create-wow-docs-cli.js') ||
+    process.argv[1]?.endsWith('/ddd-create-wow')) {
     program.parse(process.argv)
 }
