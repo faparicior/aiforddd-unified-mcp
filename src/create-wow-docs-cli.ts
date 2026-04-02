@@ -58,6 +58,12 @@ export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; ini
     'domain-event':           { prompt: 'create-domain-event-wow',             outputFile: 'ddd-domain-event-wow.md',             initialPrompt: 'create-domain-event-initial-wow',             enrichPrompt: 'enrich-domain-event-wow' },
     'domain-interface':       { prompt: 'create-domain-interface-wow',         outputFile: 'ddd-domain-interface-wow.md',         initialPrompt: 'create-domain-interface-initial-wow',         enrichPrompt: 'enrich-domain-interface-wow' },
     'infrastructure-exception': { prompt: 'create-infrastructure-exception-wow', outputFile: 'ddd-infrastructure-exception-wow.md', initialPrompt: 'create-infrastructure-exception-initial-wow', enrichPrompt: 'enrich-infrastructure-exception-wow' },
+    'specification':            { prompt: 'create-specification-wow',            outputFile: 'ddd-specification-wow.md',            initialPrompt: 'create-specification-initial-wow',            enrichPrompt: 'enrich-specification-wow' },
+    'policy':                   { prompt: 'create-policy-wow',                  outputFile: 'ddd-policy-wow.md',                  initialPrompt: 'create-policy-initial-wow',                  enrichPrompt: 'enrich-policy-wow' },
+    'saga':                     { prompt: 'create-saga-wow',                    outputFile: 'ddd-saga-wow.md',                    initialPrompt: 'create-saga-initial-wow',                    enrichPrompt: 'enrich-saga-wow' },
+    'mapper':                   { prompt: 'create-mapper-wow',                  outputFile: 'ddd-mapper-wow.md',                  initialPrompt: 'create-mapper-initial-wow',                  enrichPrompt: 'enrich-mapper-wow' },
+    'adapter':                  { prompt: 'create-adapter-wow',                 outputFile: 'ddd-adapter-wow.md',                 initialPrompt: 'create-adapter-initial-wow',                 enrichPrompt: 'enrich-adapter-wow' },
+    'read-model':               { prompt: 'create-read-model-wow',              outputFile: 'ddd-read-model-wow.md',              initialPrompt: 'create-read-model-initial-wow',              enrichPrompt: 'enrich-read-model-wow' },
 }
 
 export type WowTypeFilter = { column: string; value: string; layer: string }
@@ -79,9 +85,10 @@ export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
         { column: 'Category', value: 'Gateway',    layer: 'Infrastructure Layer' },
     ],
     'use-case':            [
-        { column: 'Category', value: 'Use case', layer: 'Application Layer' },
-        { column: 'Category', value: 'Command',  layer: 'Application Layer' },
-        { column: 'Category', value: 'Query',     layer: 'Application Layer' },
+        { column: 'Category', value: 'Use case',      layer: 'Application Layer' },
+        { column: 'Category', value: 'Command',       layer: 'Application Layer' },
+        { column: 'Category', value: 'Query',         layer: 'Application Layer' },
+        { column: 'Category', value: 'Event handler', layer: 'Application Layer' },
     ],
     'value-object':        [
         { column: 'Category', value: 'Value object',      layer: 'Domain Layer' },
@@ -91,6 +98,7 @@ export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
     'entity':              [
         { column: 'Category', value: 'Entity',         layer: 'Domain Layer' },
         { column: 'Category', value: 'Aggregate root', layer: 'Domain Layer' },
+        { column: 'Category', value: 'Factory',        layer: 'Domain Layer' },
     ],
     'domain-exception':    [
         { column: 'Category', value: 'Domain exception', layer: 'Domain Layer' },
@@ -108,9 +116,17 @@ export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
     'domain-event':           [{ column: 'Category', value: 'Domain event',            layer: 'Domain Layer' }],
     'domain-interface':       [
         { column: 'Category', value: 'Domain interface', layer: 'Domain Layer' },
-        { column: 'Category', value: 'Domain interface', layer: 'Application Layer' },
     ],
     'infrastructure-exception': [{ column: 'Category', value: 'Infrastructure exception', layer: 'Infrastructure Layer' }],
+    'specification':            [{ column: 'Category', value: 'Specification', layer: 'Domain Layer' }],
+    'policy':                   [{ column: 'Category', value: 'Policy',        layer: 'Domain Layer' }],
+    'saga':                     [{ column: 'Category', value: 'Saga',          layer: 'Domain Layer' }],
+    'mapper':                   [{ column: 'Category', value: 'Mapper',        layer: 'Infrastructure Layer' }],
+    'adapter':                  [{ column: 'Category', value: 'Adapter',       layer: 'Infrastructure Layer' }],
+    'read-model':               [
+        { column: 'Category', value: 'Projection',  layer: 'Infrastructure Layer' },
+        { column: 'Category', value: 'Read model',  layer: 'Infrastructure Layer' },
+    ],
 }
 
 const VALID_TYPES = Object.keys(WOW_TYPES).join(', ')

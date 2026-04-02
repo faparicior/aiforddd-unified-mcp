@@ -135,6 +135,69 @@ Classes showing DDD violations.
 - **Layer**: Any
 - **Example**: Entity doing I/O, domain depending on infrastructure
 
+### Event Handler (DDD Category)
+Application-layer component that responds to published domain or integration events.
+- Orchestrates application responses to events (delegates business logic to use cases)
+- Typically implements idempotency to handle duplicate deliveries
+- **Layer**: Application
+- **Example**: `UserRegisteredEventHandler` calling `SendWelcomeEmailUseCase`
+
+### Factory (DDD Category)
+Dedicated class responsible for creating complex domain objects.
+- Encapsulates creation logic with business rules and invariants
+- Differs from factory methods on entities (this is a standalone class)
+- **Layer**: Domain
+- **Example**: `LoanApplicationFactory` combining credit score + risk assessment
+
+### Specification (DDD Category)
+Composable predicate encapsulating a business rule for filtering, querying, or validating domain objects.
+- Supports `and()`, `or()`, `not()` composition
+- Reusable across domain services and repositories
+- **Layer**: Domain
+- **Example**: `EligibleForDiscountSpecification`, `ActiveCustomerSpecification`
+
+### Policy (DDD Category)
+Pluggable strategy encapsulating a business decision that varies by context.
+- Implements strategy/polymorphism to replace conditional logic
+- Can be injected at runtime to change behavior
+- **Layer**: Domain
+- **Example**: `ShippingCostPolicy`, `TaxCalculationPolicy`, `DiscountPolicy`
+
+### Saga (DDD Category)
+Orchestrates a multi-step business workflow across multiple aggregates or services.
+- Manages distributed transactions with compensating actions for rollback
+- Tracks saga state through multiple steps
+- **Layer**: Domain/Application
+- **Example**: `PurchaseOrderSaga` (reserve inventory → authorize payment → confirm)
+
+### Mapper (DDD Category)
+Transforms data between domain objects and external representations.
+- Converts domain entities to DTOs/entities and vice versa
+- Located in infrastructure layer; never contains business rules
+- **Layer**: Infrastructure
+- **Example**: `OrderMapper.toDomain()`, `OrderMapper.toEntity()`
+
+### Adapter (DDD Category)
+Wraps an external system or library to conform to a domain interface contract.
+- Acts as an anti-corruption layer isolating domain from external concerns
+- Implements a domain port interface (dependency inversion)
+- **Layer**: Infrastructure
+- **Example**: `SendGridNotificationAdapter implements NotificationPort`
+
+### Projection (DDD Category)
+Builds and maintains read-optimized view models by processing domain events (CQRS read side).
+- Listens to domain events and updates read model store
+- Must implement idempotency to avoid duplicate processing
+- **Layer**: Infrastructure
+- **Example**: `OrderProjection` handling `OrderPlacedEvent`, `OrderShippedEvent`
+
+### Read Model (DDD Category)
+Optimized data structure used exclusively for query operations on the CQRS read side.
+- Built by Projections; never written to directly by business operations
+- May denormalize data for query performance
+- **Layer**: Infrastructure
+- **Example**: `OrderSummaryReadModel`, `CustomerDashboardReadModel`
+
 ---
 
 ## Quick Decision Framework
@@ -213,6 +276,45 @@ Classes showing DDD violations.
 ### Mappers
 - ✅ Validation Rules, Transformations
 - ❌ Business Rules, Inbound/Outbound communications
+
+### Event Handlers (Application)
+- ✅ Inbound communication, External Dependencies, Side Effects
+- Often: Event Mapping, Error Handling, Idempotency
+- ❌ Business Rules (delegate to use cases), Invariants
+
+### Factories (Domain)
+- ✅ Factory/Creation, Business Rules
+- Sometimes: Invariants, External Dependencies
+- ❌ Side Effects, Inbound/Outbound communications
+
+### Specifications (Domain)
+- ✅ Business Rules
+- Sometimes: Transformations
+- ❌ Side Effects, External Dependencies, Lifecycle Management
+
+### Policies (Domain)
+- ✅ Business Rules
+- Sometimes: External Dependencies
+- ❌ Side Effects, Lifecycle Management, Inbound/Outbound communications
+
+### Sagas (Domain/Application)
+- ✅ External Dependencies, Transaction Management, Error Handling, Side Effects
+- Often: Business Rules, Outbound communication
+
+### Adapters (Infrastructure)
+- ✅ Outbound communication, External Dependencies, Transformations, Error Handling
+- Often: Side Effects
+- ❌ Business Rules, Invariants
+
+### Projections (Infrastructure)
+- ✅ Event Mapping, Inbound communication, Side Effects, External Dependencies
+- Often: Idempotency, Transformations
+- ❌ Business Rules, Invariants
+
+### Read Models (Infrastructure)
+- ✅ Transformations
+- Sometimes: External Dependencies
+- ❌ Business Rules, Domain Events, Side Effects, Inbound communication
 
 ### Simple DTOs/Commands
 - All columns empty ❌

@@ -1,19 +1,18 @@
 name: create-domain-interface-wow
-description: Analyze Domain Interface patterns in a code manifest and generate a DDD Domain & Application Layer Domain Interface WoW document
+description: Analyze Domain Interface patterns in a code manifest and generate a DDD Domain Layer Domain Interface WoW document
 arguments:
   - name: manifest_path
     required: true
 messages: |
   You are to analyze Domain Interface patterns from a code manifest located at: {{manifest_path}}/code-manifest.md
-  and produce a DDD Domain & Application Layer - Domain Interfaces Way of Working (WoW) document.
+  and produce a DDD Domain Layer - Domain Interfaces Way of Working (WoW) document.
 
   The output file must be written to: {{manifest_path}}/wow/ddd-domain-interface-wow.md
 
-  Note: Domain Interfaces define the contracts (ports) used by the Domain and Application layers
+  Note: Domain Interfaces define the contracts (ports) used by the Domain layer
   to depend on infrastructure capabilities without importing infrastructure details.
-  They appear in both the Domain Layer (repository and policy ports) and the Application Layer
-  (service ports, external service ports). For infrastructure implementations of these ports
-  use the Infrastructure Layer WoW documentation.
+  They are declared exclusively in the Domain Layer (repository ports, policy ports, notification ports).
+  For infrastructure implementations of these ports use the Infrastructure Layer WoW documentation.
 
   Follow these steps to produce a high-quality, pattern-rich WoW document.
 
@@ -25,18 +24,15 @@ messages: |
   # Step 1: Assess the manifest
 
   - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Domain Layer"`, `extraFilters = { "Category": "Domain interface" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Domain interface classes in the Domain Layer
-  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Application Layer"`, `extraFilters = { "Category": "Domain interface" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Domain interface classes in the Application Layer
-  - If either call fails, stop immediately and report the error
-  - If the total count is 0, write the output file with a note that no classes were found, then stop.
-  - Record both counts; the total determines the retrieval strategy in Step 2
+  - If the call fails, stop immediately and report the error
+  - If the count is 0, write the output file with a note that no classes were found, then stop.
+  - Record the count; it determines the retrieval strategy in Step 2
 
   # Step 2: Collect all relevant classes
 
-  - Retrieve all unprocessed Domain interface classes via two `get_multiple_rows_by_multiple_columns` calls:
+  - Retrieve all unprocessed Domain interface classes via `get_multiple_rows_by_multiple_columns`:
     - filters = { "Layer": "Domain Layer", "Category": "Domain interface" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Identifier", "Class", "File", "Possible outsider"]
-    - filters = { "Layer": "Application Layer", "Category": "Domain interface" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Identifier", "Class", "File", "Possible outsider"]
-  - Combine both result sets into a single working set for analysis
-  - If the combined result is empty, write a note to the output file stating all classes are already documented, then stop
+  - If the result is empty, write a note to the output file stating all classes are already documented, then stop
   - Note all classes where the "Possible outsider" column is marked (✓)
 
   # Step 3: Read source files
@@ -49,16 +45,11 @@ messages: |
   Read the ENTIRE file — no line limits, no shortcuts.
 
   ## Proactive cross-cutting discovery
-  Before reading domain interface files, query classes in both the Domain Layer and Application Layer
+  Before reading domain interface files, query classes in the Domain Layer
   that are NOT Domain Interfaces to understand what depends on these contracts.
 
   Call `get_multiple_rows_by_multiple_columns` with
     filters = { "Layer": "Domain Layer" },
-    excludeFilters = { "Category": "Domain interface", "Processed": "✓" },
-    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
-
-  Also call `get_multiple_rows_by_multiple_columns` with
-    filters = { "Layer": "Application Layer" },
     excludeFilters = { "Category": "Domain interface", "Processed": "✓" },
     selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
 
@@ -109,12 +100,12 @@ messages: |
 
   ## Interface Naming & Segregation Patterns
   Focus on: How interfaces are divided by responsibility (Interface Segregation Principle),
-  coarse-grained vs. fine-grained interfaces, naming conventions across Domain and Application layers.
+  coarse-grained vs. fine-grained interfaces, naming conventions in the Domain Layer.
 
   ## Layer Placement Patterns
-  Focus on: Rules for placing interfaces in Domain Layer vs. Application Layer,
+  Focus on: Rules confirming interfaces belong in the Domain Layer,
   which domain objects are appropriate in interface signatures, how interfaces avoid
-  coupling Domain Layer to Application Layer concerns.
+  leaking infrastructure concerns into the domain.
 
   IMPORTANT — domain interface scope boundary:
   The domain interface WoW covers only the port contract design: naming, method signatures,

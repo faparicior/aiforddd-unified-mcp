@@ -959,9 +959,49 @@ Never: Business Rules, Domain Events, Side Effects
 Typical: Outbound communication ✓, External Dependencies ✓, Side Effects ✓  
 Sometimes: Transformations ✓, Error Handling ✓
 
+### Event Handlers (Application)
+Typical: Inbound communication ✓, External Dependencies ✓, Side Effects ✓
+Often: Event Mapping ✓, Error Handling ✓, Idempotency ✓
+Never: Business Rules (delegate to use cases), Invariants
+
+### Factories (Domain)
+Typical: Factory/Creation ✓, Business Rules ✓
+Sometimes: Invariants ✓
+Never: Side Effects, External Dependencies, Inbound/Outbound communications
+
+### Specifications (Domain)
+Typical: Business Rules ✓
+Sometimes: Transformations ✓
+Never: Side Effects, External Dependencies, Lifecycle Management
+
+### Policies (Domain)
+Typical: Business Rules ✓
+Sometimes: External Dependencies ✓
+Never: Side Effects, Lifecycle Management, Inbound/Outbound communications
+
+### Sagas (Domain)
+Typical: External Dependencies ✓, Transaction Management ✓, Error Handling ✓
+Often: Side Effects ✓, Business Rules ✓
+Sometimes: Outbound communication ✓
+
 ### Mappers
 Typical: Validation Rules ✓, Transformations ✓  
 Never: Business Rules, Domain Events, Inbound/Outbound communications
+
+### Adapters (Infrastructure)
+Typical: Outbound communication ✓, External Dependencies ✓, Transformations ✓, Error Handling ✓
+Often: Side Effects ✓
+Never: Business Rules, Domain Events, Invariants
+
+### Projections (Infrastructure)
+Typical: Event Mapping ✓, Side Effects ✓, External Dependencies ✓
+Often: Idempotency ✓, Inbound communication ✓, Transformations ✓
+Never: Business Rules, Invariants
+
+### Read Models (Infrastructure)
+Typical: Transformations ✓
+Sometimes: External Dependencies ✓
+Never: Business Rules, Domain Events, Side Effects, Inbound communication
 
 ### User Interface Responses
 Typical: Transformations ✓  

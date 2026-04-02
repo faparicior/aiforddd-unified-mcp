@@ -569,3 +569,255 @@ class PaymentConsumer {
 ❌ **Missing obvious**: Services with repositories need External Dependencies ✓
 ❌ **Value Objects with Identity Management**: Never mark this
 ❌ **Integration Events as Domain Events**: Different layers and purposes
+
+---
+
+## Simple Examples for New DDD Categories
+
+### Event Handler (Application)
+
+✅ **Application-layer handler responding to published events**
+```kotlin
+class UserRegisteredEventHandler(
+    private val sendWelcomeEmail: SendWelcomeEmailUseCase,
+    private val processedEvents: ProcessedEventRepository
+) {
+    fun handle(event: UserRegisteredEvent) {
+        if (processedEvents.exists(event.eventId)) return
+        sendWelcomeEmail.execute(SendWelcomeEmailCommand(event.userId, event.email))
+        processedEvents.save(event.eventId)
+    }
+}
+```
+**Classification**: Inbound communication ✓, Event Mapping ✓, External Dependencies ✓, Side Effects ✓, Idempotency ✓
+
+---
+
+### Factory (Domain)
+
+✅ **Dedicated factory class with complex creation rules**
+```kotlin
+class LoanApplicationFactory(
+    private val creditScoreService: CreditScoreService,
+    private val riskPolicy: LoanRiskPolicy
+) {
+    fun create(applicant: Applicant, amount: Money): LoanApplication {
+        val creditScore = creditScoreService.evaluate(applicant)
+        val riskLevel = riskPolicy.assess(creditScore, amount)
+        return LoanApplication(
+            id = LoanApplicationId.generate(),
+            applicant = applicant,
+            amount = amount,
+            riskLevel = riskLevel,
+            status = LoanStatus.PENDING
+        )
+    }
+}
+```
+**Classification**: Factory/Creation ✓, Business Rules ✓, External Dependencies ✓
+
+---
+
+### Specification (Domain)
+
+✅ **Composable business rule predicate**
+```kotlin
+class EligibleForPremiumDiscountSpecification(
+    private val minimumTotal: Money,
+    private val minimumOrderCount: Int
+) {
+    fun isSatisfiedBy(customer: Customer, order: Order): Boolean {
+        return order.total >= minimumTotal &&
+               customer.completedOrderCount >= minimumOrderCount &&
+               !customer.hasOutstandingBalance()
+    }
+
+    fun and(other: EligibleForPremiumDiscountSpecification) =
+        CompositeSpecification(this, other)
+}
+```
+**Classification**: Business Rules ✓
+
+---
+
+### Policy (Domain)
+
+✅ **Pluggable strategy for a business decision**
+```kotlin
+interface TaxCalculationPolicy {
+    fun calculate(order: Order, destination: Address): Tax
+}
+
+class StandardTaxPolicy : TaxCalculationPolicy {
+    override fun calculate(order: Order, destination: Address): Tax =
+        Tax(order.subtotal * STANDARD_RATE)
+}
+
+class ExemptTaxPolicy : TaxCalculationPolicy {
+    override fun calculate(order: Order, destination: Address): Tax =
+        Tax(Money.ZERO)
+}
+```
+**Classification**: Business Rules ✓
+
+---
+
+### Saga (Domain)
+
+✅ **Multi-step workflow with compensating actions**
+```kotlin
+class PurchaseOrderSaga(
+    private val inventoryService: InventoryService,
+    private val paymentService: PaymentService,
+    private val notificationService: NotificationService,
+    private val sagaStateRepository: SagaStateRepository
+) {
+    @Transactional
+    fun execute(command: CreatePurchaseOrderCommand): SagaResult {
+        val sagaId = SagaId.generate()
+        try {
+            inventoryService.reserve(command.items)
+            sagaStateRepository.markStep(sagaId, "INVENTORY_RESERVED")
+
+            paymentService.authorize(command.paymentDetails)
+            sagaStateRepository.markStep(sagaId, "PAYMENT_AUTHORIZED")
+
+            notificationService.sendConfirmation(command.customerId)
+            return SagaResult.success(sagaId)
+        } catch (e: Exception) {
+            compensate(sagaId, command)
+            return SagaResult.failure(sagaId, e)
+        }
+    }
+
+    private fun compensate(sagaId: SagaId, command: CreatePurchaseOrderCommand) {
+        val completedSteps = sagaStateRepository.getCompletedSteps(sagaId)
+        if ("PAYMENT_AUTHORIZED" in completedSteps) paymentService.void(command.paymentDetails)
+        if ("INVENTORY_RESERVED" in completedSteps) inventoryService.release(command.items)
+    }
+}
+```
+**Classification**: External Dependencies ✓, Transaction Management ✓, Error Handling ✓, Side Effects ✓, Business Rules ✓
+
+---
+
+### Mapper (Infrastructure)
+
+✅ **Transforming between domain objects and external representations**
+```kotlin
+class OrderMapper {
+    fun toDomain(entity: OrderEntity): Order {
+        return Order(
+            id = OrderId(entity.id),
+            customerId = CustomerId(entity.customerId),
+            total = Money(entity.totalAmount, Currency.of(entity.currency)),
+            status = OrderStatus.valueOf(entity.status)
+        )
+    }
+
+    fun toEntity(order: Order): OrderEntity {
+        val total = order.total?.toBigDecimalOrNull()
+            ?: throw MappingException("Invalid total in order ${order.id}")
+        return OrderEntity(
+            id = order.id.value,
+            customerId = order.customerId.value,
+            totalAmount = total,
+            currency = order.total.currency.code,
+            status = order.status.name
+        )
+    }
+}
+```
+**Classification**: Validation Rules ✓, Transformations ✓
+
+---
+
+### Adapter (Infrastructure)
+
+✅ **Wrapping an external library to match domain interface**
+```kotlin
+// Domain interface
+interface NotificationPort {
+    fun sendEmail(to: EmailAddress, subject: String, body: String)
+}
+
+// Adapter — wraps SendGrid SDK to implement domain interface
+class SendGridNotificationAdapter(
+    private val sendGridClient: SendGrid
+) : NotificationPort {
+    override fun sendEmail(to: EmailAddress, subject: String, body: String) {
+        val email = Email()
+        email.addTo(to.value)
+        email.subject = subject
+        email.addContent("text/html", body)
+        try {
+            sendGridClient.api(Request().apply { method = POST; endpoint = "mail/send" })
+        } catch (e: IOException) {
+            throw NotificationException("Failed to send email via SendGrid", e)
+        }
+    }
+}
+```
+**Classification**: Outbound communication ✓, External Dependencies ✓, Transformations ✓, Error Handling ✓, Side Effects ✓
+
+---
+
+### Projection (Infrastructure)
+
+✅ **Building read model by consuming domain events**
+```kotlin
+class OrderProjection(
+    private val orderReadModelRepo: OrderReadModelRepository,
+    private val processedEvents: ProcessedEventRepository
+) {
+    @EventHandler
+    fun on(event: OrderPlacedEvent) {
+        if (processedEvents.exists(event.eventId)) return
+        orderReadModelRepo.save(
+            OrderReadModel(
+                orderId = event.orderId.value,
+                customerName = event.customerName,
+                total = event.total.amount,
+                status = "PLACED",
+                placedAt = event.occurredOn
+            )
+        )
+        processedEvents.save(event.eventId)
+    }
+
+    @EventHandler
+    fun on(event: OrderShippedEvent) {
+        orderReadModelRepo.updateStatus(event.orderId.value, "SHIPPED")
+    }
+}
+```
+**Classification**: Event Mapping ✓, Inbound communication ✓, Side Effects ✓, External Dependencies ✓, Idempotency ✓, Transformations ✓
+
+---
+
+### Read Model (Infrastructure)
+
+✅ **Optimized query view for CQRS read side**
+```kotlin
+data class OrderSummaryReadModel(
+    val orderId: String,
+    val customerName: String,
+    val totalAmount: BigDecimal,
+    val currency: String,
+    val status: String,
+    val itemCount: Int,
+    val placedAt: String,
+    val lastUpdatedAt: String
+) {
+    fun toResponse() = OrderSummaryResponse(
+        id = orderId,
+        customer = customerName,
+        total = "$totalAmount $currency",
+        status = status,
+        items = itemCount,
+        date = placedAt
+    )
+}
+```
+**Classification**: Transformations ✓
+

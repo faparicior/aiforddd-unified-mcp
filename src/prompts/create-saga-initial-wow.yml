@@ -1,0 +1,148 @@
+name: create-saga-initial-wow
+description: >
+  Generate the first Saga WoW document from an initial chunk of source files
+  pre-selected by the CLI.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: total_files
+    required: true
+  - name: chunk_total
+    required: true
+  - name: files_json
+    required: true
+messages: |
+  You are to analyze the first batch of Saga source files and produce a
+  DDD Domain Layer - Sagas Way of Working (WoW) document.
+
+  This is chunk 1 of {{chunk_total}} total chunks. If {{chunk_total}} > 1, subsequent
+  chunks will enrich this document with additional patterns — do NOT wait for them.
+  Write a complete, useful document now using only the files in this chunk plus any
+  adjacent collaborators you discover while reading them.
+
+  Total Saga files across all chunks: {{total_files}}
+  Document path: {{manifest_path}}/wow/{{output_file}}
+
+  Note: Sagas orchestrate multi-step business workflows across multiple aggregates or bounded contexts,
+  managing distributed transactions with compensating actions. They belong to the Domain/Application Layer.
+  Do not confuse with Use Cases (single-step operations within one bounded context) or Domain Services.
+
+  Follow these steps precisely.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-saga-wow.md".
+  Keep it in context — it provides the schema, pattern ID conventions, and variable
+  definitions. You will fill every variable in it during Step 4.
+
+  # Step 1: Review this chunk's Saga classes
+
+  The following Saga classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
+
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+
+  If the array is empty, write the output file with a note that no Saga classes
+  were found, and stop.
+
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "✓".
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+
+  ## Proactive cross-cutting discovery
+  Before reading saga files, query the manifest for Application Layer and Domain Layer classes
+  that participate in saga workflows.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Application Layer" },
+    excludeFilters = { "Category": "Saga", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path and add to reading batch.
+  2. Record its Identifier and file path in the AdjacentCollaborators list.
+  Do NOT mark these classes as processed.
+
+  Process all files in batches of 6–8 per `read_multiple_files_compressed` call.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Adjacent collaborator discovery
+  While reading each saga file, note any directly referenced classes — for example:
+  - Domain services or repositories called by saga steps
+  - Event publishers used for saga state transitions
+  - Compensating action implementations
+  - Saga state repositories or event stores
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with column "Class".
+  2. If not found, skip.
+  3. Read and include in analysis.
+  4. Record in AdjacentCollaborators list.
+  Do NOT mark these classes as processed.
+
+  # Step 3: Identify patterns
+
+  Analyze each saga class and extract reusable patterns. Focus on:
+
+  ## Saga Step Patterns
+  Focus on: How saga steps are defined and sequenced, step naming conventions, step isolation
+  and idempotency, how step results gate the next step.
+
+  ## Compensation Patterns
+  Focus on: How compensating actions are defined and triggered, mapping between forward steps
+  and their compensations, partial compensation strategies.
+
+  ## Saga State Patterns
+  Focus on: How saga state is tracked and persisted, state machine vs. event sourcing approaches,
+  idempotency of state transitions.
+
+  ## Event-Driven Saga Patterns
+  Focus on: How sagas respond to and publish domain events, choreography vs. orchestration styles,
+  correlation IDs for distributed tracing.
+
+  ## Error & Rollback Patterns
+  Focus on: How exceptions trigger compensations, retry strategies for transient failures,
+  dead letter handling for unrecoverable saga failures.
+
+  For each pattern found:
+  - Assign a unique pattern ID:
+    - `SAGA-STP-XX` for saga step definition and sequencing patterns
+    - `SAGA-CMP-XX` for compensation and rollback patterns
+    - `SAGA-STT-XX` for saga state tracking and persistence patterns
+    - `SAGA-EVT-XX` for event-driven and choreography patterns
+    - `SAGA-ERR-XX` for error handling and retry patterns
+  - Write a descriptive pattern name
+  - Extract a GOOD code example — replace all domain-specific names with generic equivalents
+  - Derive an anti-pattern (BAD) counterexample
+  - Record the source file and identifier
+  - For "Possible outsider" classes (✓), document and include as anti-pattern
+
+  # Step 4: Write the document
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the analysis.
+  For the Coverage Summary: use {{total_files}} as the total class count.
+
+  If {{chunk_total}} > 1, add this note at the very end:
+
+  > **Note**: This document was generated from chunk 1/{{chunk_total}} of the codebase.
+  > It will be enriched with additional patterns from the remaining chunks.
+
+  Write the completed document to {{manifest_path}}/wow/{{output_file}}.
+  Strip everything from "Template Variables Reference" onward.
+
+  # Step 5: Verify
+
+  Read {{manifest_path}}/wow/{{output_file}} and confirm:
+  - The document is complete and valid.
+  - All patterns are in the correct sections.
+  - No template instructions remain in the file.

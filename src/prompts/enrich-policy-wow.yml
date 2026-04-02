@@ -1,7 +1,7 @@
-name: enrich-domain-interface-wow
+name: enrich-policy-wow
 description: >
-  Enrich an existing Domain Interface WoW document with additional patterns from a new
-  chunk of Domain Interface source files pre-selected by the CLI.
+  Enrich an existing Policy WoW document with additional patterns from a new
+  chunk of Policy source files pre-selected by the CLI.
 arguments:
   - name: manifest_path
     required: true
@@ -14,8 +14,8 @@ arguments:
   - name: chunk_total
     required: true
 messages: |
-  You are to enrich an existing DDD Domain Layer - Domain Interfaces Way of Working (WoW)
-  document with additional patterns discovered from a new chunk of Domain Interface source files.
+  You are to enrich an existing DDD Domain Layer - Policies Way of Working (WoW)
+  document with additional patterns discovered from a new chunk of Policy source files.
 
   This is chunk {{chunk_number}} of {{chunk_total}}.
   Existing document: {{manifest_path}}/wow/{{output_file}}
@@ -27,23 +27,23 @@ messages: |
   Call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
   Keep it fully in context — you will update it in Step 4.
 
-  Also call `get_template_content` with templatePath "wow/template-ddd-domain-interface-wow.md".
+  Also call `get_template_content` with templatePath "wow/template-ddd-policy-wow.md".
 
   Scan the existing document to determine:
-  - Which pattern IDs are already used (DI-CON-XX, DI-DEP-XX, DI-IMP-XX, DI-SEG-XX, DI-LYR-XX)
+  - Which pattern IDs are already used (POL-DEF-XX, POL-STG-XX, POL-INJ-XX, POL-EVO-XX, POL-EVL-XX)
   - Which source file identifiers have already been documented in the Pattern Index
   - The current coverage count numbers
 
-  # Step 1: Review this chunk's Domain Interface classes
+  # Step 1: Review this chunk's Policy classes
 
-  The following Domain Interface classes have been pre-selected for this chunk (JSON array):
+  The following Policy classes have been pre-selected for this chunk (JSON array):
   {{files_json}}
 
   Parse this JSON array. Each object contains:
   - File: source file path relative to the repository root
   - Identifier: unique class identifier from the manifest
   - Category: the class category
-  - Layer: the architectural layer (Domain Layer)
+  - Layer: the architectural layer
   - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
 
   If the array is empty, stop without modifying the document.
@@ -55,7 +55,7 @@ messages: |
   ## Proactive cross-cutting discovery
   Call `get_multiple_rows_by_multiple_columns` with
     filters = { "Layer": "Domain Layer" },
-    excludeFilters = { "Category": "Domain interface", "Processed": "✓" },
+    excludeFilters = { "Category": "Policy", "Processed": "✓" },
     selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
 
   For each class returned:
@@ -71,22 +71,21 @@ messages: |
   1. Look it up via `get_first_row_by_column` on {{manifest_path}}/code-manifest.md.
   2. If not found, skip.
   3. Read and include in analysis.
-  4. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
-     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  4. Record its Identifier and file path in the AdjacentCollaborators list.
   Do NOT mark these classes as processed.
 
   # Step 3: Identify new patterns
 
   For each file, identify patterns NOT already documented. Focus on:
-  - Contract definition (naming, method signatures, domain object usage)
-  - Dependency inversion (layer separation, port-adapter compliance)
-  - Implementation contract expectations (invariants, segregation)
-  - Interface naming and segregation (ISP compliance, coarse vs. fine-grained)
-  - Layer placement rules (Domain Layer only — no Application Layer interfaces)
+  - Policy interface definition and method design
+  - Strategy selection and injection mechanisms
+  - Policy wiring and default fallbacks
+  - Policy evolution and versioning
+  - Stateless vs. stateful policy evaluation
 
   For each new pattern:
   - Continue numbering from highest existing ID in each category:
-    DI-CON-XX, DI-DEP-XX, DI-IMP-XX, DI-SEG-XX, DI-LYR-XX
+    POL-DEF-XX, POL-STG-XX, POL-INJ-XX, POL-EVO-XX, POL-EVL-XX
   - Only document patterns NOT already present.
   - Replace all domain-specific names with generic equivalents (Order, User, Product, etc.).
 

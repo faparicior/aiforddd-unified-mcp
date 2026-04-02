@@ -1,0 +1,57 @@
+name: create-read-model-wow
+description: Analyze Read Model and Projection patterns in a code manifest and generate a DDD Infrastructure Layer Read Model WoW document
+arguments:
+  - name: manifest_path
+    required: true
+messages: |
+  You are to analyze Read Model and Projection patterns from a code manifest located at: {{manifest_path}}/code-manifest.md
+  and produce a DDD Infrastructure Layer - Read Models & Projections Way of Working (WoW) document.
+
+  The output file must be written to: {{manifest_path}}/wow/ddd-read-model-wow.md
+
+  Note: Projections build read models from domain events; Read Models are the resulting query structures.
+  Both belong to the Infrastructure Layer.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-read-model-wow.md".
+
+  # Step 1: Assess the manifest
+
+  - `filter_and_count_rows` Layer = "Infrastructure Layer", Category = "Projection", excludeFilters Processed ✓
+  - `filter_and_count_rows` Layer = "Infrastructure Layer", Category = "Read model", excludeFilters Processed ✓
+  - If both 0, write note and stop. Record combined count.
+
+  # Step 2: Collect all relevant classes
+
+  Two `get_multiple_rows_by_multiple_columns` calls:
+  - filters = { "Layer": "Infrastructure Layer", "Category": "Projection" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Identifier", "Class", "File", "Possible outsider"]
+  - filters = { "Layer": "Infrastructure Layer", "Category": "Read model" }, excludeFilters = { "Processed": "✓" }, same selectColumns
+  Combine results. If empty, write note and stop.
+
+  # Step 3: Read source files
+
+  Paths: {{manifest_path}}/../<File value>. Batches of 6–8, full files.
+
+  ## Cross-cutting discovery
+  Query Infrastructure Layer non-Projection/ReadModel classes. Add to batch, record in AdjacentCollaborators.
+
+  ## Adjacent collaborator discovery
+  For domain events consumed, domain query interfaces, etc.: look up, read, record.
+
+  # Step 4: Identify patterns
+
+  ## Read Model Structure Patterns — denormalization, naming, field selection
+  ## Projection Building Patterns — event handlers, incremental/full rebuild
+  ## Query Patterns — repository query methods, indexed fields, Summary vs. Detail
+  ## Synchronization & Consistency Patterns — eventual consistency, replay, schema evolution
+  ## Event Selection Patterns — event subscriptions, filtering, versioning
+
+  Pattern IDs: RM-STR-XX, RM-BLD-XX, RM-QRY-XX, RM-SYC-XX, RM-EVL-XX
+  GOOD + BAD examples with generic names. Source + identifier.
+
+  # Step 5: Fill in the template
+
+  # Step 6: Write output
+
+  Write to {{manifest_path}}/wow/ddd-read-model-wow.md. Strip template instructions.

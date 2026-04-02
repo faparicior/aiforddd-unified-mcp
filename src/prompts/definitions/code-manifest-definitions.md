@@ -420,6 +420,15 @@ Ask these questions to classify:
 | **Idempotency** | Infrastructure/Application | Consumer/Handler | Event Consumers, API Handlers |
 | **Side Effects** | Domain/Infrastructure | Service/Repository | Services, Repositories |
 | **Transaction Management** | Infrastructure/Application | Service/Repository | Application Services |
+| **Event Handler (DDD)** | Application | Event handler class | Application services consuming domain/integration events |
+| **Factory (DDD)** | Domain | Factory/Builder class | Domain entities requiring complex instantiation |
+| **Specification (DDD)** | Domain | Specification/Criteria class | Domain services filtering or validating domain objects |
+| **Policy (DDD)** | Domain | Policy/Strategy class | Domain services with context-dependent business decisions |
+| **Saga (DDD)** | Domain/Application | Saga orchestrator | Distributed workflow coordinators across aggregates |
+| **Mapper (DDD)** | Infrastructure | Mapper class | Domain-to-DTO and DTO-to-domain transformations |
+| **Adapter (DDD)** | Infrastructure | Adapter/Wrapper class | External system adapters implementing domain interfaces |
+| **Projection (DDD)** | Infrastructure | Projection handler | CQRS read side builders consuming domain events |
+| **Read Model (DDD)** | Infrastructure | Read model class | CQRS query side optimized views |
 
 ---
 
@@ -2457,4 +2466,92 @@ class GetUserService(
 **Why NOT Transaction Management**: ❌ Simple read operation with no transaction coordination needed.
 
 ---
+
+## Common Classification Patterns by DDD Category
+
+### Value Objects
+- ✅ Invariants, Transformations, Factory/Creation
+- ❌ Identity Management (use structural equality), Side Effects
+
+### Entities
+- ✅ Invariants, Business Rules, Identity Management
+- Often: Lifecycle Management, Domain Events
+
+### Aggregates
+- ✅ All of Entity + Aggregate Consistency
+- Often: Domain Events, Lifecycle Management
+
+### Domain Services
+- ✅ Business Rules, External Dependencies
+- Sometimes: Side Effects, Transaction Management
+
+### Application Services / Use Cases
+- ✅ Business Rules, External Dependencies, Side Effects, Transaction Management
+- Sometimes: Error Handling
+
+### Event Handlers (Application)
+- ✅ Inbound communication, External Dependencies, Side Effects
+- Often: Event Mapping, Error Handling, Idempotency
+- ❌ Business Rules (delegate to use cases), Invariants
+
+### Event Consumers (Infrastructure / UI Layer)
+- ✅ Integration Rules, Event Mapping, External Dependencies, Inbound communication
+- Often: Error Handling, Idempotency, Side Effects, Outbound communication
+
+### Integration Events
+- ✅ Integration event
+- Sometimes: Transformations
+- ❌ Business Rules, Domain Events, Side Effects
+
+### Controllers
+- ✅ Inbound communication, Validation Rules
+- Sometimes: Business Rules, External Dependencies
+
+### Factories (Domain)
+- ✅ Factory/Creation, Business Rules
+- Sometimes: Invariants
+- ❌ Side Effects, External Dependencies, Inbound/Outbound communications
+
+### Specifications (Domain)
+- ✅ Business Rules
+- Sometimes: Transformations
+- ❌ Side Effects, External Dependencies, Lifecycle Management
+
+### Policies (Domain)
+- ✅ Business Rules
+- Sometimes: External Dependencies
+- ❌ Side Effects, Lifecycle Management, Inbound/Outbound communications
+
+### Sagas (Domain/Application)
+- ✅ External Dependencies, Transaction Management, Error Handling
+- Often: Side Effects, Business Rules
+- Sometimes: Outbound communication
+
+### Responses (UI or Application)
+- ✅ Transformations
+- Sometimes: Validation Rules
+- ❌ Business Rules, Domain Events, Side Effects
+
+### API Clients / Event Publishers
+- ✅ Outbound communication, External Dependencies, Side Effects
+- Sometimes: Transformations, Error Handling
+
+### Mappers (Infrastructure)
+- ✅ Validation Rules, Transformations
+- ❌ Business Rules, Domain Events, Inbound/Outbound communications
+
+### Adapters (Infrastructure)
+- ✅ Outbound communication, External Dependencies, Transformations, Error Handling
+- Often: Side Effects
+- ❌ Business Rules, Domain Events, Invariants
+
+### Projections (Infrastructure)
+- ✅ Event Mapping, Side Effects, External Dependencies
+- Often: Idempotency, Inbound communication, Transformations
+- ❌ Business Rules, Invariants
+
+### Read Models (Infrastructure)
+- ✅ Transformations
+- Sometimes: External Dependencies
+- ❌ Business Rules, Domain Events, Side Effects, Inbound communication
 

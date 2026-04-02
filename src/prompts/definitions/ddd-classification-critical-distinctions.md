@@ -564,3 +564,238 @@ Before finalizing, double-check these patterns:
 🟢 **Lower Priority** (less ambiguous):
 9. Identity Management (clear: Entity with ID)
 10. Factory/Creation (clear: has factory methods)
+
+---
+
+## New Category Distinctions (Extended Categories)
+
+### 11. ❌ Factory DDD category vs. entity-level factory method
+**WRONG**: Treating any class with a factory method as a Factory DDD category
+```kotlin
+// This is an ENTITY with a factory method — NOT a Factory DDD category
+class Order(val id: OrderId) {
+    companion object {
+        fun create(customerId: CustomerId) = Order(OrderId.generate())
+    }
+}
+// Includes factory method but Category = "Entity", not "Factory"
+```
+
+**RIGHT**: A Factory DDD category is a dedicated class whose sole responsibility is creating domain objects with complex rules
+```kotlin
+// This IS a Factory DDD category
+class OrderFactory(
+    private val pricingService: PricingService,
+    private val inventoryService: InventoryService
+) {
+    fun createFromCart(cart: Cart, customer: Customer): Order {
+        // Complex creation logic coordinating multiple domain rules
+        val pricing = pricingService.calculate(cart, customer)
+        val reservations = inventoryService.reserve(cart.items)
+        return Order(OrderId.generate(), customer.id, pricing, reservations)
+    }
+}
+// Category = "Factory", Classification: Business Rules ✓, Factory/Creation ✓
+```
+
+**Rule**: Factory category = **dedicated creation class** with complex domain rules, not just a factory method on an entity.
+
+---
+
+### 12. ❌ Specification vs. Domain Service vs. Business Rule column
+**WRONG**: Using a Domain Service for every filtering/validation need
+```kotlin
+// Overloaded domain service (should be extracted to Specification)
+class OrderEligibilityService {
+    fun isEligibleForDiscount(order: Order): Boolean {
+        return order.total >= DISCOUNT_THRESHOLD && !order.hasPromoCode()
+    }
+    // This filtering predicate is a Specification, not a Domain Service
+}
+```
+
+**RIGHT**: Specification encapsulates composable business rules for filtering/querying
+```kotlin
+// Specification DDD category
+class EligibleForDiscountSpecification {
+    fun isSatisfiedBy(order: Order): Boolean {
+        return order.total >= DISCOUNT_THRESHOLD && !order.hasPromoCode()
+    }
+}
+
+// Composable specifications
+val complexSpec = EligibleForDiscountSpecification()
+    .and(NotExpiredSpecification())
+    .and(ActiveCustomerSpecification())
+```
+
+**Rule**: Specification category = **composable predicate** encapsulating a business rule for filtering or validating domain objects.
+
+---
+
+### 13. ❌ Policy vs. Domain Service
+**WRONG**: Treating Policy as just another Domain Service
+```kotlin
+// Should be Policy, not Domain Service
+class ShippingCalculator {
+    fun calculate(order: Order, destination: Address): Money {
+        return if (order.isExpressDelivery) EXPRESS_RATE * order.weight
+               else STANDARD_RATE * order.weight
+        // Context-dependent decision with varying strategies
+    }
+}
+```
+
+**RIGHT**: Policy encapsulates a **replaceable business decision** using strategy/polymorphism
+```kotlin
+// Policy DDD category — strategy-based
+interface ShippingPolicy {
+    fun calculate(order: Order, destination: Address): Money
+}
+
+class ExpressShippingPolicy : ShippingPolicy { ... }
+class StandardShippingPolicy : ShippingPolicy { ... }
+class FreeShippingPolicy(private val threshold: Money) : ShippingPolicy { ... }
+```
+
+**Rule**: Policy category = **pluggable strategy** for a business decision that varies by context. Domain Service = logic that doesn't fit in an entity but isn't designed to be swapped.
+
+---
+
+### 14. ❌ Saga vs. Use Case (Application)
+**WRONG**: Labeling a long-running workflow handler as a simple Use Case
+```kotlin
+// This is a Saga, not just a Use Case
+class ProcessOrderService(
+    private val orderRepo: OrderRepository,
+    private val paymentService: PaymentService,
+    private val inventoryService: InventoryService,
+    private val compensationService: CompensationService
+) {
+    fun execute(command: ProcessOrderCommand) {
+        val order = orderRepo.create(command)
+        try {
+            inventoryService.reserve(order.items) // Step 1
+            paymentService.charge(order.total)    // Step 2
+            order.confirm()                        // Step 3
+        } catch (e: Exception) {
+            compensationService.rollback(order)    // Compensation!
+        }
+    }
+}
+```
+
+**RIGHT**: Sagas coordinate **distributed multi-step workflows** with compensating transactions
+```kotlin
+// Category = "Saga"
+// Classification: External Dependencies ✓, Transaction Management ✓, Error Handling ✓, Side Effects ✓
+```
+
+**Key Difference**:
+| Aspect | Use Case | Saga |
+|--------|----------|------|
+| **Scope** | Single bounded context | Multiple aggregates/services |
+| **Compensation** | Not needed | Required for rollback |
+| **Steps** | 1-3 operations | Multiple distributed steps |
+| **State** | Stateless | Tracks saga state |
+
+---
+
+### 15. ❌ Adapter vs. API Client vs. Gateway
+**WRONG**: Using all three terms interchangeably
+```kotlin
+// These are DIFFERENT categories:
+
+// API Client — translates domain calls into HTTP calls
+class PaymentApiClient(private val httpClient: HttpClient) {
+    fun charge(amount: Money): PaymentResult {
+        val response = httpClient.post("/charge", amount.toDto())
+        return PaymentResult.from(response)
+    }
+}
+// Category = "API client", Classification: Outbound communication ✓, External Dependencies ✓
+
+// Gateway — aggregates multiple APIs with anti-corruption logic
+class ShippingGateway(
+    private val fedexClient: FedexApiClient,
+    private val dhlClient: DhlApiClient
+) {
+    fun getBestRate(order: Order): ShippingQuote { ... }
+}
+// Category = "Gateway", Classification: Outbound communication ✓, Transformations ✓, External Dependencies ✓
+
+// Adapter — wraps non-HTTP external concern to match domain interface
+class SqlOrderRepositoryAdapter(private val jpaRepo: JpaOrderRepository) : OrderRepository {
+    override fun findById(id: OrderId) = jpaRepo.findById(id.value)?.toDomain()
+}
+// Category = "Adapter", Classification: External Dependencies ✓, Transformations ✓
+```
+
+**Rule**:
+- **API Client** = HTTP/REST caller for one external service
+- **Gateway** = aggregates or translates across multiple APIs
+- **Adapter** = wraps any external concern (DB, file, cache) to match a domain interface
+
+---
+
+### 16. ❌ Projection vs. Read model
+**WRONG**: Treating them as identical concepts
+```kotlin
+// PROJECTION — actively BUILDS the read model from events
+class OrderProjection {
+    @EventHandler
+    fun on(event: OrderPlacedEvent) {
+        val view = OrderReadModel(event.orderId, event.total, "PLACED")
+        readModelRepository.save(view)
+    }
+    // Category = "Projection", Classification: Event Mapping ✓, Inbound communication ✓, Side Effects ✓
+}
+
+// READ MODEL — the result data structure used for queries only
+class OrderReadModel(
+    val orderId: String,
+    val total: BigDecimal,
+    val status: String
+)
+// Category = "Read model", Classification: Transformations ✓
+```
+
+**Rule**:
+- **Projection** = the event handler that **writes** the read model
+- **Read model** = the data class or view that is **queried**
+
+---
+
+### 17. ❌ Event handler vs. Use Case (Application)
+**WRONG**: Treating event-driven entry points identically to command-driven use cases
+```kotlin
+// This is an Event Handler, not a Use Case
+class UserRegisteredEventHandler(
+    private val sendWelcomeEmail: SendWelcomeEmailUseCase
+) {
+    fun handle(event: UserRegisteredEvent) {
+        sendWelcomeEmail.execute(SendWelcomeEmailCommand(event.userId, event.email))
+    }
+}
+// Category = "Event handler"
+// Classification: Inbound communication ✓, External Dependencies ✓, Side Effects ✓, Event Mapping ✓
+```
+
+**RIGHT**: Use Cases respond to direct commands; Event Handlers respond to published events
+```kotlin
+// Use Case — triggered by a direct command from UI/API
+class RegisterUserUseCase(private val userRepo: UserRepository) {
+    fun execute(command: RegisterUserCommand): User { ... }
+}
+// Category = "Use case"
+// Classification: Business Rules ✓, External Dependencies ✓, Side Effects ✓
+```
+
+**Key Difference**:
+| Aspect | Use Case | Event Handler |
+|--------|----------|---------------|
+| **Triggered by** | Direct command from UI | Published event |
+| **Contains logic** | Business rules | Orchestration only |
+| **Idempotency** | Optional | Required |
+| **Returns** | Result to caller | Nothing (fire and forget) |
+

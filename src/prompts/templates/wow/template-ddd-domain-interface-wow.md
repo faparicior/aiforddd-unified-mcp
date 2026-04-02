@@ -1,4 +1,4 @@
-# 🎯 DDD Domain & Application Layer - {{PackageName}} Package Domain Interfaces (Generic Guidelines)
+# 🎯 DDD Domain Layer - {{PackageName}} Package Domain Interfaces (Generic Guidelines)
 
 > **Instructions**: Fill in each section below with patterns and examples found in the specific codebase. Use generic business concepts (Order, User, Product, etc.) instead of actual business logic from the codebase.
 
@@ -35,14 +35,14 @@
 
 **Domain Purpose:** {{DomainPurpose}}
 
-**Architecture Layer:** Domain Layer + Application Layer - Domain Interfaces (Ports)
+**Architecture Layer:** Domain Layer - Domain Interfaces (Ports)
 
 ---
 
 ## 🏗️ Architecture Position
 
 ```
-Domain/Application Layer (Clients) → Domain Interface (Port) ← Infrastructure Layer (Adapters)
+Domain Layer (Clients) → Domain Interface (Port) ← Infrastructure Layer (Adapters)
 ```
 
 The `{{PackageName}}` domain interfaces define the contracts that higher layers depend on, enabling dependency inversion and making the domain/application layers independent of infrastructure choices.
@@ -80,12 +80,6 @@ Examples:
 | {{Interface1}} | Domain Layer | {{Responsibility1}} | {{Implementations1}} |
 | {{Interface2}} | Domain Layer | {{Responsibility2}} | {{Implementations2}} |
 
-### Application Layer Interfaces
-
-| Interface | Layer | Responsibility | Implementations |
-|-----------|-------|----------------|-----------------|
-| {{Interface3}} | Application Layer | {{Responsibility3}} | {{Implementations3}} |
-| {{Interface4}} | Application Layer | {{Responsibility4}} | {{Implementations4}} |
 
 ---
 
@@ -161,7 +155,7 @@ Examples:
 
 ### Port Declaration Location
 - **Repository Ports**: {{RepositoryPortLocation}} (Domain Layer)
-- **External Service Ports**: {{ExternalServicePortLocation}} (Application Layer or Domain Layer)
+- **External Service Ports**: {{ExternalServicePortLocation}} (Domain Layer)
 - **Rationale**: {{DIPRationale}}
 
 ### Adapter Binding
@@ -194,14 +188,14 @@ Examples:
 
 ## 📍 Layer Placement Rules
 
-### Domain Layer vs. Application Layer Decision
+### Domain Layer Placement
 {{LayerPlacementDecisionRules}}
 
-| Interface Type | Correct Layer | Reason |
-|---------------|--------------|--------|
-| {{InterfaceType1}} | {{CorrectLayer1}} | {{Reason1}} |
-| {{InterfaceType2}} | {{CorrectLayer2}} | {{Reason2}} |
-| {{InterfaceType3}} | {{CorrectLayer3}} | {{Reason3}} |
+| Interface Type | Layer | Reason |
+|---------------|-------|-------|
+| {{InterfaceType1}} | Domain Layer | {{Reason1}} |
+| {{InterfaceType2}} | Domain Layer | {{Reason2}} |
+| {{InterfaceType3}} | Domain Layer | {{Reason3}} |
 
 ---
 
@@ -296,7 +290,7 @@ Examples:
 {{/PatternCategories}}
 
 ### Coverage Summary
-**Total Domain & Application Layer Domain Interfaces Analyzed**: {{TotalInterfaceCount}}
+**Total Domain Layer Domain Interfaces Analyzed**: {{TotalInterfaceCount}}
 {{#CoverageByCategory}}
 - **{{CategoryName}}**: {{InterfaceCount}} domain interfaces ({{CoveragePercentage}}% coverage)
 {{/CoverageByCategory}}
@@ -337,7 +331,7 @@ Examples:
 - `{{ExternalServicePortLocation}}` - Which layer owns external service ports
 - `{{AdapterBindingMechanism}}` - How adapters are bound to ports
 - `{{SegregationStrategyDescription}}` - How interfaces are split by responsibility
-- `{{LayerPlacementDecisionRules}}` - Rules for Domain vs. Application layer placement
+- `{{LayerPlacementDecisionRules}}` - Rules for Domain Layer port placement
 
 ### Coverage Summary Variables
 - `{{TotalInterfaceCount}}` - Total number of domain interfaces analyzed
