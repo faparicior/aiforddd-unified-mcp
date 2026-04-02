@@ -339,6 +339,9 @@ The `{{PackageName}}` integration services provide the glue between raw infrastr
 {{#AnalyzedFiles}}
 - [{{ClassIndexIdentifier}}] {{FileName}} ✓
 {{/AnalyzedFiles}}
+{{#AdjacentCollaborators}}
+- [{{ClassIndexIdentifier}}] {{FileName}} _(adjacent collaborator)_
+{{/AdjacentCollaborators}}
 
 ---
 

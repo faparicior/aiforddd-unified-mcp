@@ -333,6 +333,9 @@ The `{{PackageName}}` configuration classes wire the hexagonal architecture toge
 {{#AnalyzedFiles}}
 - [{{ClassIndexIdentifier}}] {{FileName}} ✓
 {{/AnalyzedFiles}}
+{{#AdjacentCollaborators}}
+- [{{ClassIndexIdentifier}}] {{FileName}} _(adjacent collaborator)_
+{{/AdjacentCollaborators}}
 
 ---
 

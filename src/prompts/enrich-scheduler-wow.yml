@@ -77,7 +77,8 @@ messages: |
   For each class returned:
   1. Construct the absolute path as: {{manifest_path}}/../<File value>
   2. Add it to the reading batch alongside the scheduler files.
-  3. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  3. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
   Do NOT mark these classes as processed — they will be covered by their own WoW document.
 
   If the call returns nothing, continue — the absence is itself informative.
@@ -103,7 +104,8 @@ messages: |
   3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
   4. Call `read_multiple_files_compressed` on that path to read the file.
   5. Include its patterns in the analysis as if it were part of the batch.
-  6. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  6. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
   Do NOT mark these classes as processed — they will be covered by their own WoW document.
 
   # Step 3: Identify new patterns
@@ -170,18 +172,12 @@ messages: |
   Each edit should target a small, specific section. Make multiple edit calls rather than one
   large change. Never write the full document content in a single tool call.
 
-  # Step 5: Mark classes as processed
-
-  For every Scheduler class from the JSON array in Step 1, call `update_row_by_column` using
-  the Identifier value to mark the Processed column with ✓. Process all classes — do not skip any.
-  Do NOT mark cross-cutting classes or adjacent collaborator classes discovered in Step 2.
-
-  # Step 6: Verify the result
+  # Step 5: Verify the result
 
   - Read {{manifest_path}}/wow/{{output_file}} to verify all edits were applied correctly
   - The document must remain complete and valid after the edits
 
-  # Step 7: Quality review and cleanup
+  # Step 6: Quality review and cleanup
 
   Re-read the full document and apply the following cleanup as targeted edits:
 

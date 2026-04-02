@@ -243,7 +243,10 @@ Examples:
 **Key Files Analyzed**:
 {{#AnalyzedFiles}}
 - [{{ClassIndexIdentifier}}] {{FileName}} ✓
-  {{/AnalyzedFiles}}
+{{/AnalyzedFiles}}
+{{#AdjacentCollaborators}}
+- [{{ClassIndexIdentifier}}] {{FileName}} _(adjacent collaborator)_
+{{/AdjacentCollaborators}}
 
 ---
 

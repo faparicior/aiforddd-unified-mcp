@@ -75,7 +75,8 @@ messages: |
   For each class returned:
   1. Construct the absolute path as: {{manifest_path}}/../<File value>
   2. Add it to the reading batch alongside the producer files.
-  3. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  3. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
   Do NOT mark these classes as processed — they will be covered by their own WoW document.
 
   If the call returns nothing, continue — the absence of such classes is itself informative.
@@ -101,7 +102,8 @@ messages: |
   3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
   4. Call `read_multiple_files_compressed` on that path to read the file.
   5. Include its patterns in the analysis as if it were part of the batch.
-  6. Record its Identifier and file path in the Pattern Index and Coverage Summary.
+  6. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
   Do NOT mark these classes as processed — they will be covered by their own WoW document.
 
   # Step 3: Identify patterns
@@ -166,14 +168,7 @@ messages: |
   Strip everything from "Template Variables Reference" onward — the final file must contain
   no template instructions.
 
-  # Step 5: Mark classes as processed
-
-  For every Event Producer class from the JSON array in Step 1, call `update_row_by_column` using
-  the Identifier value to mark the Processed column with ✓. Process all classes — do not skip any.
-  Do NOT mark adjacent collaborator classes or cross-cutting classes discovered in Step 2 —
-  those will be processed by their own dedicated WoW document.
-
-  # Step 6: Verify
+  # Step 5: Verify
 
   Read {{manifest_path}}/wow/{{output_file}} and confirm:
   - The document is complete and valid.

@@ -359,6 +359,9 @@ Examples:
 {{#AnalyzedFiles}}
 - [{{ClassIndexIdentifier}}] {{FileName}} ✓
 {{/AnalyzedFiles}}
+{{#AdjacentCollaborators}}
+- [{{ClassIndexIdentifier}}] {{FileName}} _(adjacent collaborator)_
+{{/AdjacentCollaborators}}
 
 ---
 
