@@ -51,8 +51,13 @@ export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; ini
     'domain-exception':    { prompt: 'create-domain-exception-wow',    outputFile: 'ddd-domain-exception-wow.md',    initialPrompt: 'create-domain-exception-initial-wow',    enrichPrompt: 'enrich-domain-exception-wow' },
     'integration-event':   { prompt: 'create-integration-event-wow',   outputFile: 'ddd-integration-event-wow.md',   initialPrompt: 'create-integration-event-initial-wow',   enrichPrompt: 'enrich-integration-event-wow' },
     'integration-service': { prompt: 'create-integration-service-wow', outputFile: 'ddd-integration-service-wow.md', initialPrompt: 'create-integration-service-initial-wow', enrichPrompt: 'enrich-integration-service-wow' },
-    'configuration':       { prompt: 'create-configuration-wow',       outputFile: 'ddd-configuration-wow.md',       initialPrompt: 'create-configuration-initial-wow',       enrichPrompt: 'enrich-configuration-wow' },
-    'response':            { prompt: 'create-response-wow',            outputFile: 'ddd-response-wow.md',            initialPrompt: 'create-response-initial-wow',            enrichPrompt: 'enrich-response-wow' },
+    'configuration':          { prompt: 'create-configuration-wow',           outputFile: 'ddd-configuration-wow.md',           initialPrompt: 'create-configuration-initial-wow',           enrichPrompt: 'enrich-configuration-wow' },
+    'response':               { prompt: 'create-response-wow',                outputFile: 'ddd-response-wow.md',                initialPrompt: 'create-response-initial-wow',                enrichPrompt: 'enrich-response-wow' },
+    'console-command':        { prompt: 'create-console-command-wow',          outputFile: 'ddd-console-command-wow.md',          initialPrompt: 'create-console-command-initial-wow',          enrichPrompt: 'enrich-console-command-wow' },
+    'domain-service':         { prompt: 'create-domain-service-wow',           outputFile: 'ddd-domain-service-wow.md',           initialPrompt: 'create-domain-service-initial-wow',           enrichPrompt: 'enrich-domain-service-wow' },
+    'domain-event':           { prompt: 'create-domain-event-wow',             outputFile: 'ddd-domain-event-wow.md',             initialPrompt: 'create-domain-event-initial-wow',             enrichPrompt: 'enrich-domain-event-wow' },
+    'domain-interface':       { prompt: 'create-domain-interface-wow',         outputFile: 'ddd-domain-interface-wow.md',         initialPrompt: 'create-domain-interface-initial-wow',         enrichPrompt: 'enrich-domain-interface-wow' },
+    'infrastructure-exception': { prompt: 'create-infrastructure-exception-wow', outputFile: 'ddd-infrastructure-exception-wow.md', initialPrompt: 'create-infrastructure-exception-initial-wow', enrichPrompt: 'enrich-infrastructure-exception-wow' },
 }
 
 export type WowTypeFilter = { column: string; value: string; layer: string }
@@ -83,7 +88,10 @@ export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
         { column: 'Category', value: 'Enum',              layer: 'Domain Layer' },
         { column: 'Category', value: 'Domain primitive',  layer: 'Domain Layer' },
     ],
-    'entity':              [{ column: 'Category', value: 'Entity',              layer: 'Domain Layer' }],
+    'entity':              [
+        { column: 'Category', value: 'Entity',         layer: 'Domain Layer' },
+        { column: 'Category', value: 'Aggregate root', layer: 'Domain Layer' },
+    ],
     'domain-exception':    [
         { column: 'Category', value: 'Domain exception', layer: 'Domain Layer' },
         { column: 'Category', value: 'Domain exception', layer: 'Application Layer' },
@@ -91,10 +99,18 @@ export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
     'integration-event':   [{ column: 'Category', value: 'Integration event',   layer: 'Infrastructure Layer' }],
     'integration-service': [{ column: 'Category', value: 'Integration service', layer: 'Infrastructure Layer' }],
     'configuration':       [{ column: 'Category', value: 'Configuration',       layer: 'Infrastructure Layer' }],
-    'response':            [
+    'response':                [
         { column: 'Category', value: 'Response', layer: 'User Interface Layer' },
         { column: 'Category', value: 'Response', layer: 'Application Layer' },
     ],
+    'console-command':        [{ column: 'Category', value: 'Console command',        layer: 'User Interface Layer' }],
+    'domain-service':         [{ column: 'Category', value: 'Domain service',          layer: 'Domain Layer' }],
+    'domain-event':           [{ column: 'Category', value: 'Domain event',            layer: 'Domain Layer' }],
+    'domain-interface':       [
+        { column: 'Category', value: 'Domain interface', layer: 'Domain Layer' },
+        { column: 'Category', value: 'Domain interface', layer: 'Application Layer' },
+    ],
+    'infrastructure-exception': [{ column: 'Category', value: 'Infrastructure exception', layer: 'Infrastructure Layer' }],
 }
 
 const VALID_TYPES = Object.keys(WOW_TYPES).join(', ')

@@ -1,0 +1,174 @@
+name: create-console-command-initial-wow
+description: >
+  Generate the first Console Command WoW document from an initial chunk of source files
+  pre-selected by the CLI. The CLI provides the file list as files_json so this
+  prompt never queries the manifest for primary Console Command classes.
+  Adjacent collaborators and cross-cutting classes are still discovered reactively.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: total_files
+    required: true
+  - name: chunk_total
+    required: true
+  - name: files_json
+    required: true
+messages: |
+  You are to analyze the first batch of Console Command source files and produce a
+  DDD UI Layer - Console Commands Way of Working (WoW) document.
+
+  This is chunk 1 of {{chunk_total}} total chunks. If {{chunk_total}} > 1, subsequent
+  chunks will enrich this document with additional patterns — do NOT wait for them.
+  Write a complete, useful document now using only the files in this chunk plus any
+  adjacent collaborators you discover while reading them.
+
+  Total Console Command files across all chunks: {{total_files}}
+  Document path: {{manifest_path}}/wow/{{output_file}}
+
+  Note: For other UI layer concerns use the dedicated prompts:
+  - REST controllers → create-controller-wow
+  - Scheduled jobs → create-scheduler-wow
+  - Event consumers → create-event-consumer-wow
+
+  Follow these steps precisely.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-console-command-wow.md".
+  Keep it in context — it provides the schema, pattern ID conventions, and variable
+  definitions. You will fill every variable in it during Step 4.
+
+  # Step 1: Review this chunk's Console Command classes
+
+  The following Console Command classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
+
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+
+  If the array is empty, write the output file with a note that no Console Command classes
+  were found, and stop.
+
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "✓".
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+  (manifest_path points to .aiforddd; source files are relative to the repo root above it)
+
+  ## Proactive cross-cutting discovery
+  Before reading any console command file, query the manifest for classes in the
+  User Interface Layer that are NOT Console Commands and have not been processed.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "User Interface Layer" },
+    excludeFilters = { "Category": "Console command", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the console command files.
+  3. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence of such classes is itself informative.
+
+  Process all files (console commands from Step 1 + cross-cutting classes) in batches of 6–8 per
+  `read_multiple_files_compressed` call.
+  Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Adjacent collaborator discovery
+  While reading each console command file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the command's behaviour — for example:
+  - A use case the command delegates to
+  - An input validator or argument parser
+  - A progress reporter or output formatter
+  - A base class or interface the command implements
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row,
+     including its `File` path and `Identifier`.
+  2. If not found in the manifest, skip — do not search the filesystem directly.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis as if it were part of the batch.
+  6. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  # Step 3: Identify patterns
+
+  Analyze each console command class and extract reusable patterns. Focus on:
+
+  ## Command Definition Patterns
+  Focus on: Command name and description registration, argument/option declaration,
+  required vs. optional arguments, default values, type coercion.
+
+  ## Input Validation Patterns
+  Focus on: Argument validation before execution, error output for invalid input,
+  early exit strategy, validation rule co-location.
+
+  ## Execution & Delegation Patterns
+  Focus on: How the command delegates to application layer use cases, transaction boundaries,
+  mapping CLI arguments to application commands/queries, exit code conventions.
+
+  ## Output & Feedback Patterns
+  Focus on: Progress output for long-running commands, structured vs. human-readable output,
+  verbosity flags, writing to stdout vs. stderr.
+
+  ## Error Handling Patterns
+  Focus on: Exception-to-exit-code mapping, user-friendly error messages, debug mode output,
+  handling domain exceptions vs. infrastructure failures.
+
+  For each pattern found:
+  - Assign a unique pattern ID following the format:
+    - `CMD-DEF-XX` for command definition and registration patterns
+    - `CMD-VAL-XX` for input validation patterns
+    - `CMD-EXE-XX` for execution and delegation patterns
+    - `CMD-OUT-XX` for output and feedback patterns
+    - `CMD-ERR-XX` for error handling patterns
+  - Write a descriptive pattern name capturing the architectural intent
+  - Extract a GOOD code example from the source file — copy the structure and logic exactly, but IMMEDIATELY replace every domain-specific class name, method name, field name, enum value, and identifier with a generic equivalent (Order, User, Product, Payment, Item, Customer). NO real names from the codebase may appear in the example.
+  - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
+  - Record the source file name and Identifier from the manifest
+  - For classes flagged as "Possible outsider" (✓), document why the class may not belong in its
+    current layer and include it as an anti-pattern entry
+
+  # Step 4: Write the document
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the analysis.
+  Follow the template's own "Usage Instructions" and "Template Variables Reference" sections
+  exactly — they are authoritative for what each section expects.
+
+  Use the generic code produced in Step 3 directly — all names are already generic. Preserve
+  the structure and logic exactly as-is.
+  Anti-patterns for "Possible outsider" entries come from the manifest's Possible outsider column (✓).
+
+  For the Coverage Summary: use {{total_files}} as the total class count.
+  For classes analyzed in this chunk: show the actual count from the parsed JSON array.
+
+  If {{chunk_total}} > 1, add this note at the very end of the document (before any appendix):
+
+  > **Note**: This document was generated from chunk 1/{{chunk_total}} of the codebase.
+  > It will be enriched with additional patterns from the remaining chunks.
+
+  Write the completed document to {{manifest_path}}/wow/{{output_file}}.
+  Strip everything from "Template Variables Reference" onward — the final file must contain
+  no template instructions.
+
+  # Step 5: Verify
+
+  Read {{manifest_path}}/wow/{{output_file}} and confirm:
+  - The document is complete and valid.
+  - All patterns are in the correct sections.
+  - No template instructions remain in the file.
