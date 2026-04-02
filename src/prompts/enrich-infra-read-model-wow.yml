@@ -1,0 +1,56 @@
+name: enrich-infra-read-model-wow
+description: >
+  Enrich an existing Read Model / Projection WoW document with additional patterns from a new
+  chunk of source files pre-selected by the CLI.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: files_json
+    required: true
+  - name: chunk_number
+    required: true
+  - name: chunk_total
+    required: true
+messages: |
+  You are to enrich an existing DDD Infrastructure Layer - Read Models & Projections WoW
+  document with additional patterns discovered from a new chunk of source files.
+
+  This is chunk {{chunk_number}} of {{chunk_total}}.
+  Existing document: {{manifest_path}}/wow/{{output_file}}
+
+  # Step 0: Read the existing document
+
+  Call `read_file` with path {{manifest_path}}/wow/{{output_file}}.
+  Also call `get_template_content` with templatePath "wow/template-ddd-infra-read-model-wow.md".
+
+  Scan to determine used IDs: RM-STR-XX, RM-BLD-XX, RM-QRY-XX, RM-SYC-XX, RM-EVL-XX
+
+  # Step 1: Review this chunk
+
+  Parse JSON array: {{files_json}}. If empty, stop.
+
+  # Step 2: Read source files
+
+  Paths: {{manifest_path}}/../<File value>
+
+  Query Infrastructure Layer non-Projection/ReadModel classes. Add to batch, record in AdjacentCollaborators.
+  Process in batches of 6–8. For referenced classes not in batch: look up, read, record.
+
+  # Step 3: Identify new patterns
+
+  Focus on: read model structure, projection building, query patterns, consistency, event selection.
+  Continue IDs: RM-STR-XX, RM-BLD-XX, RM-QRY-XX, RM-SYC-XX, RM-EVL-XX
+  Generic names only.
+
+  # Step 4: Targeted edits only
+
+  1. Insert new patterns.
+  2. Append Pattern Index rows.
+  3. Update counts.
+  4. Update files list.
+
+  # Step 5: Verify and cleanup
+
+  Merge duplicates, complete examples, remove answered questions.

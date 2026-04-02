@@ -1,0 +1,198 @@
+name: enrich-infra-integration-event-wow
+description: >
+  Enrich an existing Integration Event WoW document with additional patterns from a new
+  chunk of Integration Event source files pre-selected by the CLI. The CLI provides the
+  file list as files_json so this prompt never queries the manifest for primary
+  Integration Event classes. Adjacent collaborators and cross-cutting classes are still
+  discovered reactively.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: files_json
+    required: true
+  - name: chunk_number
+    required: true
+  - name: chunk_total
+    required: true
+messages: |
+  You are to enrich an existing DDD Infrastructure Layer - Integration Events Way of Working (WoW)
+  document with additional patterns discovered from a new chunk of Integration Event source files.
+
+  This is chunk {{chunk_number}} of {{chunk_total}}.
+  Existing document: {{manifest_path}}/wow/{{output_file}}
+
+  Note: For event consumers (classes that process events) use create-event-consumer-wow.
+  For event producers (classes that publish events) use create-event-producer-wow.
+  This prompt focuses on the Integration Event DTO classes themselves.
+
+  Follow these steps precisely.
+
+  # Step 0: Read the existing document
+
+  Call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
+  Keep it fully in context — you will update it in Step 4.
+
+  Also call `get_template_content` with templatePath "wow/template-ddd-infra-integration-event-wow.md".
+  Keep it in context — it provides the pattern ID conventions and section structure.
+
+  Scan the existing document to determine:
+  - Which pattern IDs are already used (IEV-ENV-XX, IEV-PLD-XX, IEV-NST-XX, IEV-DSR-XX, IEV-MAP-XX)
+  - Which source file identifiers have already been documented in the Pattern Index
+  - The current coverage count numbers
+
+  # Step 1: Review this chunk's Integration Event classes
+
+  The following Integration Event classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
+
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+
+  If the array is empty, stop without modifying the document.
+
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "✓".
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+  (manifest_path points to .aiforddd; source files are relative to the repo root above it)
+
+  ## Proactive cross-cutting discovery
+  Before reading any integration event file, query the manifest for classes in the Infrastructure
+  Layer that are NOT Integration Events and have not been processed — these may be event consumers
+  or producers that use these DTOs, providing context for how the events are used.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Infrastructure Layer" },
+    excludeFilters = { "Category": "Integration event", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the integration event files.
+  3. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence is itself informative.
+
+  Process all files (integration events from Step 1 + cross-cutting classes) in batches of 6–8 per
+  `read_multiple_files_compressed` call.
+  Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Adjacent collaborator discovery
+  While reading each source file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the event's structure — for example:
+  - An event consumer that deserializes this event
+  - A domain command this event maps to (via toCommand() methods)
+  - A base event envelope class
+  - A nested DTO or payload class in a separate file
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row,
+     including its `File` path and `Identifier`.
+  2. If not found in the manifest, skip — do not search the filesystem directly.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis as if it were part of the batch.
+  6. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  # Step 3: Identify new patterns
+
+  For each file, identify patterns that are NOT already documented in the existing document.
+  Focus on:
+
+  ## Event Envelope Patterns
+  Focus on: Top-level event wrapper structure (id, type, version, published, actor, provider),
+  how metadata fields are defined, generic vs. typed envelopes, envelope reuse across event types.
+
+  ## Event Payload Patterns
+  Focus on: How typed payload/DTO classes are structured, field naming conventions,
+  use of primitives vs. domain types, nullable vs. required fields.
+
+  ## Nested Object Patterns
+  Focus on: How complex events decompose into nested DTO classes, naming conventions for nested
+  types, co-location in the same file vs. separate files.
+
+  ## Deserialization Annotation Patterns
+  Focus on: Deserialization annotations or decorators, schema binding annotations, dynamic
+  property handling, version tolerance patterns.
+
+  ## Domain Mapping Patterns
+  Focus on: How integration event DTOs provide mapping methods (e.g. toCommand(), toDomainModel()),
+  the anti-corruption boundary between external event shape and domain model,
+  validation at mapping time (null checks, format parsing).
+
+  IMPORTANT — integration event scope boundary:
+  The integration event WoW covers only event DTO design: envelope structure, payload structure,
+  nested objects, deserialization, and domain mapping.
+  Event consumer mechanics (listener binding, acknowledgment) belong in the Event Consumer WoW.
+  Event producer mechanics (serialization, topic routing) belong in the Event Producer WoW.
+  Add a cross-reference note when encountering out-of-scope patterns.
+
+  For each pattern found:
+  - Assign a unique pattern ID continuing from the highest existing number in each category:
+    - `IEV-ENV-XX` for event envelope and metadata patterns
+    - `IEV-PLD-XX` for payload and DTO structure patterns
+    - `IEV-NST-XX` for nested object decomposition patterns
+    - `IEV-DSR-XX` for deserialization annotation patterns
+    - `IEV-MAP-XX` for domain mapping and anti-corruption patterns
+  - Granularity rule: each distinct technique or concern deserves its own pattern entry.
+  - Only document patterns NOT already present in the existing document.
+  - Variations of existing patterns may be added as sub-notes, not new entries.
+  - Write a descriptive pattern name capturing the architectural intent.
+  - Extract a GOOD code example — copy the structure and logic exactly, but IMMEDIATELY replace
+    every domain-specific name with a generic equivalent (Order, User, Product, Payment, Item, Customer).
+    NO real names from the codebase may appear in the example.
+  - Derive an anti-pattern (BAD) counterexample.
+  - Record the source file name and Identifier from the manifest.
+  - For "Possible outsider" (✓) entries, document why the class may not belong in its current layer.
+
+  # Step 4: Update the document with targeted edits
+
+  CRITICAL: Do NOT rewrite the entire file in a single operation. Apply a series of small, targeted
+  edits — each modifying only the specific section that needs to change.
+
+  Apply changes as a series of targeted edit operations on {{manifest_path}}/wow/{{output_file}}:
+  1. For each new pattern entry: insert it after the last existing pattern in its section.
+  2. For the Pattern Index table: append new rows before the table's closing.
+  3. For Coverage Summary: update the analyzed count to include these new files.
+  4. Update the "Key Files Analyzed" list to include newly analyzed files.
+
+  Each edit should target a small, specific section. Make multiple edit calls rather than one
+  large change. Never write the full document content in a single tool call.
+
+  # Step 5: Verify the result
+
+  - Read {{manifest_path}}/wow/{{output_file}} to verify all edits were applied correctly
+  - The document must remain complete and valid after the edits
+
+  # Step 6: Quality review and cleanup
+
+  Re-read the full document and apply the following cleanup as targeted edits:
+
+  **Duplicate pattern detection**: If two or more patterns describe the same concept, merge
+  them into the richer one and remove the weaker entry. Update all Pattern Index references.
+
+  **Pattern completeness**: For any pattern missing a ✅ GOOD code example, a ❌ BAD
+  counter-example, or a "Why it's bad" explanation, add the missing piece.
+
+  **Open questions cleanup**: For each item in the "❓ Open Questions" section, check whether
+  any source file read during this session already answers it. Remove answered questions and
+  add the answer in the relevant section.
+
+  **Dangling references**: If any pattern entry references a file identifier not listed in
+  the Pattern Index table, add the missing row.
+
+  Apply all cleanup as targeted edits — never rewrite the full document.

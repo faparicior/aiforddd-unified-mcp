@@ -1,0 +1,104 @@
+name: create-infra-mapper-initial-wow
+description: >
+  Generate the first Mapper WoW document from an initial chunk of source files
+  pre-selected by the CLI.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: total_files
+    required: true
+  - name: chunk_total
+    required: true
+  - name: files_json
+    required: true
+messages: |
+  You are to analyze the first batch of Mapper source files and produce a
+  DDD Infrastructure Layer - Mappers Way of Working (WoW) document.
+
+  This is chunk 1 of {{chunk_total}} total chunks. If {{chunk_total}} > 1, subsequent
+  chunks will enrich this document with additional patterns — do NOT wait for them.
+
+  Total Mapper files across all chunks: {{total_files}}
+  Document path: {{manifest_path}}/wow/{{output_file}}
+
+  Note: Mappers transform data between domain objects and external representations (DTOs,
+  database entities, API models). They belong to the Infrastructure Layer and must not contain
+  business rules — only format validation and structural transformation.
+
+  Follow these steps precisely.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-infra-mapper-wow.md".
+
+  # Step 1: Review this chunk's Mapper classes
+
+  The following Mapper classes have been pre-selected (JSON array): {{files_json}}
+
+  Parse this JSON array. Each object: File, Identifier, Category, Layer, Possible outsider.
+  If empty, write a note and stop.
+
+  # Step 2: Read source files
+
+  Construct absolute paths as: {{manifest_path}}/../<File value>
+
+  ## Proactive cross-cutting discovery
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Infrastructure Layer" },
+    excludeFilters = { "Category": "Mapper", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  Add each returned class to the reading batch. Record in AdjacentCollaborators.
+  Do NOT mark as processed.
+
+  Process in batches of 6–8 per `read_multiple_files_compressed`. Read ENTIRE files.
+
+  ## Adjacent collaborator discovery
+  For each referenced class not in the batch (domain entities, DTOs, requests mapped):
+  1. Call `get_first_row_by_column` col "Class".
+  2. If not found, skip.
+  3. Read and include.
+  4. Record in AdjacentCollaborators.
+
+  # Step 3: Identify patterns
+
+  ## Domain Object Mapping Patterns
+  Focus on: How domain entities/value objects are mapped to/from DTOs, null handling,
+  mapping direction conventions (toDomain, toDto, toEntity, toResponse).
+
+  ## Persistence Mapping Patterns
+  Focus on: Domain-to-JPA/JDBC entity mapping, handling of embedded value objects,
+  collection mapping, identity type conversion.
+
+  ## Null & Optional Handling Patterns
+  Focus on: Null safety in mappings, Optional wrapping/unwrapping, nullable field fallbacks.
+
+  ## Complex & Nested Mapping Patterns
+  Focus on: Nested object mapping, collection mapping, polymorphic mapping,
+  mapping with multiple source objects.
+
+  ## Type Conversion Patterns
+  Focus on: Primitive-to-domain-type conversions (String→OrderId), enum conversions,
+  date/time format conversions, money/currency mappings.
+
+  For each pattern:
+  - IDs: MAP-DOM-XX, MAP-PRS-XX, MAP-NUL-XX, MAP-CMX-XX, MAP-TYP-XX
+  - Descriptive name, GOOD + BAD examples with generic names, source file + identifier
+  - "Possible outsider" as anti-pattern if applicable
+
+  # Step 4: Write the document
+
+  Fill every `{{Variable}}` in the template.
+  Use {{total_files}} as total class count.
+
+  If {{chunk_total}} > 1:
+  > **Note**: This document was generated from chunk 1/{{chunk_total}}. It will be enriched.
+
+  Write to {{manifest_path}}/wow/{{output_file}}.
+  Strip everything from "Template Variables Reference" onward.
+
+  # Step 5: Verify
+
+  Confirm document is complete, patterns in correct sections, no template instructions remain.

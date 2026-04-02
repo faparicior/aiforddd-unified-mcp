@@ -1,0 +1,61 @@
+name: enrich-infra-adapter-wow
+description: >
+  Enrich an existing Adapter WoW document with additional patterns from a new
+  chunk of Adapter source files pre-selected by the CLI.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: files_json
+    required: true
+  - name: chunk_number
+    required: true
+  - name: chunk_total
+    required: true
+messages: |
+  You are to enrich an existing DDD Infrastructure Layer - Adapters Way of Working (WoW)
+  document with additional patterns discovered from a new chunk of Adapter source files.
+
+  This is chunk {{chunk_number}} of {{chunk_total}}.
+  Existing document: {{manifest_path}}/wow/{{output_file}}
+
+  # Step 0: Read the existing document
+
+  Call `read_file` with path {{manifest_path}}/wow/{{output_file}}.
+  Also call `get_template_content` with templatePath "wow/template-ddd-infra-adapter-wow.md".
+
+  Scan to determine used IDs: ADT-WRP-XX, ADT-TRN-XX, ADT-ERR-XX, ADT-PRT-XX, ADT-TST-XX
+
+  # Step 1: Review this chunk
+
+  Parse JSON array: {{files_json}}. If empty, stop.
+
+  # Step 2: Read source files
+
+  Paths: {{manifest_path}}/../<File value>
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Infrastructure Layer" },
+    excludeFilters = { "Category": "Adapter", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  Add to batch, record in AdjacentCollaborators. Batches of 6–8.
+  For referenced classes not in batch: look up, read, record, do not mark.
+
+  # Step 3: Identify new patterns
+
+  Focus on: wrapper design, translation, error mapping, port implementation, testing.
+  Continue IDs: ADT-WRP-XX, ADT-TRN-XX, ADT-ERR-XX, ADT-PRT-XX, ADT-TST-XX
+  Generic names only.
+
+  # Step 4: Targeted edits only
+
+  1. Insert new patterns in sections.
+  2. Append Pattern Index rows.
+  3. Update Coverage Summary counts.
+  4. Update files list.
+
+  # Step 5: Verify and cleanup
+
+  Merge duplicates, complete examples, remove answered questions.

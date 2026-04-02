@@ -39,94 +39,100 @@ function getUnprocessedRows(manifestFile: string, filters: WowTypeFilter[]): Rec
 }
 
 export const WOW_TYPES: Record<string, { prompt: string; outputFile: string; initialPrompt?: string; enrichPrompt?: string }> = {
-    'controller':          { prompt: 'create-controller-wow',          outputFile: 'ddd-controller-wow.md',          initialPrompt: 'create-controller-initial-wow',          enrichPrompt: 'enrich-controller-wow' },
-    'event-consumer':      { prompt: 'create-event-consumer-wow',      outputFile: 'ddd-event-consumer-wow.md',      initialPrompt: 'create-event-consumer-initial-wow',      enrichPrompt: 'enrich-event-consumer-wow' },
-    'scheduler':           { prompt: 'create-scheduler-wow',           outputFile: 'ddd-scheduler-wow.md',           initialPrompt: 'create-scheduler-initial-wow',           enrichPrompt: 'enrich-scheduler-wow' },
-    'repository':          { prompt: 'create-repository-wow',          outputFile: 'ddd-repository-wow.md',          initialPrompt: 'create-repository-initial-wow',          enrichPrompt: 'enrich-repository-wow' },
-    'event-producer':      { prompt: 'create-event-producer-wow',      outputFile: 'ddd-event-producer-wow.md',      initialPrompt: 'create-event-producer-initial-wow',      enrichPrompt: 'enrich-event-producer-wow' },
-    'api-client':          { prompt: 'create-api-client-wow',          outputFile: 'ddd-api-client-wow.md',          initialPrompt: 'create-api-client-initial-wow',          enrichPrompt: 'enrich-api-client-wow' },
-    'use-case':            { prompt: 'create-use-case-wow',            outputFile: 'ddd-use-case-wow.md',            initialPrompt: 'create-use-case-initial-wow',            enrichPrompt: 'enrich-use-case-wow' },
-    'value-object':        { prompt: 'create-value-object-wow',        outputFile: 'ddd-value-object-wow.md',        initialPrompt: 'create-value-object-initial-wow',        enrichPrompt: 'enrich-value-object-wow' },
-    'entity':              { prompt: 'create-entity-wow',              outputFile: 'ddd-entity-wow.md',              initialPrompt: 'create-entity-initial-wow',              enrichPrompt: 'enrich-entity-wow' },
-    'domain-exception':    { prompt: 'create-domain-exception-wow',    outputFile: 'ddd-domain-exception-wow.md',    initialPrompt: 'create-domain-exception-initial-wow',    enrichPrompt: 'enrich-domain-exception-wow' },
-    'integration-event':   { prompt: 'create-integration-event-wow',   outputFile: 'ddd-integration-event-wow.md',   initialPrompt: 'create-integration-event-initial-wow',   enrichPrompt: 'enrich-integration-event-wow' },
-    'integration-service': { prompt: 'create-integration-service-wow', outputFile: 'ddd-integration-service-wow.md', initialPrompt: 'create-integration-service-initial-wow', enrichPrompt: 'enrich-integration-service-wow' },
-    'configuration':          { prompt: 'create-configuration-wow',           outputFile: 'ddd-configuration-wow.md',           initialPrompt: 'create-configuration-initial-wow',           enrichPrompt: 'enrich-configuration-wow' },
-    'response':               { prompt: 'create-response-wow',                outputFile: 'ddd-response-wow.md',                initialPrompt: 'create-response-initial-wow',                enrichPrompt: 'enrich-response-wow' },
-    'console-command':        { prompt: 'create-console-command-wow',          outputFile: 'ddd-console-command-wow.md',          initialPrompt: 'create-console-command-initial-wow',          enrichPrompt: 'enrich-console-command-wow' },
-    'domain-service':         { prompt: 'create-domain-service-wow',           outputFile: 'ddd-domain-service-wow.md',           initialPrompt: 'create-domain-service-initial-wow',           enrichPrompt: 'enrich-domain-service-wow' },
-    'domain-event':           { prompt: 'create-domain-event-wow',             outputFile: 'ddd-domain-event-wow.md',             initialPrompt: 'create-domain-event-initial-wow',             enrichPrompt: 'enrich-domain-event-wow' },
-    'domain-interface':       { prompt: 'create-domain-interface-wow',         outputFile: 'ddd-domain-interface-wow.md',         initialPrompt: 'create-domain-interface-initial-wow',         enrichPrompt: 'enrich-domain-interface-wow' },
-    'infrastructure-exception': { prompt: 'create-infrastructure-exception-wow', outputFile: 'ddd-infrastructure-exception-wow.md', initialPrompt: 'create-infrastructure-exception-initial-wow', enrichPrompt: 'enrich-infrastructure-exception-wow' },
-    'specification':            { prompt: 'create-specification-wow',            outputFile: 'ddd-specification-wow.md',            initialPrompt: 'create-specification-initial-wow',            enrichPrompt: 'enrich-specification-wow' },
-    'policy':                   { prompt: 'create-policy-wow',                  outputFile: 'ddd-policy-wow.md',                  initialPrompt: 'create-policy-initial-wow',                  enrichPrompt: 'enrich-policy-wow' },
-    'saga':                     { prompt: 'create-saga-wow',                    outputFile: 'ddd-saga-wow.md',                    initialPrompt: 'create-saga-initial-wow',                    enrichPrompt: 'enrich-saga-wow' },
-    'mapper':                   { prompt: 'create-mapper-wow',                  outputFile: 'ddd-mapper-wow.md',                  initialPrompt: 'create-mapper-initial-wow',                  enrichPrompt: 'enrich-mapper-wow' },
-    'adapter':                  { prompt: 'create-adapter-wow',                 outputFile: 'ddd-adapter-wow.md',                 initialPrompt: 'create-adapter-initial-wow',                 enrichPrompt: 'enrich-adapter-wow' },
-    'read-model':               { prompt: 'create-read-model-wow',              outputFile: 'ddd-read-model-wow.md',              initialPrompt: 'create-read-model-initial-wow',              enrichPrompt: 'enrich-read-model-wow' },
+    // --- User Interface Layer (Inbound) ---
+    'ui-controller':            { prompt: 'create-ui-controller-wow',            outputFile: 'ddd-ui-controller-wow.md',            initialPrompt: 'create-ui-controller-initial-wow',            enrichPrompt: 'enrich-ui-controller-wow' },
+    'ui-event-consumer':        { prompt: 'create-ui-event-consumer-wow',        outputFile: 'ddd-ui-event-consumer-wow.md',        initialPrompt: 'create-ui-event-consumer-initial-wow',        enrichPrompt: 'enrich-ui-event-consumer-wow' },
+    'ui-scheduler':             { prompt: 'create-ui-scheduler-wow',             outputFile: 'ddd-ui-scheduler-wow.md',             initialPrompt: 'create-ui-scheduler-initial-wow',             enrichPrompt: 'enrich-ui-scheduler-wow' },
+    'ui-console-command':       { prompt: 'create-ui-console-command-wow',       outputFile: 'ddd-ui-console-command-wow.md',       initialPrompt: 'create-ui-console-command-initial-wow',       enrichPrompt: 'enrich-ui-console-command-wow' },
+    'ui-response':              { prompt: 'create-ui-response-wow',              outputFile: 'ddd-ui-response-wow.md',              initialPrompt: 'create-ui-response-initial-wow',              enrichPrompt: 'enrich-ui-response-wow' },
+    // --- Application Layer ---
+    'app-use-case':             { prompt: 'create-app-use-case-wow',             outputFile: 'ddd-app-use-case-wow.md',             initialPrompt: 'create-app-use-case-initial-wow',             enrichPrompt: 'enrich-app-use-case-wow' },
+    // --- Domain Layer ---
+    'domain-entity':            { prompt: 'create-domain-entity-wow',            outputFile: 'ddd-domain-entity-wow.md',            initialPrompt: 'create-domain-entity-initial-wow',            enrichPrompt: 'enrich-domain-entity-wow' },
+    'domain-value-object':      { prompt: 'create-domain-value-object-wow',      outputFile: 'ddd-domain-value-object-wow.md',      initialPrompt: 'create-domain-value-object-initial-wow',      enrichPrompt: 'enrich-domain-value-object-wow' },
+    'domain-service':           { prompt: 'create-domain-service-wow',           outputFile: 'ddd-domain-service-wow.md',           initialPrompt: 'create-domain-service-initial-wow',           enrichPrompt: 'enrich-domain-service-wow' },
+    'domain-specification':     { prompt: 'create-domain-specification-wow',     outputFile: 'ddd-domain-specification-wow.md',     initialPrompt: 'create-domain-specification-initial-wow',     enrichPrompt: 'enrich-domain-specification-wow' },
+    'domain-policy':            { prompt: 'create-domain-policy-wow',            outputFile: 'ddd-domain-policy-wow.md',            initialPrompt: 'create-domain-policy-initial-wow',            enrichPrompt: 'enrich-domain-policy-wow' },
+    'domain-saga':              { prompt: 'create-domain-saga-wow',              outputFile: 'ddd-domain-saga-wow.md',              initialPrompt: 'create-domain-saga-initial-wow',              enrichPrompt: 'enrich-domain-saga-wow' },
+    'domain-event':             { prompt: 'create-domain-event-wow',             outputFile: 'ddd-domain-event-wow.md',             initialPrompt: 'create-domain-event-initial-wow',             enrichPrompt: 'enrich-domain-event-wow' },
+    'domain-exception':         { prompt: 'create-domain-exception-wow',         outputFile: 'ddd-domain-exception-wow.md',         initialPrompt: 'create-domain-exception-initial-wow',         enrichPrompt: 'enrich-domain-exception-wow' },
+    'domain-interface':         { prompt: 'create-domain-interface-wow',         outputFile: 'ddd-domain-interface-wow.md',         initialPrompt: 'create-domain-interface-initial-wow',         enrichPrompt: 'enrich-domain-interface-wow' },
+    // --- Infrastructure Layer (Outbound) ---
+    'infra-repository':         { prompt: 'create-infra-repository-wow',         outputFile: 'ddd-infra-repository-wow.md',         initialPrompt: 'create-infra-repository-initial-wow',         enrichPrompt: 'enrich-infra-repository-wow' },
+    'infra-event-producer':     { prompt: 'create-infra-event-producer-wow',     outputFile: 'ddd-infra-event-producer-wow.md',     initialPrompt: 'create-infra-event-producer-initial-wow',     enrichPrompt: 'enrich-infra-event-producer-wow' },
+    'infra-api-client':         { prompt: 'create-infra-api-client-wow',         outputFile: 'ddd-infra-api-client-wow.md',         initialPrompt: 'create-infra-api-client-initial-wow',         enrichPrompt: 'enrich-infra-api-client-wow' },
+    'infra-adapter':            { prompt: 'create-infra-adapter-wow',            outputFile: 'ddd-infra-adapter-wow.md',            initialPrompt: 'create-infra-adapter-initial-wow',            enrichPrompt: 'enrich-infra-adapter-wow' },
+    'infra-mapper':             { prompt: 'create-infra-mapper-wow',             outputFile: 'ddd-infra-mapper-wow.md',             initialPrompt: 'create-infra-mapper-initial-wow',             enrichPrompt: 'enrich-infra-mapper-wow' },
+    'infra-read-model':         { prompt: 'create-infra-read-model-wow',         outputFile: 'ddd-infra-read-model-wow.md',         initialPrompt: 'create-infra-read-model-initial-wow',         enrichPrompt: 'enrich-infra-read-model-wow' },
+    'infra-integration-event':  { prompt: 'create-infra-integration-event-wow',  outputFile: 'ddd-infra-integration-event-wow.md',  initialPrompt: 'create-infra-integration-event-initial-wow',  enrichPrompt: 'enrich-infra-integration-event-wow' },
+    'infra-integration-service':{ prompt: 'create-infra-integration-service-wow',outputFile: 'ddd-infra-integration-service-wow.md',initialPrompt: 'create-infra-integration-service-initial-wow',enrichPrompt: 'enrich-infra-integration-service-wow' },
+    'infra-configuration':      { prompt: 'create-infra-configuration-wow',      outputFile: 'ddd-infra-configuration-wow.md',      initialPrompt: 'create-infra-configuration-initial-wow',      enrichPrompt: 'enrich-infra-configuration-wow' },
+    'infra-exception':          { prompt: 'create-infra-exception-wow',          outputFile: 'ddd-infra-exception-wow.md',          initialPrompt: 'create-infra-exception-initial-wow',          enrichPrompt: 'enrich-infra-exception-wow' },
 }
 
 export type WowTypeFilter = { column: string; value: string; layer: string }
 
 export const WOW_TYPE_FILTERS: Record<string, WowTypeFilter[]> = {
-    'controller':          [
+    // --- User Interface Layer (Inbound) ---
+    'ui-controller':            [
         { column: 'Category', value: 'Controller', layer: 'User Interface Layer' },
         { column: 'Category', value: 'Controller', layer: 'Infrastructure Layer' },
     ],
-    'event-consumer':      [
+    'ui-event-consumer':        [
         { column: 'Category', value: 'Event consumer', layer: 'User Interface Layer' },
         { column: 'Category', value: 'Event consumer', layer: 'Infrastructure Layer' },
     ],
-    'scheduler':           [{ column: 'Category', value: 'Scheduler',           layer: 'User Interface Layer' }],
-    'repository':          [{ column: 'Category', value: 'Repository',          layer: 'Infrastructure Layer' }],
-    'event-producer':      [{ column: 'Category', value: 'Event producer',      layer: 'Infrastructure Layer' }],
-    'api-client':          [
-        { column: 'Category', value: 'API client', layer: 'Infrastructure Layer' },
-        { column: 'Category', value: 'Gateway',    layer: 'Infrastructure Layer' },
+    'ui-scheduler':             [{ column: 'Category', value: 'Scheduler',       layer: 'User Interface Layer' }],
+    'ui-console-command':       [{ column: 'Category', value: 'Console command',  layer: 'User Interface Layer' }],
+    'ui-response':              [
+        { column: 'Category', value: 'Response', layer: 'User Interface Layer' },
+        { column: 'Category', value: 'Response', layer: 'Application Layer' },
     ],
-    'use-case':            [
+    // --- Application Layer ---
+    'app-use-case':             [
         { column: 'Category', value: 'Use case',      layer: 'Application Layer' },
         { column: 'Category', value: 'Command',       layer: 'Application Layer' },
         { column: 'Category', value: 'Query',         layer: 'Application Layer' },
         { column: 'Category', value: 'Event handler', layer: 'Application Layer' },
     ],
-    'value-object':        [
-        { column: 'Category', value: 'Value object',      layer: 'Domain Layer' },
-        { column: 'Category', value: 'Enum',              layer: 'Domain Layer' },
-        { column: 'Category', value: 'Domain primitive',  layer: 'Domain Layer' },
-    ],
-    'entity':              [
+    // --- Domain Layer ---
+    'domain-entity':            [
         { column: 'Category', value: 'Entity',         layer: 'Domain Layer' },
         { column: 'Category', value: 'Aggregate root', layer: 'Domain Layer' },
         { column: 'Category', value: 'Factory',        layer: 'Domain Layer' },
     ],
-    'domain-exception':    [
+    'domain-value-object':      [
+        { column: 'Category', value: 'Value object',     layer: 'Domain Layer' },
+        { column: 'Category', value: 'Enum',             layer: 'Domain Layer' },
+        { column: 'Category', value: 'Domain primitive', layer: 'Domain Layer' },
+    ],
+    'domain-service':           [{ column: 'Category', value: 'Domain service',   layer: 'Domain Layer' }],
+    'domain-specification':     [{ column: 'Category', value: 'Specification',     layer: 'Domain Layer' }],
+    'domain-policy':            [{ column: 'Category', value: 'Policy',            layer: 'Domain Layer' }],
+    'domain-saga':              [{ column: 'Category', value: 'Saga',              layer: 'Domain Layer' }],
+    'domain-event':             [{ column: 'Category', value: 'Domain event',      layer: 'Domain Layer' }],
+    'domain-exception':         [
         { column: 'Category', value: 'Domain exception', layer: 'Domain Layer' },
         { column: 'Category', value: 'Domain exception', layer: 'Application Layer' },
     ],
-    'integration-event':   [{ column: 'Category', value: 'Integration event',   layer: 'Infrastructure Layer' }],
-    'integration-service': [{ column: 'Category', value: 'Integration service', layer: 'Infrastructure Layer' }],
-    'configuration':       [{ column: 'Category', value: 'Configuration',       layer: 'Infrastructure Layer' }],
-    'response':                [
-        { column: 'Category', value: 'Response', layer: 'User Interface Layer' },
-        { column: 'Category', value: 'Response', layer: 'Application Layer' },
+    'domain-interface':         [{ column: 'Category', value: 'Domain interface',  layer: 'Domain Layer' }],
+    // --- Infrastructure Layer (Outbound) ---
+    'infra-repository':         [{ column: 'Category', value: 'Repository',        layer: 'Infrastructure Layer' }],
+    'infra-event-producer':     [{ column: 'Category', value: 'Event producer',    layer: 'Infrastructure Layer' }],
+    'infra-api-client':         [
+        { column: 'Category', value: 'API client', layer: 'Infrastructure Layer' },
+        { column: 'Category', value: 'Gateway',    layer: 'Infrastructure Layer' },
     ],
-    'console-command':        [{ column: 'Category', value: 'Console command',        layer: 'User Interface Layer' }],
-    'domain-service':         [{ column: 'Category', value: 'Domain service',          layer: 'Domain Layer' }],
-    'domain-event':           [{ column: 'Category', value: 'Domain event',            layer: 'Domain Layer' }],
-    'domain-interface':       [
-        { column: 'Category', value: 'Domain interface', layer: 'Domain Layer' },
+    'infra-adapter':            [{ column: 'Category', value: 'Adapter',           layer: 'Infrastructure Layer' }],
+    'infra-mapper':             [{ column: 'Category', value: 'Mapper',            layer: 'Infrastructure Layer' }],
+    'infra-read-model':         [
+        { column: 'Category', value: 'Projection', layer: 'Infrastructure Layer' },
+        { column: 'Category', value: 'Read model', layer: 'Infrastructure Layer' },
     ],
-    'infrastructure-exception': [{ column: 'Category', value: 'Infrastructure exception', layer: 'Infrastructure Layer' }],
-    'specification':            [{ column: 'Category', value: 'Specification', layer: 'Domain Layer' }],
-    'policy':                   [{ column: 'Category', value: 'Policy',        layer: 'Domain Layer' }],
-    'saga':                     [{ column: 'Category', value: 'Saga',          layer: 'Domain Layer' }],
-    'mapper':                   [{ column: 'Category', value: 'Mapper',        layer: 'Infrastructure Layer' }],
-    'adapter':                  [{ column: 'Category', value: 'Adapter',       layer: 'Infrastructure Layer' }],
-    'read-model':               [
-        { column: 'Category', value: 'Projection',  layer: 'Infrastructure Layer' },
-        { column: 'Category', value: 'Read model',  layer: 'Infrastructure Layer' },
-    ],
+    'infra-integration-event':  [{ column: 'Category', value: 'Integration event',   layer: 'Infrastructure Layer' }],
+    'infra-integration-service':[{ column: 'Category', value: 'Integration service', layer: 'Infrastructure Layer' }],
+    'infra-configuration':      [{ column: 'Category', value: 'Configuration',       layer: 'Infrastructure Layer' }],
+    'infra-exception':          [{ column: 'Category', value: 'Infrastructure exception', layer: 'Infrastructure Layer' }],
 }
 
 const VALID_TYPES = Object.keys(WOW_TYPES).join(', ')

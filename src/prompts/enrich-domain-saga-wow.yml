@@ -1,0 +1,91 @@
+name: enrich-domain-saga-wow
+description: >
+  Enrich an existing Saga WoW document with additional patterns from a new
+  chunk of Saga source files pre-selected by the CLI.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: files_json
+    required: true
+  - name: chunk_number
+    required: true
+  - name: chunk_total
+    required: true
+messages: |
+  You are to enrich an existing DDD Domain Layer - Sagas Way of Working (WoW)
+  document with additional patterns discovered from a new chunk of Saga source files.
+
+  This is chunk {{chunk_number}} of {{chunk_total}}.
+  Existing document: {{manifest_path}}/wow/{{output_file}}
+
+  Follow these steps precisely.
+
+  # Step 0: Read the existing document
+
+  Call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
+  Also call `get_template_content` with templatePath "wow/template-ddd-domain-saga-wow.md".
+
+  Scan the existing document to determine:
+  - Which pattern IDs are already used (SAGA-STP-XX, SAGA-CMP-XX, SAGA-STT-XX, SAGA-EVT-XX, SAGA-ERR-XX)
+  - Which source file identifiers have already been documented
+  - The current coverage count numbers
+
+  # Step 1: Review this chunk's Saga classes
+
+  The following classes have been pre-selected (JSON array): {{files_json}}
+
+  Parse this JSON array. If the array is empty, stop without modifying the document.
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Application Layer" },
+    excludeFilters = { "Category": "Saga", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned, add to batch and record in AdjacentCollaborators.
+  Process in batches of 6–8 per `read_multiple_files_compressed`.
+
+  For each directly referenced class not in the batch:
+  1. Look it up via `get_first_row_by_column`.
+  2. If not found, skip.
+  3. Read and include in analysis.
+  4. Record in AdjacentCollaborators.
+  Do NOT mark these classes as processed.
+
+  # Step 3: Identify new patterns
+
+  For each file, identify patterns NOT already documented. Focus on:
+  - Saga step definition and sequencing
+  - Compensation and rollback mechanisms
+  - Saga state tracking and persistence
+  - Event-driven (choreography) saga patterns
+  - Error handling and retry strategies
+
+  For each new pattern:
+  - Continue numbering: SAGA-STP-XX, SAGA-CMP-XX, SAGA-STT-XX, SAGA-EVT-XX, SAGA-ERR-XX
+  - Only document patterns NOT already present.
+  - Replace all domain-specific names with generic equivalents.
+
+  # Step 4: Update the document with targeted edits
+
+  CRITICAL: Do NOT rewrite the entire file. Apply targeted edits only.
+
+  1. Insert new patterns after the last existing pattern in their section.
+  2. Append new Pattern Index rows.
+  3. Update Coverage Summary counts.
+  4. Update "Key Files Analyzed" list.
+
+  # Step 5: Verify the result
+
+  Re-read and confirm correctness.
+
+  # Step 6: Quality review and cleanup
+
+  - Merge duplicate patterns.
+  - Complete missing GOOD/BAD examples.
+  - Remove answered open questions.

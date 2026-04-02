@@ -1,0 +1,113 @@
+name: enrich-domain-policy-wow
+description: >
+  Enrich an existing Policy WoW document with additional patterns from a new
+  chunk of Policy source files pre-selected by the CLI.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: files_json
+    required: true
+  - name: chunk_number
+    required: true
+  - name: chunk_total
+    required: true
+messages: |
+  You are to enrich an existing DDD Domain Layer - Policies Way of Working (WoW)
+  document with additional patterns discovered from a new chunk of Policy source files.
+
+  This is chunk {{chunk_number}} of {{chunk_total}}.
+  Existing document: {{manifest_path}}/wow/{{output_file}}
+
+  Follow these steps precisely.
+
+  # Step 0: Read the existing document
+
+  Call `read_file` with path {{manifest_path}}/wow/{{output_file}} to load the current document.
+  Keep it fully in context — you will update it in Step 4.
+
+  Also call `get_template_content` with templatePath "wow/template-ddd-domain-policy-wow.md".
+
+  Scan the existing document to determine:
+  - Which pattern IDs are already used (POL-DEF-XX, POL-STG-XX, POL-INJ-XX, POL-EVO-XX, POL-EVL-XX)
+  - Which source file identifiers have already been documented in the Pattern Index
+  - The current coverage count numbers
+
+  # Step 1: Review this chunk's Policy classes
+
+  The following Policy classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
+
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+
+  If the array is empty, stop without modifying the document.
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+
+  ## Proactive cross-cutting discovery
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Domain Layer" },
+    excludeFilters = { "Category": "Policy", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path and add to reading batch.
+  2. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed.
+
+  Process all files in batches of 6–8 per `read_multiple_files_compressed` call.
+
+  ## Adjacent collaborator discovery
+  For each directly referenced class not in the batch:
+  1. Look it up via `get_first_row_by_column` on {{manifest_path}}/code-manifest.md.
+  2. If not found, skip.
+  3. Read and include in analysis.
+  4. Record its Identifier and file path in the AdjacentCollaborators list.
+  Do NOT mark these classes as processed.
+
+  # Step 3: Identify new patterns
+
+  For each file, identify patterns NOT already documented. Focus on:
+  - Policy interface definition and method design
+  - Strategy selection and injection mechanisms
+  - Policy wiring and default fallbacks
+  - Policy evolution and versioning
+  - Stateless vs. stateful policy evaluation
+
+  For each new pattern:
+  - Continue numbering from highest existing ID in each category:
+    POL-DEF-XX, POL-STG-XX, POL-INJ-XX, POL-EVO-XX, POL-EVL-XX
+  - Only document patterns NOT already present.
+  - Replace all domain-specific names with generic equivalents (Order, User, Product, etc.).
+
+  # Step 4: Update the document with targeted edits
+
+  CRITICAL: Do NOT rewrite the entire file. Apply targeted edits only.
+
+  1. Insert new patterns after the last existing pattern in their section.
+  2. Append new Pattern Index rows.
+  3. Update Coverage Summary counts.
+  4. Update "Key Files Analyzed" list.
+
+  The document must remain complete and valid after the edits.
+
+  # Step 5: Verify the result
+
+  Re-read {{manifest_path}}/wow/{{output_file}} and confirm correctness.
+
+  # Step 6: Quality review and cleanup
+
+  Apply targeted cleanup edits:
+  - Merge duplicate patterns; update Pattern Index references.
+  - Complete any pattern missing GOOD/BAD examples or "Why it's bad".
+  - Remove answered open questions.
+  - Add missing Pattern Index rows for dangling references.

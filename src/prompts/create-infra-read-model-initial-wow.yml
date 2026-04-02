@@ -1,0 +1,104 @@
+name: create-infra-read-model-initial-wow
+description: >
+  Generate the first Read Model / Projection WoW document from an initial chunk of source files
+  pre-selected by the CLI. Covers both Projection (event handlers that build read models)
+  and Read Model (data structures queried on the CQRS read side).
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: total_files
+    required: true
+  - name: chunk_total
+    required: true
+  - name: files_json
+    required: true
+messages: |
+  You are to analyze the first batch of Read Model and Projection source files and produce a
+  DDD Infrastructure Layer - Read Models & Projections Way of Working (WoW) document.
+
+  This is chunk 1 of {{chunk_total}} total chunks. If {{chunk_total}} > 1, subsequent
+  chunks will enrich this document with additional patterns — do NOT wait for them.
+
+  Total Read Model/Projection files across all chunks: {{total_files}}
+  Document path: {{manifest_path}}/wow/{{output_file}}
+
+  Note: Projections build and maintain read-optimized view models by consuming domain events
+  (CQRS write side → read side). Read Models are the resulting data structures used for queries.
+  Both belong to the Infrastructure Layer. Key distinction:
+  - Projection = the event handler that WRITES the read model
+  - Read Model = the data class that is QUERIED
+
+  Follow these steps precisely.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-infra-read-model-wow.md".
+
+  # Step 1: Review this chunk's Read Model/Projection classes
+
+  Parse JSON array: {{files_json}}. Each object: File, Identifier, Category, Layer, Possible outsider.
+  If empty, write a note and stop.
+
+  # Step 2: Read source files
+
+  Paths: {{manifest_path}}/../<File value>
+
+  ## Proactive cross-cutting discovery
+  Query Infrastructure Layer for event-related and query-related classes.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Infrastructure Layer" },
+    excludeFilters = { "Category": "Projection", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  Also call with excludeFilters = { "Category": "Read model", ... } to get related classes.
+
+  Add to batch, record in AdjacentCollaborators. Do NOT mark as processed.
+  Process in batches of 6–8. Read ENTIRE files.
+
+  ## Adjacent collaborator discovery
+  For referenced classes (domain events consumed, repositories written to, query methods):
+  1. `get_first_row_by_column` col "Class". If not found, skip.
+  2. Read and include. Record in AdjacentCollaborators.
+
+  # Step 3: Identify patterns
+
+  ## Read Model Structure Patterns
+  Focus on: Read model data class design, denormalization strategies, which domain fields
+  are projected into the read model, naming conventions (*ReadModel, *View, *Summary, *Detail).
+
+  ## Projection Building Patterns
+  Focus on: @EventHandler / @Listen methods, which domain events trigger which read model updates,
+  incremental vs. full rebuild strategies, event ordering guarantees.
+
+  ## Query Patterns
+  Focus on: How read models are queried (repository methods, search criteria, pagination),
+  indexed fields, query-specific read model variants (Summary vs. Detail).
+
+  ## Synchronization & Consistency Patterns
+  Focus on: Eventual consistency handling, read model staleness tolerance, replay strategies,
+  schema evolution of read models when events change.
+
+  ## Event Selection Patterns
+  Focus on: Which events a projection subscribes to, filtering irrelevant events, handling
+  event versioning in projection handlers.
+
+  For each pattern:
+  - IDs: RM-STR-XX, RM-BLD-XX, RM-QRY-XX, RM-SYC-XX, RM-EVL-XX
+  - Descriptive name, GOOD + BAD examples with generic names, source + identifier
+  - "Possible outsider" as anti-pattern if marked
+
+  # Step 4: Write the document
+
+  Fill every `{{Variable}}` in the template. Use {{total_files}} as total.
+
+  If {{chunk_total}} > 1:
+  > **Note**: This document was generated from chunk 1/{{chunk_total}}. It will be enriched.
+
+  Write to {{manifest_path}}/wow/{{output_file}}. Strip template instructions.
+
+  # Step 5: Verify
+
+  Confirm document complete, patterns in correct sections, no template instructions.

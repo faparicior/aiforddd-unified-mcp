@@ -1,0 +1,153 @@
+name: create-domain-value-object-initial-wow
+description: >
+  Generate the first Value Object WoW document from an initial chunk of source files
+  pre-selected by the CLI. The CLI provides the file list as files_json so this
+  prompt never queries the manifest for primary Value Object / Enum / Domain Primitive classes.
+  Adjacent collaborators and cross-cutting classes are still discovered reactively.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: total_files
+    required: true
+  - name: chunk_total
+    required: true
+  - name: files_json
+    required: true
+messages: |
+  You are to analyze the first batch of Value Object, Enum, and Domain Primitive source
+  files and produce a DDD Domain Layer Value Object Way of Working (WoW) document.
+
+  This is chunk 1 of {{chunk_total}} total chunks. If {{chunk_total}} > 1, subsequent
+  chunks will enrich this document with additional patterns — do NOT wait for them.
+  Write a complete, useful document now using only the files in this chunk plus any
+  adjacent collaborators you discover while reading them.
+
+  Total files across all chunks: {{total_files}}
+  Document path: {{manifest_path}}/wow/{{output_file}}
+
+  Follow these steps precisely.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-domain-value-object-wow.md".
+  Keep it in context — it provides the schema, pattern ID conventions, and variable
+  definitions. You will fill every variable in it during Step 4.
+
+  # Step 1: Review this chunk's classes
+
+  The following classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
+
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category (Value object, Enum, or Domain primitive)
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+
+  If the array is empty, write the output file with a note that no Value Object classes
+  were found, and stop.
+
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "✓".
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+  (manifest_path points to .aiforddd; source files are relative to the repo root above it)
+
+  ## Proactive cross-cutting discovery
+  Before reading any value object file, query the manifest for classes in the Domain Layer
+  that are NOT Value Objects and have not been processed — these may be entities or domain
+  exceptions that use value objects, providing context for how value objects integrate.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Domain Layer" },
+    excludeFilters = { "Category": "Value object", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the value object files.
+  3. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence of such classes is itself informative.
+
+  Process all files (value objects from Step 1 + cross-cutting classes) in batches of 6–8 per
+  `read_multiple_files_compressed` call.
+  Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Adjacent collaborator discovery
+  While reading each source file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the value object's behaviour — for example:
+  - An entity that composes this value object
+  - A domain exception thrown during validation
+  - A base class or interface the value object implements
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row,
+     including its `File` path and `Identifier`.
+  2. If not found in the manifest, skip — do not search the filesystem directly.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis as if it were part of the batch.
+  6. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  # Step 3: Identify patterns
+
+  Analyze each class and extract reusable patterns. Group by category:
+
+  ## Value Object Patterns
+  Focus on: Immutability enforcement, constructor validation, factory methods, equality semantics,
+  self-validation, domain primitive wrapping, encapsulation of business rules within the value object.
+
+  ## Validation Patterns
+  Focus on: Guard clauses, precondition checks, domain invariant enforcement, how invalid states
+  are prevented at construction time, exception types used for validation failures.
+
+  For each pattern found:
+  - Assign a unique pattern ID: `VO-IMM-XX` for immutability, `VO-VAL-XX` for validation,
+    `VO-EQ-XX` for equality/hashing, `VO-FAC-XX` for factory methods, `VO-PRIM-XX` for domain primitives
+  - Write a descriptive pattern name capturing the architectural intent
+  - Extract a GOOD code example from the source file — copy the structure and logic exactly, but IMMEDIATELY replace every domain-specific class name, method name, field name, enum value, and identifier with a generic equivalent (Order, User, Product, Payment, Item, Customer). NO real names from the codebase may appear in the example.
+  - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
+  - Record the source file name and Identifier from the manifest
+  - For classes flagged as "Possible outsider" (✓), document why the class may not belong in its
+    current layer and include it as an anti-pattern entry
+
+  # Step 4: Write the document
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the analysis.
+  Follow the template's own "Usage Instructions" and "Template Variables Reference" sections
+  exactly — they are authoritative for what each section expects.
+
+  Use the generic code produced in Step 3 directly — all names are already generic. Preserve
+  the structure and logic exactly as-is.
+  Anti-patterns for "Possible outsider" entries come from the manifest's Possible outsider column (✓).
+
+  For the Coverage Summary: use {{total_files}} as the total class count.
+  For classes analyzed in this chunk: show the actual count from the parsed JSON array.
+
+  If {{chunk_total}} > 1, add this note at the very end of the document (before any appendix):
+
+  > **Note**: This document was generated from chunk 1/{{chunk_total}} of the codebase.
+  > It will be enriched with additional patterns from the remaining chunks.
+
+  Write the completed document to {{manifest_path}}/wow/{{output_file}}.
+  Strip everything from "Template Variables Reference" onward — the final file must contain
+  no template instructions.
+
+  # Step 5: Verify
+
+  Read {{manifest_path}}/wow/{{output_file}} and confirm:
+  - The document is complete and valid.
+  - All patterns are in the correct sections.
+  - No template instructions remain in the file.

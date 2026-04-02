@@ -1,0 +1,147 @@
+name: create-domain-value-object-wow
+description: Analyze value object patterns in a code manifest and generate a DDD Domain Layer Value Object WoW document
+arguments:
+  - name: manifest_path
+    required: true
+messages: |
+  You are to analyze value object patterns from a code manifest located at: {{manifest_path}}/code-manifest.md
+  and produce a DDD Domain Layer Value Object Way of Working (WoW) document.
+
+  The output file must be written to: {{manifest_path}}/wow/ddd-value-object-wow.md
+
+  Follow these steps to produce a high-quality, pattern-rich WoW document.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-domain-value-object-wow.md" to retrieve
+  the full template. Keep it in context — you will fill every variable in it during Step 5.
+
+  # Step 1: Assess the manifest
+
+  - Call `filter_and_count_rows` with `columnName = "Layer"`, `value = "Domain Layer"`, `extraFilters = { "Category": "Value object" }`, `excludeFilters = { "Processed": "✓" }` to count unprocessed Value object classes
+  - If the call fails, stop immediately and report the error — do not infer counts from retrieval results
+  - If the count is 0, do not search for alternatives or classes in other layers/categories.
+    Write the output file with a note stating that no classes were found for the expected layer/category,
+    and that the developer must ensure the manifest is catalogued correctly before running this prompt again.
+    Then stop — do not proceed to Step 2.
+  - Record the count explicitly; it determines the retrieval strategy in Step 2
+  - Identify the total number of value objects to analyze
+
+  # Step 2: Collect all relevant classes
+
+  - Retrieve all unprocessed Value object, Enum, and Domain primitive classes via three `get_multiple_rows_by_multiple_columns` calls:
+    - filters = { "Layer": "Domain Layer", "Category": "Value object" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+    - filters = { "Layer": "Domain Layer", "Category": "Enum" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+    - filters = { "Layer": "Domain Layer", "Category": "Domain primitive" }, excludeFilters = { "Processed": "✓" }, selectColumns = ["Class name", "File", "Possible outsider"]
+  - Combine all result sets into a single working set for analysis
+  - If the combined result is empty, write a note to the output file stating all classes are already documented, then stop
+  - Focus on: Value object, Enum, Domain primitive categories
+
+  # Step 3: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File column value from manifest>
+  (the manifest_path points to the .aiforddd directory; source files are relative to the repo root above it)
+
+  Process source files in batches of 6–8 files per `read_multiple_files_compressed` call regardless
+  of codebase size. Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Proactive cross-cutting discovery
+  Before reading value object files, query the manifest for classes in the Domain Layer
+  that are NOT Value Objects, Enums, or Domain Primitives and have not been processed —
+  these may be entities or domain exceptions that use value objects, providing context.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Domain Layer" },
+    excludeFilters = { "Category": "Value object", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned whose Category is also not "Enum" or "Domain primitive":
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the value object files.
+  3. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence is itself informative.
+
+  ## Adjacent collaborator discovery
+  While reading each source file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the value object's behaviour — for example:
+  - An entity that composes this value object
+  - A domain exception thrown during validation
+  - A base class or interface the value object implements
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row.
+  2. If not found in the manifest, skip.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis.
+  6. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed.
+
+  # Step 4: Identify patterns
+
+  Analyze each class and extract reusable patterns. Group by category:
+
+  ## Value Object Patterns
+  Focus on: Immutability enforcement, constructor validation, factory methods, equality semantics,
+  self-validation, domain primitive wrapping, encapsulation of business rules within the value object.
+
+  ## Validation Patterns
+  Focus on: Guard clauses, precondition checks, domain invariant enforcement, how invalid states
+  are prevented at construction time, exception types used for validation failures.
+
+  IMPORTANT — value object scope boundary:
+  The value object WoW covers only value object mechanics: immutability, equality, validation,
+  factory methods, and domain primitive semantics.
+  Entity identity and lifecycle patterns belong in the Entity WoW.
+  Domain exception hierarchies belong in the Domain Exception WoW.
+  Add a cross-reference note when encountering out-of-scope patterns.
+
+  For each pattern found:
+  - Assign a unique pattern ID: `VO-IMM-XX` for immutability, `VO-VAL-XX` for validation,
+    `VO-EQ-XX` for equality/hashing, `VO-FAC-XX` for factory methods, `VO-PRIM-XX` for domain primitives
+  - Write a descriptive pattern name capturing the architectural intent
+  - Extract a GOOD code example from the source file — copy the structure and logic exactly, but IMMEDIATELY replace every domain-specific class name, method name, field name, enum value, and identifier with a generic equivalent (Order, User, Product, Payment, Item, Customer). NO real names from the codebase may appear in the example.
+  - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
+  - Record the source file name and class index identifier from the manifest
+
+  # Step 5: Fill in the template
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the codebase analysis.
+  The template's own "Usage Instructions" and "Template Variables Reference" sections describe exactly
+  what each variable expects — follow them. Use the generic code produced in Step 4 directly —
+  all names are already generic. Preserve
+  the structure and logic exactly as-is.
+
+  # Step 6: Write the output file
+
+  - Write the completed document to {{manifest_path}}/wow/ddd-value-object-wow.md
+  - Strip everything from "Template Variables Reference" onward — the final file must contain
+    no template instructions
+
+  # Step 7: Mark classes as processed
+
+  For every class retrieved in Step 2, call `update_row_by_column` using the Identifier column value
+  to mark the Processed column with ✓. Process all classes — do not skip any.
+
+  # Step 8: Quality review and cleanup
+
+  Re-read the full document and apply the following cleanup:
+
+  **Duplicate pattern detection**: If two or more patterns describe the same concept, merge
+  them into the richer one and remove the weaker entry. Update all Pattern Index references.
+
+  **Pattern completeness**: For any pattern missing a ✅ GOOD code example, a ❌ BAD
+  counter-example, or a "Why it's bad" explanation, add the missing piece.
+
+  **Open questions**: For each item in the "❓ Open Questions" section, check whether
+  any source file read during this session already answers it. Remove answered questions and
+  add the answer in the relevant section.
+
+  **Dangling references**: If any pattern entry references a file identifier not listed in
+  the Pattern Index table, add the missing row.

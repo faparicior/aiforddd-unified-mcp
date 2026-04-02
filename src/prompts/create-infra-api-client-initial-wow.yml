@@ -1,0 +1,176 @@
+name: create-infra-api-client-initial-wow
+description: >
+  Generate the first API Client WoW document from an initial chunk of source files
+  pre-selected by the CLI. The CLI provides the file list as files_json so this
+  prompt never queries the manifest for primary API Client / Gateway classes.
+  Adjacent collaborators and cross-cutting classes are still discovered reactively.
+arguments:
+  - name: manifest_path
+    required: true
+  - name: output_file
+    required: true
+  - name: total_files
+    required: true
+  - name: chunk_total
+    required: true
+  - name: files_json
+    required: true
+messages: |
+  You are to analyze the first batch of outbound API Client and Gateway source files and produce a
+  DDD Infrastructure Layer - API Clients Way of Working (WoW) document.
+
+  This is chunk 1 of {{chunk_total}} total chunks. If {{chunk_total}} > 1, subsequent
+  chunks will enrich this document with additional patterns — do NOT wait for them.
+  Write a complete, useful document now using only the files in this chunk plus any
+  adjacent collaborators you discover while reading them.
+
+  Total API Client files across all chunks: {{total_files}}
+  Document path: {{manifest_path}}/wow/{{output_file}}
+
+  Note: For other infrastructure concerns use the dedicated prompts:
+  - Repositories → create-repository-wow
+  - Event producers → create-event-producer-wow
+
+  Follow these steps precisely.
+
+  # Step 0: Load the template
+
+  Call `get_template_content` with templatePath "wow/template-ddd-infra-api-client-wow.md".
+  Keep it in context — it provides the schema, pattern ID conventions, and variable
+  definitions. You will fill every variable in it during Step 4.
+
+  # Step 1: Review this chunk's API Client classes
+
+  The following API Client and Gateway classes have been pre-selected for this chunk (JSON array):
+  {{files_json}}
+
+  Parse this JSON array. Each object contains:
+  - File: source file path relative to the repository root
+  - Identifier: unique class identifier from the manifest
+  - Category: the class category (API client or Gateway)
+  - Layer: the architectural layer
+  - Possible outsider: "✓" if flagged as a candidate anti-pattern, empty otherwise
+
+  If the array is empty, write the output file with a note that no API Client classes
+  were found, and stop.
+
+  Record all entries — you will need File and Identifier for each.
+  Note any entries where "Possible outsider" is "✓".
+
+  # Step 2: Read source files
+
+  Construct absolute file paths as: {{manifest_path}}/../<File value>
+  (manifest_path points to .aiforddd; source files are relative to the repo root above it)
+
+  ## Proactive cross-cutting discovery
+  Before reading any API client file, query the manifest for classes in the Infrastructure Layer
+  that are NOT API Clients and have not been processed — these may be configuration classes,
+  HTTP client factories, retry/circuit breaker configuration, or authentication helpers.
+
+  Call `get_multiple_rows_by_multiple_columns` with
+    filters = { "Layer": "Infrastructure Layer" },
+    excludeFilters = { "Category": "API client", "Processed": "✓" },
+    selectColumns = ["Identifier", "Class", "File", "Category", "Description"]
+
+  For each class returned:
+  1. Construct the absolute path as: {{manifest_path}}/../<File value>
+  2. Add it to the reading batch alongside the API client files.
+  3. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  If the call returns nothing, continue — the absence of such classes is itself informative.
+
+  Process all files (API clients from Step 1 + cross-cutting classes) in batches of 6–8 per
+  `read_multiple_files_compressed` call.
+  Complete pattern analysis for each batch before reading the next.
+  Read the ENTIRE file — no line limits, no shortcuts.
+
+  ## Adjacent collaborator discovery
+  While reading each API client file, note any directly referenced classes that are NOT in
+  the batch but are relevant to understanding the client's behaviour — for example:
+  - An application layer outbound port interface the client implements
+  - A domain exception thrown on HTTP errors
+  - A configuration class providing base URLs, timeouts, or auth keys
+  - A response DTO or mapper for external API responses
+
+  For each such class found:
+  1. Call `get_first_row_by_column` on {{manifest_path}}/code-manifest.md with
+     `columnName = "Class"` and the class name as `value` to retrieve its manifest row,
+     including its `File` path and `Identifier`.
+  2. If not found in the manifest, skip — do not search the filesystem directly.
+  3. Construct the absolute path as: {{manifest_path}}/../<File value from manifest row>
+  4. Call `read_multiple_files_compressed` on that path to read the file.
+  5. Include its patterns in the analysis as if it were part of the batch.
+  6. Record its Identifier and file path in the AdjacentCollaborators list of the Coverage Summary,
+     using the format: `- [Identifier] FileName.kt _(adjacent collaborator)_`.
+  Do NOT mark these classes as processed — they will be covered by their own WoW document.
+
+  # Step 3: Identify patterns
+
+  Analyze each API client class and extract reusable patterns. Focus on:
+
+  ## Port Implementation & Domain Isolation Patterns
+  Focus on: Which application layer outbound port is implemented, how HTTP-specific types
+  are kept out of the application layer, request/response DTO structures separate from domain.
+
+  ## Request / Response Mapping Patterns
+  Focus on: How domain-level parameters become HTTP requests, how HTTP responses are converted
+  to domain objects, partial response handling, 404/empty handling.
+
+  ## Retry & Circuit Breaker Patterns
+  Focus on: Retry max attempts, backoff strategy, retriable vs. non-retriable HTTP status codes,
+  circuit breaker mechanism and threshold configuration, open-state fallback.
+
+  ## Authentication Propagation Patterns
+  Focus on: Bearer token / API key / OAuth2 mechanism, token source (security context, dedicated
+  token provider), header injection approach (interceptor, per-request), token refresh strategy.
+
+  ## Error Translation Patterns
+  Focus on: HTTP status code to domain exception mapping, timeout and network error handling,
+  how infrastructure exceptions are prevented from leaking to the application layer.
+
+  For each pattern found:
+  - Assign a unique pattern ID following the format:
+    - `API-MAP-XX` for request/response mapping and domain translation patterns
+    - `API-RTY-XX` for retry and circuit breaker patterns
+    - `API-AUTH-XX` for authentication and token propagation patterns
+    - `API-ERR-XX` for error handling and HTTP status translation patterns
+    - `API-TMO-XX` for timeout and resilience configuration patterns
+  - Write a descriptive pattern name capturing the architectural intent
+  - Extract a GOOD code example from the source file — copy the structure and logic exactly, but IMMEDIATELY replace every domain-specific class name, method name, field name, enum value, and identifier with a generic equivalent (Order, User, Product, Payment, Item, Customer). NO real names from the codebase may appear in the example.
+  - Derive an anti-pattern (BAD) counterexample that illustrates the violation of the pattern
+  - Record the source file name and Identifier from the manifest
+  - For classes flagged as "Possible outsider" (✓), document why the class may not belong in its
+    current layer and include it as an anti-pattern entry
+
+  # Step 4: Write the document
+
+  Replace every `{{Variable}}` in the loaded template with content derived from the analysis.
+  Follow the template's own "Usage Instructions" and "Template Variables Reference" sections
+  exactly — they are authoritative for what each section expects.
+
+  Use the generic code produced in Step 3 directly — all names are already generic. Preserve
+  the structure and logic exactly as-is.
+  Build the HTTP status to domain exception mapping table from real exception handling found in the code.
+  Document the actual HTTP client library, retry policy, circuit breaker, auth mechanism, and timeouts.
+  Anti-patterns for "Possible outsider" entries come from the manifest's Possible outsider column (✓).
+
+  For the Coverage Summary: use {{total_files}} as the total class count.
+  For classes analyzed in this chunk: show the actual count from the parsed JSON array.
+
+  If {{chunk_total}} > 1, add this note at the very end of the document (before any appendix):
+
+  > **Note**: This document was generated from chunk 1/{{chunk_total}} of the codebase.
+  > It will be enriched with additional patterns from the remaining chunks.
+
+  Write the completed document to {{manifest_path}}/wow/{{output_file}}.
+  Strip everything from "Template Variables Reference" onward — the final file must contain
+  no template instructions.
+
+  # Step 5: Verify
+
+  Read {{manifest_path}}/wow/{{output_file}} and confirm:
+  - The document is complete and valid.
+  - All patterns are in the correct sections.
+  - No template instructions remain in the file.
