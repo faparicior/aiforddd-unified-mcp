@@ -351,7 +351,9 @@ program
                 if (existsSync(outputFile)) {
                     console.log(`\nWoW document generated successfully: ${outputFile}`)
                 } else {
-                    console.warn(`\nWarning: Expected output file not found at: ${outputFile}`)
+                    console.error(`\nError: Expected output file not found at: ${outputFile}`)
+                    console.error('Claude may have been interrupted before writing the file.')
+                    process.exit(1)
                 }
                 process.exit(0)
             }
@@ -405,7 +407,9 @@ program
                 if (existsSync(outputFile)) {
                     console.log(`\nInitial WoW document written: ${outputFile}`)
                 } else {
-                    console.warn(`\nWarning: Expected output file not found at: ${outputFile}`)
+                    console.error(`\nError: Expected output file not found at: ${outputFile}`)
+                    console.error('Claude may have been interrupted before writing the file.')
+                    process.exit(1)
                 }
                 process.exit(0)
             }
@@ -490,8 +494,9 @@ program
             if (existsSync(outputFile)) {
                 console.log(`\nWoW document generated successfully: ${outputFile}`)
             } else {
-                console.warn(`\nWarning: Expected output file not found at: ${outputFile}`)
-                console.warn('Claude may not have written the file as expected.')
+                console.error(`\nError: Expected output file not found at: ${outputFile}`)
+                console.error('Claude may have been interrupted before writing the file.')
+                process.exit(1)
             }
 
             process.exit(0)

@@ -45,6 +45,7 @@ export function runClaudeWithStreaming(promptFile: string, extraFlags: string = 
 
         // Inactivity watchdog: kill the process if no output for too long
         let inactivityTimer: ReturnType<typeof setTimeout> | undefined;
+        let sigkillTimer: ReturnType<typeof setTimeout> | undefined;
 
         function resetInactivityTimer() {
             if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -55,7 +56,7 @@ export function runClaudeWithStreaming(promptFile: string, extraFlags: string = 
                 debugLog?.write(`--- TIMEOUT: ${msg}\n`);
                 claudeProcess.kill('SIGTERM');
                 // Give it a moment to exit gracefully, then force-kill
-                setTimeout(() => {
+                sigkillTimer = setTimeout(() => {
                     try { claudeProcess.kill('SIGKILL'); } catch { /* already dead */ }
                 }, 5000);
             }, INACTIVITY_TIMEOUT_MS);
@@ -91,10 +92,11 @@ export function runClaudeWithStreaming(promptFile: string, extraFlags: string = 
             process.stderr.write(chunk);
         });
 
-        claudeProcess.on('close', (code) => {
+        claudeProcess.on('close', (code, signal) => {
             settled = true;
             if (inactivityTimer) clearTimeout(inactivityTimer);
-            debugLog?.write(`\n--- CLOSED: code=${code} at ${new Date().toISOString()}\n`);
+            if (sigkillTimer) clearTimeout(sigkillTimer);
+            debugLog?.write(`\n--- CLOSED: code=${code} signal=${signal} at ${new Date().toISOString()}\n`);
             debugLog?.end();
             // flush any remaining partial line
             if (lineBuffer.trim()) {
@@ -108,7 +110,10 @@ export function runClaudeWithStreaming(promptFile: string, extraFlags: string = 
                 }
             }
             process.stdout.write('\n');
-            resolve(code ?? 0);
+            // When a process is killed (code is null, signal is set), treat it as failure.
+            // Using (code ?? 0) would incorrectly resolve as success for killed processes.
+            const exitCode = code !== null ? code : (signal !== null ? 1 : 0);
+            resolve(exitCode);
         });
 
         claudeProcess.on('error', (err) => {
