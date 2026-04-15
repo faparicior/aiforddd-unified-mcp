@@ -67,7 +67,7 @@ messages: |
 
   ### **Step 3: Enhanced Cataloging Requirements**
   Update the manifest with these columns based on complete file reading but class-focused analysis:
-  - **Layer**: Correctly identify the DDD layer (Domain, Application, Infrastructure, User Interface)
+  - **Layer**: Correctly identify the DDD layer (Domain Layer, Application Layer, Infrastructure Layer, User Interface Layer)
   - **MANDATORY**: ONLY value layers from "## DDD layers" table:
     - Domain Layer
     - Application Layer
