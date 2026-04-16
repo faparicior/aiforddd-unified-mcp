@@ -32,6 +32,7 @@ type ViolatingRow = {
 
 /**
  * Returns all rows with invalid Layer or Category values.
+ * Rows marked as "Possible outsider" (✓) are intentional architectural outliers — skipped.
  */
 function getViolatingRows(manifestPath: string): ViolatingRow[] {
     const violations: ViolatingRow[] = []
@@ -41,6 +42,7 @@ function getViolatingRows(manifestPath: string): ViolatingRow[] {
     for (const badLayer of invalidLayers) {
         const rows = getMultipleRowsByColumn(manifestPath, 'Layer', badLayer)
         for (const row of rows) {
+            if (row['Possible outsider'] === '✓') continue
             violations.push({
                 identifier: row['Identifier'] ?? '',
                 class: row['Class'] ?? '',
@@ -54,6 +56,7 @@ function getViolatingRows(manifestPath: string): ViolatingRow[] {
     for (const [layer, validCategories] of Object.entries(VALID_CATEGORIES_BY_LAYER)) {
         const rows = getMultipleRowsByColumn(manifestPath, 'Layer', layer)
         for (const row of rows) {
+            if (row['Possible outsider'] === '✓') continue
             const category = row['Category'] ?? ''
             if (category !== '' && !validCategories.includes(category)) {
                 violations.push({
@@ -104,42 +107,36 @@ ${violationsList}
 
 ## Instructions
 
-For each violation listed above:
-1. Determine the correct Layer and Category based on the class name, identifier, and current values.
+For each violation listed above, choose the option that best fits:
+
+**Option A — Fix the Layer/Category** (LLM classification mistake):
+1. Determine the correct Layer and Category based on the class name, identifier, and file location.
    - If the Layer looks like a short form (e.g. "Infrastructure" → "Infrastructure Layer"), apply the suffix.
-   - If the Category is invalid for the Layer, reassign it to the closest valid category.
+   - If the Category is invalid for the Layer, reassign to the closest valid category.
 2. Call \`update_row_by_column\` with:
    - filePath: ${manifestPath}
-   - columnName: "Identifier"
-   - value: <the identifier>
+   - columnName: "Identifier", value: <the identifier>
    - updates: { "Layer": "<correct layer>", "Category": "<correct category>" }
-3. Fix ALL ${violatingRows.length} violations. Do not skip any.
-4. Do NOT modify any other rows or columns.
+
+**Option B — Mark as Possible outsider** (class genuinely lives in an unusual layer by architectural intent):
+1. Call \`update_row_by_column\` with:
+   - filePath: ${manifestPath}
+   - columnName: "Identifier", value: <the identifier>
+   - updates: { "Possible outsider": "✓" }
+2. Keep the existing Layer and Category unchanged.
+
+Apply Option A or Option B to ALL ${violatingRows.length} violations. Do not skip any.
+Do NOT modify any other rows or columns.
 `
 }
 
 /**
  * Returns the number of invalid Layer/Category violations in the manifest.
+ * Rows marked as "Possible outsider" (✓) are intentional architectural outliers — skipped.
  * Used both by --mode validate and the per-batch catalog loop.
  */
 function countValidationViolations(manifestPath: string): number {
-    let violations = 0
-
-    const uniqueLayers = getUniqueColumnValues(manifestPath, 'Layer')
-    const invalidLayers = uniqueLayers.filter(v => v !== '' && !VALID_LAYERS.includes(v as any))
-    for (const badLayer of invalidLayers) {
-        violations += getMultipleRowsByColumn(manifestPath, 'Layer', badLayer).length
-    }
-
-    for (const [layer, validCategories] of Object.entries(VALID_CATEGORIES_BY_LAYER)) {
-        const rows = getMultipleRowsByColumn(manifestPath, 'Layer', layer)
-        for (const row of rows) {
-            const category = row['Category'] ?? ''
-            if (category !== '' && !validCategories.includes(category)) violations++
-        }
-    }
-
-    return violations
+    return getViolatingRows(manifestPath).length
 }
 
 const program = new Command()
