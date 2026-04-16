@@ -12,6 +12,7 @@
     "ddd-mcp": "./dist/mcp-server.js",
     "ddd-create-code-manifest": "./dist/tools/code-manifest/main.js",
     "ddd-catalog-code-manifest": "./dist/catalog-manifest-cli.js",
+    "ddd-validate-manifest": "./dist/catalog-manifest-cli.js",
     "ddd-create-wow": "./dist/create-wow-docs-cli.js",
     "ddd-tool": "./dist/cli-tools.js",
     "ddd-run": "./dist/cli-workflow.js"
