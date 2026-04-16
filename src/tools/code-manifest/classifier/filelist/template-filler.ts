@@ -54,6 +54,7 @@ export function writeClassifiedClassListRows(
       row = row.replace(/{{Alias}}/g, alias)
       row = row.replace(/{{Catalogued}}/g, '')
       row = row.replace(/{{Processed}}/g, '')
+      row = row.replace(/{{Review layer}}/g, '')
       row = row.replace(/{{Class}}/g, className)
       row = row.replace(/{{File}}/g, filePath)
 

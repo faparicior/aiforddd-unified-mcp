@@ -43,6 +43,7 @@ function getViolatingRows(manifestPath: string): ViolatingRow[] {
         const rows = getMultipleRowsByColumn(manifestPath, 'Layer', badLayer)
         for (const row of rows) {
             if (row['Possible outsider'] === '✓') continue
+            if (row['Review layer']) continue
             violations.push({
                 identifier: row['Identifier'] ?? '',
                 class: row['Class'] ?? '',
@@ -57,6 +58,7 @@ function getViolatingRows(manifestPath: string): ViolatingRow[] {
         const rows = getMultipleRowsByColumn(manifestPath, 'Layer', layer)
         for (const row of rows) {
             if (row['Possible outsider'] === '✓') continue
+            if (row['Review layer']) continue
             const category = row['Category'] ?? ''
             if (category !== '' && !validCategories.includes(category)) {
                 violations.push({
@@ -107,26 +109,13 @@ ${violationsList}
 
 ## Instructions
 
-For each violation listed above, choose the option that best fits:
+For each violation listed above, mark it for human review by calling \`update_row_by_column\` with:
+- filePath: ${manifestPath}
+- columnName: "Identifier", value: <the identifier>
+- updates: { "Review layer": "✓" }
 
-**Option A — Fix the Layer/Category** (LLM classification mistake):
-1. Determine the correct Layer and Category based on the class name, identifier, and file location.
-   - If the Layer looks like a short form (e.g. "Infrastructure" → "Infrastructure Layer"), apply the suffix.
-   - If the Category is invalid for the Layer, reassign to the closest valid category.
-2. Call \`update_row_by_column\` with:
-   - filePath: ${manifestPath}
-   - columnName: "Identifier", value: <the identifier>
-   - updates: { "Layer": "<correct layer>", "Category": "<correct category>" }
-
-**Option B — Mark as Possible outsider** (class genuinely lives in an unusual layer by architectural intent):
-1. Call \`update_row_by_column\` with:
-   - filePath: ${manifestPath}
-   - columnName: "Identifier", value: <the identifier>
-   - updates: { "Possible outsider": "✓" }
-2. Keep the existing Layer and Category unchanged.
-
-Apply Option A or Option B to ALL ${violatingRows.length} violations. Do not skip any.
-Do NOT modify any other rows or columns.
+Do NOT change the Layer or Category values.
+Mark ALL ${violatingRows.length} rows. Do not skip any.
 `
 }
 

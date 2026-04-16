@@ -8,12 +8,13 @@ export interface ClassEntry {
   alias: string
   catalogued: string
   processed: string
+  reviewLayer: string
   class: string
   file: string
   type: string
   layer: string
   description: string
-  /** Extra columns beyond the 11 standard fields, preserved as-is on re-generation */
+  /** Extra columns beyond the 12 standard fields, preserved as-is on re-generation */
   extraFields?: string[]
 }
 
@@ -96,9 +97,9 @@ export class MarkdownParser {
     // Split by pipe and clean each field
     const fields = line.split('|').map(f => f.trim())
 
-    // Handle tables with Status column (11+ fields) or without (10+ fields)
-    if (fields.length >= 11) {
-      // New format with Status column
+    // Handle tables with Status + Review layer (12+ fields), Status only (11+ fields), or neither (10+ fields)
+    if (fields.length >= 12) {
+      // New format with Status column and Review layer column
       return {
         status: fields[0],
         identifier: fields[1],
@@ -106,6 +107,24 @@ export class MarkdownParser {
         alias: fields[3],
         catalogued: fields[4],
         processed: fields[5],
+        reviewLayer: fields[6],
+        class: fields[7],
+        file: fields[8],
+        type: fields[9],
+        layer: fields[10],
+        description: fields[11],
+        extraFields: fields.slice(12)
+      }
+    } else if (fields.length >= 11) {
+      // Old format with Status column but without Review layer
+      return {
+        status: fields[0],
+        identifier: fields[1],
+        contentHash: fields[2],
+        alias: fields[3],
+        catalogued: fields[4],
+        processed: fields[5],
+        reviewLayer: '',
         class: fields[6],
         file: fields[7],
         type: fields[8],
@@ -114,7 +133,7 @@ export class MarkdownParser {
         extraFields: fields.slice(11)
       }
     } else if (fields.length >= 10) {
-      // Old format without Status column
+      // Very old format without Status column
       return {
         status: '', // Empty status for old format
         identifier: fields[0],
@@ -122,6 +141,7 @@ export class MarkdownParser {
         alias: fields[2],
         catalogued: fields[3],
         processed: fields[4],
+        reviewLayer: '',
         class: fields[5],
         file: fields[6],
         type: fields[7],
@@ -173,6 +193,7 @@ export class HashComparer {
         if (oldEntry) {
           entryCopy.catalogued = oldEntry.catalogued
           entryCopy.processed = oldEntry.processed
+          entryCopy.reviewLayer = oldEntry.reviewLayer
           entryCopy.type = oldEntry.type
           entryCopy.layer = oldEntry.layer
           entryCopy.description = oldEntry.description
@@ -281,12 +302,12 @@ export class HashComparer {
     // Count extra columns from header to know how many cells to emit beyond the 11 base fields
     const headerRow = headerLines[0] || ''
     const columnCount = (headerRow.match(/\|/g) || []).length - 1
-    const baseFields = 11
+    const baseFields = 12
     const extraColumnCount = Math.max(0, columnCount - baseFields)
 
     // Add entries
     for (const entry of entries) {
-      const baseRow = `| ${entry.status} | ${entry.identifier} | ${entry.contentHash} | ${entry.alias} | ${entry.catalogued} | ${entry.processed} | ${entry.class} | ${entry.file} | ${entry.type} | ${entry.layer} | ${entry.description} |`
+      const baseRow = `| ${entry.status} | ${entry.identifier} | ${entry.contentHash} | ${entry.alias} | ${entry.catalogued} | ${entry.processed} | ${entry.reviewLayer} | ${entry.class} | ${entry.file} | ${entry.type} | ${entry.layer} | ${entry.description} |`
 
       // Append extra fields, padding with empty cells if needed
       const extra = entry.extraFields ?? []
